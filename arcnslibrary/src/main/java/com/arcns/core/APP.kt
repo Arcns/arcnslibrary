@@ -4,7 +4,9 @@ import android.app.Application
 import android.content.Context
 import com.arcns.core.util.LocaleUtil
 
-
+/**
+ *
+ */
 class APP {
     companion object {
         /**
