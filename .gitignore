@@ -10,4 +10,4 @@
 gradlew
 *.bat
 *.iml
-*.properties
+local.properties
