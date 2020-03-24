@@ -1,2 +1,2 @@
-include ':app', ':arcnslibrary'
+include ':sample', ':arcnslibrary'
 rootProject.name='Arcns'
