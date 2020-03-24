@@ -18,6 +18,9 @@ buildscript {
 
         // 引入navigation插件库
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.1.0"
+
+        // 引入仓库插件
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
     }
 }
 
