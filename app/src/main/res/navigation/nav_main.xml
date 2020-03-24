@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_main"
+    app:startDestination="@id/fragmentStartupPage">
+
+    <fragment
+        android:id="@+id/fragmentStartupPage"
+        android:name="com.example.arcns.ui.FragmentStartupPage"
+        android:label="FragmentStartupPage">
+        <action
+            android:id="@+id/action_fragmentStartupPage_to_fragmentMain"
+            app:destination="@id/fragmentMain"
+            app:enterAnim="@anim/slide_enter"
+            app:exitAnim="@anim/slide_exit"
+            app:popEnterAnim="@anim/slide_pop_enter"
+            app:popExitAnim="@anim/slide_pop_exit" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentMain"
+        android:name="com.example.arcns.ui.FragmentMain"
+        android:label="FragmentMain" />
+
+</navigation>

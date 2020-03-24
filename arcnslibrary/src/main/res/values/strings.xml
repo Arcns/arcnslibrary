@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Arcns Library</string>
+    <string name="text_map_navigation_item_baidu">百度地图</string>
+    <string name="text_map_navigation_item_gaode">高德地图</string>
+</resources>

@@ -1,0 +1,45 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppThemeBase" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>å
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorControlHighlight">@color/colorRipple</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <!--        <item name="colorBackgroundFloating">@color/colorEditTextInputHint</item>-->
+        <item name="md_corner_radius">@dimen/dp_16</item>
+        <item name="md_color_title">@color/colorPrimaryDark</item>
+        <item name="md_color_content">@color/black</item>
+        <item name="md_color_button_text">@color/colorAccent</item>
+        <item name="md_ripple_color">@color/colorRipple</item>
+
+    </style>
+
+    <style name="AppTheme" parent="AppThemeBase"></style>
+
+    <style name="ThemeSpinner" parent="ThemeOverlay.MaterialComponents.Dark">
+        <item name="colorControlHighlight">@color/colorRipple</item>
+    </style>
+
+
+    <!-- 工具栏 -->
+    <style name="ThemeToolbar" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        <item name="colorControlHighlight">@color/colorRipple</item>
+    </style>
+    <style name="StyleToolbar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:theme">@style/ThemeToolbar</item>
+        <item name="layout_constraintLeft_toLeftOf">parent</item>
+        <item name="layout_constraintTop_toTopOf">parent</item>
+        <item name="titleTextAppearance">@style/StyleToolbarTitleText</item>
+    </style>
+    <style name="StyleToolbarTitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">@dimen/sp_18</item>
+    </style>
+
+</resources>
