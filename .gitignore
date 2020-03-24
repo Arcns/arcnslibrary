@@ -1,9 +1,9 @@
 # Project exclude paths
 /.gradle/
 /.idea/
-/app/build/
-/app/build/intermediates/javac/debug/classes/
-/app/release/
+/sample/build/
+/sample/build/intermediates/javac/debug/classes/
+/sample/release/
 /arcnslibrary/build/
 /arcnslibrary/build/intermediates/javac/debug/classes/
 /arcnslibrary/release/
