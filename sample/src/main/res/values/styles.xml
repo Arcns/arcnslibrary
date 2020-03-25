@@ -8,7 +8,8 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorControlHighlight">@color/colorRipple</item>
         <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowDisablePreview">true</item>
         <!--        <item name="colorBackgroundFloating">@color/colorEditTextInputHint</item>-->
         <item name="md_corner_radius">@dimen/dp_16</item>
         <item name="md_color_title">@color/colorPrimaryDark</item>
