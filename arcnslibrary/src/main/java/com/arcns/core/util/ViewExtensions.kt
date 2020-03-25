@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -14,6 +15,7 @@ import android.text.Spanned
 import android.util.Base64
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
@@ -203,6 +205,19 @@ fun Bitmap.compression(): Bitmap? {
 }
 
 /***********************************系统状态栏操作**************************************/
+
+/**
+ * 设置透明状态栏
+ */
+fun Activity.setupTransparentStatusBar(){
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        window.statusBarColor = Color.TRANSPARENT
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+    }
+    window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+}
 
 // 获取系统状态栏高度
 fun Context.getStatusBarHeight(): Int {

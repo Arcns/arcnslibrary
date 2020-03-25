@@ -7,7 +7,9 @@
 /arcnslibrary/build/
 /arcnslibrary/build/intermediates/javac/debug/classes/
 /arcnslibrary/release/
+build
 gradlew
 *.bat
 *.iml
 local.properties
+
