@@ -27,6 +27,7 @@ import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.datetime.DateTimeCallback
@@ -209,7 +210,7 @@ fun Bitmap.compression(): Bitmap? {
 /**
  * 设置透明状态栏
  */
-fun Activity.setupTransparentStatusBar(){
+fun Activity.setupTransparentStatusBar() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
         window.statusBarColor = Color.TRANSPARENT
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -413,22 +414,37 @@ fun String.log() {
 /**
  * 设置ToolBar为ActionBar，并设置NavController
  */
-fun Fragment.setActionBarAsToolbar(toolbar: View, displayShowTitleEnabled: Boolean = false) {
+fun Fragment.setActionBarAsToolbar(
+    toolbar: View, displayShowTitleEnabled: Boolean = false,
+    isTopLevelDestination: Boolean = false
+) {
     (toolbar as? Toolbar)?.run {
-        setActionBar(this, displayShowTitleEnabled)
+        setActionBar(this, displayShowTitleEnabled, isTopLevelDestination)
     }
 }
 
 /**
  * 设置ToolBar为ActionBar，并设置NavController
  */
-fun Fragment.setActionBar(toolbar: View, displayShowTitleEnabled: Boolean = false) {
+fun Fragment.setActionBar(
+    toolbar: View,
+    displayShowTitleEnabled: Boolean = false,
+    isTopLevelDestination: Boolean = false
+) {
     (activity as? AppCompatActivity)?.apply {
         setSupportActionBar(toolbar as Toolbar)
-        setupActionBarWithNavController(
-            findNavController()
-        )
-        setupActionBarWithNavController(findNavController())
+        if (isTopLevelDestination) {
+            // 设置为顶级页面，actionbar不会有后退按钮
+            setupActionBarWithNavController(
+                findNavController(),
+                AppBarConfiguration.Builder(findNavController().currentDestination?.id ?: return)
+                    .build()
+            )
+        } else {
+            setupActionBarWithNavController(
+                findNavController()
+            )
+        }
         supportActionBar?.setDisplayShowTitleEnabled(displayShowTitleEnabled)
     }
 }

@@ -1,6 +1,8 @@
 package com.arcns.core.util
 
 import android.app.DownloadManager
+import android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+import android.app.NotificationManager
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -15,6 +17,7 @@ import com.arcns.core.APP
 import org.greenrobot.eventbus.EventBus
 import java.io.Serializable
 
+val DOWNLOAD_SAVE_NAME_SUFFIX_APK = ".apk"
 
 data class DownloadTask(
     // 下载地址
@@ -46,10 +49,25 @@ class DownloadUtil(var context: Context) {
     private var downloadManager =
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
+    fun getDownloadTaskStatus(downloadUrl: String): Int? {
+        var existingDownloadId = downloadTasks[downloadUrl]?.downloadId
+            ?: return null
+        var cursor = downloadManager.query(DownloadManager.Query().apply {
+            setFilterById(existingDownloadId)
+        })
+        if (cursor.moveToFirst()) {
+            val state =
+                cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+            cursor.close()
+            return state
+        }
+        return null
+    }
+
     /**
      * 开始下载任务
      */
-    fun startDownloadApk(
+    fun startDownloadTask(
         downloadTask: DownloadTask
     ) {
         // 安卓Q疑似与downloadManager存在bug，暂时调用浏览器直接下载
@@ -62,23 +80,14 @@ class DownloadUtil(var context: Context) {
         // 防止重复提交下载任务
         var existing = run checkAllowDuplicate@{
             if (!downloadTask.isAllowDuplicate) {
-                var existingDownloadId = downloadTasks[downloadTask.downloadUrl]?.downloadId
-                    ?: return@checkAllowDuplicate false
-                var cursor = downloadManager.query(DownloadManager.Query().apply {
-                    setFilterById(existingDownloadId)
-                })
-                if (cursor.moveToFirst()) {
-                    val state =
-                        cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-                    cursor.close()
-                    when (state) {
-                        DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING -> return@checkAllowDuplicate true
-                    }
+                var state = getDownloadTaskStatus(downloadTask.downloadUrl)
+                when (state) {
+                    DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING -> return@checkAllowDuplicate true
                 }
             }
             return@checkAllowDuplicate false
         }
-        if (existing){
+        if (existing) {
             return
         }
 
@@ -120,9 +129,9 @@ class DownloadUtil(var context: Context) {
     }
 
     // 根据id获取下载任务
-    fun getDownloadTaskByID(id:Long): DownloadTask?{
+    fun getDownloadTaskByID(id: Long): DownloadTask? {
         downloadTasks.values.forEach {
-            if(it.downloadId == id){
+            if (it.downloadId == id) {
                 return it
             }
         }
@@ -130,10 +139,11 @@ class DownloadUtil(var context: Context) {
     }
 
     // 发送下载完成事件
-    fun sendDownloadCompleteEvent(id:Long,status:Int) = sendDownloadCompleteEvent(getDownloadTaskByID(id),status)
+    fun sendDownloadCompleteEvent(id: Long, status: Int) =
+        sendDownloadCompleteEvent(getDownloadTaskByID(id), status)
 
     // 发送下载完成事件
-    fun sendDownloadCompleteEvent(downloadTask: DownloadTask?, status:Int) = downloadTask?.run {
+    fun sendDownloadCompleteEvent(downloadTask: DownloadTask?, status: Int) = downloadTask?.run {
         downloadStatus = status
         EventBus.getDefault().post(this)
     }
@@ -162,14 +172,21 @@ class DownloadUtil(var context: Context) {
                     cursor.close()
                     // 获取相应下载任务
                     var downloadTask = getDownloadTaskByID(currentId)
-                    // 安装APK
+                    // 自动安装
                     if (downloadTask?.isAutoOpen == true) {
-                        onInstallApk(context, uri)
+                        if (DOWNLOAD_SAVE_NAME_SUFFIX_APK.equals(
+                                downloadTask.downloadSaveNameSuffix,
+                                true
+                            )
+                        ) {
+                            // 安装APK
+                            onInstallApk(context, uri)
+                        }
                     }
                     // 解除广播接收
                     context?.unregisterReceiver(this)
                     // 发送下载完成事件
-                    sendDownloadCompleteEvent(downloadTask,currentStatus)
+                    sendDownloadCompleteEvent(downloadTask, currentStatus)
                 }
                 DownloadManager.STATUS_FAILED -> { // 下载错误
                     // 关闭游标
@@ -187,7 +204,7 @@ class DownloadUtil(var context: Context) {
                     // 解除广播接收
                     context?.unregisterReceiver(this)
                     // 发送下载完成事件
-                    sendDownloadCompleteEvent(downloadTask,currentStatus)
+                    sendDownloadCompleteEvent(downloadTask, currentStatus)
                 }
             }
         }
@@ -240,7 +257,7 @@ class DownloadService : Service() {
             var downloadTask =
                 intent?.getSerializableExtra(dataNameFordownloadTask) as? DownloadTask
                     ?: return@startDownloadApk
-            downloadUtil.startDownloadApk(downloadTask)
+            downloadUtil.startDownloadTask(downloadTask)
         }
         return super.onStartCommand(intent, flags, startId)
     }

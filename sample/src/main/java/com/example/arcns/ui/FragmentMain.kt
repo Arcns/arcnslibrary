@@ -11,10 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.arcns.core.util.EventObserver
-import com.arcns.core.util.setActionBarAsToolbar
-import com.arcns.core.util.setupOnBackPressed
-import com.arcns.core.util.showDialog
+import com.arcns.core.util.*
 import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.runtime.Permission
 import com.example.arcns.MainActivity
@@ -49,12 +46,7 @@ class FragmentMain : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        setActionBarAsToolbar(toolbar)
-
-        (activity as? MainActivity)?.setupActionBarWithNavController(
-            findNavController(),
-            AppBarConfiguration.Builder(R.id.fragmentMain).build()
-        )
+        setActionBarAsToolbar(toolbar, isTopLevelDestination = true)
 
         setupResult()
 
