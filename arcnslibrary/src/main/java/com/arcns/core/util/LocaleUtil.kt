@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import androidx.core.content.edit
+import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.arcns.core.APP
 import java.util.*
@@ -95,12 +96,12 @@ class LocaleUtil(
     /**
      * 弹出语言选择框
      */
-    fun showLocaleSelector(
+    fun getLocaleSelector(
         activity: Activity,
         title: String? = null,
         autoSave: Boolean = true,
         selection: ((String?) -> Unit)? = null
-    ) {
+    ): MaterialDialog.() -> Unit {
         var currentLocales = getLocales()
         // 获取当前选中的语言
         var currentLocale = getSaveLocale()
@@ -111,9 +112,10 @@ class LocaleUtil(
             }
             eLocale.displayName
         }.toList()
-        // 弹出选择框
-        activity.showDialog {
+        // 弹出框内容
+        val setupDialog: MaterialDialog.() -> Unit = {
             title(text = title)
+            noAutoDismiss()
             listItemsSingleChoice(
                 items = currentItems,
                 initialSelection = currentIndex
@@ -132,6 +134,23 @@ class LocaleUtil(
                 }
             }
         }
+        return setupDialog
+    }
+
+    /**
+     * 弹出语言选择框
+     */
+    fun showLocaleSelector(
+        activity: Activity,
+        title: String? = null,
+        autoSave: Boolean = true,
+        selection: ((String?) -> Unit)? = null
+    ) {
+        activity.showDialog(
+            func = getLocaleSelector(
+                activity, title, autoSave, selection
+            )
+        )
     }
 }
 
@@ -153,7 +172,6 @@ fun Context.setLocale(
         return this
     }
     // 设置语言
-    LOG("set context:"+newLocale.language)
     Locale.setDefault(newLocale)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
         configuration.setLocale(newLocale)
@@ -167,7 +185,6 @@ fun Context.setLocale(
         resources.updateConfiguration(configuration, resources.displayMetrics)
         this
     }
-
 
 
 }
@@ -190,7 +207,7 @@ val Configuration.localeLanguage: String
 /**
  * 应用语言配置（使语言配置修改后能够兼容5.0，6.0等老版本）
  */
-fun Context.applyOverrideConfiguration(overrideConfiguration: Configuration?):Configuration? {
+fun Context.applyOverrideConfiguration(overrideConfiguration: Configuration?): Configuration? {
     if (overrideConfiguration != null) {
         val uiMode = overrideConfiguration.uiMode
         overrideConfiguration.setTo(resources.configuration)

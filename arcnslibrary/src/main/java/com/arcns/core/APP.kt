@@ -20,6 +20,34 @@ class APP {
         fun <T : Application> getInstance(): T? = INSTANCE as? T
 
         /**
+         * APP内容提供者的Authority（默认为包名+.fileprovider）
+         * 注意使用前，必须先在manifests中声明
+         *  <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/file_paths" />
+        </provider>
+         * @xml/file_paths:
+         * <paths>
+        <external-files-path
+        name="external-files-path"
+        path="/." />
+        <cache-path
+        name="cache"
+        path="." />
+        </paths>
+         */
+        var fileProviderAuthority: String? = null
+            set(value) {
+                field = value
+            }
+            get() = field ?: "${INSTANCE.packageName}.fileprovider"
+
+        /**
          * 返回语言工具（按需初始化）
          */
         var localeUtil: LocaleUtil? = null

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItems
 import com.arcns.core.R
 import kotlin.math.atan2
@@ -49,12 +50,12 @@ fun Context.checkMapIsExist(
 /**
  * 打开地图导航选择器
  */
-fun Activity.openMapNavigationSeletor(
+fun Activity.getMapNavigationSeletor(
     latLng: MapLatLng,
     browserMapNavigationTitle: String? = null,
     browserMapNavigationContent: String? = null,
     seletorTitle: String? = null
-) {
+): (MaterialDialog.() -> Unit)? {
     var existMaps = getExistMaps()
     if (existMaps == null || existMaps.size == 0) {
         // 手机没有安装地图应用时，直接打开网页版地图导航
@@ -65,28 +66,47 @@ fun Activity.openMapNavigationSeletor(
         )
     } else if (existMaps.size == 1) {
         // 手机只安装一个地图应用时直接打开导航
-        openMapNavigationSeletor(
+        openMapNavigation(
             latLng, existMaps[0]
         )
     } else {
         // 手机只安装多个地图应用时弹出导航地图应用选择列表
-        showDialog {
+        val setupDialog: MaterialDialog.() -> Unit = {
             if (seletorTitle != null) {
                 title(text = seletorTitle)
             }
             listItems(items = existMaps) { dialog, index, text ->
-                context?.openMapNavigationSeletor(
+                context?.openMapNavigation(
                     latLng, text.toString()
                 )
             }
         }
+        return setupDialog
     }
+    return null
+}
+
+
+/**
+ * 打开地图导航选择器
+ */
+fun Activity.openMapNavigationSeletor(
+    latLng: MapLatLng,
+    browserMapNavigationTitle: String? = null,
+    browserMapNavigationContent: String? = null,
+    seletorTitle: String? = null
+) {
+    showDialog(
+        func = getMapNavigationSeletor(
+            latLng, browserMapNavigationTitle, browserMapNavigationContent, seletorTitle
+        ) ?: return
+    )
 }
 
 /**
  * 根据应用名打开相应导航
  */
-fun Context.openMapNavigationSeletor(latLng: MapLatLng, mapName: String? = null) = when (mapName) {
+fun Context.openMapNavigation(latLng: MapLatLng, mapName: String? = null) = when (mapName) {
     getString(R.string.text_map_navigation_item_baidu) -> openBaiduMapNavigation(latLng)
     getString(R.string.text_map_navigation_item_gaode) -> openGaoDeMapNavigation(latLng)
     else -> Unit

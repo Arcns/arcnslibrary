@@ -2,6 +2,7 @@ package com.arcns.core.util.file;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -21,6 +22,39 @@ public class FileUtil {
             return true;
         else
             return false;
+    }
+
+    /**
+     * 判断文件是否为常见的视频后缀名
+     */
+    public static Boolean isVideoSuffix(String filePath) {
+        return checkFileSuffix(filePath, ".mp4", ".3gp", ".avi", ".wmv", ".swf", ".flv", ".rm", ".ram", ".mpg", ".mpeg", ".mov");
+    }
+
+    /**
+     * 判断文件是否为常见的音频后缀名
+     */
+    public static Boolean isAudioSuffix(String filePath) {
+        return checkFileSuffix(filePath, ".mp3", ".wav", ".cda", ".wma", ".ram", ".mmf", ".amr", ".aac", ".flac");
+    }
+
+    /**
+     * 判断文件是否为常见的图片后缀名
+     */
+    public static Boolean isImageSuffix(String filePath) {
+        return checkFileSuffix(filePath, ".jpg", ".png", ".gif", ".jpeg", ".bmp", ".tif");
+    }
+
+    /**
+     * 检查文件是否为某个后缀名（不区分大小写）
+     */
+    public static Boolean checkFileSuffix(String filePath, String... suffixs) {
+        for (String suffix : suffixs) {
+            if (filePath.toLowerCase().endsWith(suffix.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -434,6 +468,13 @@ public class FileUtil {
         }
         copyFile(fromDirPath, toDirPath);
         removeFile(fromDirPath);
+    }
+
+    /**
+     * 把Uri文件保存到指定地址中
+     */
+    public static boolean saveFileWithUri(Context context, Uri fromUri, String toFilePath) {
+        return saveFileWithUri(context, fromUri, getFileDirectory(toFilePath), getFileName(toFilePath));
     }
 
     /**

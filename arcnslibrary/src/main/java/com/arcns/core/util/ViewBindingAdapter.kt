@@ -1,16 +1,19 @@
 package com.arcns.core.util
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.util.DisplayMetrics
 import android.view.View
+import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -21,7 +24,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.load.DecodeFormat
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.gif.GifDrawable
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.textfield.TextInputLayout
+import com.squareup.picasso.MemoryPolicy
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
+import java.io.File
 
 
 // 设置TextView Drawable的大小
@@ -258,25 +272,79 @@ fun widthSetToAverageScreen(view: View, average: Float) {
 }
 
 /**
- * 加载网络图片
+ * 设置自适应标题，允许在标题hint和内容hint使用不同的两个字符串
  */
 @BindingAdapter(
     value = [
-        "networkUrl",
-        "placeholderUrl",
-        "networkErrorUrl"
+        "setAdaptiveHintTitle",
+        "setAdaptiveHintContent",
+        "setAdaptiveHintValue"
     ],
     requireAll = false
 )
-fun setNetworkUrl(
-    imageView: ImageView,
-    networkUrl: String,
-    placeholderUrl: Drawable?,
-    networkErrorUrl: Drawable?
+fun TextInputLayout.setAdaptiveHint(
+    hintTitle: String,
+    hintContent: String,
+    hintValue: String? = null
 ) {
-    Glide.with(imageView.context).load(networkUrl).placeholder(placeholderUrl)
-        .error(networkErrorUrl).into(imageView)
+    hint =
+        if (hintValue.isNullOrEmpty()) hintContent
+        else hintTitle
+    editText?.onFocusChangeListener = OnFocusChangeListener { v, hasFocus ->
+        hint = if (hasFocus or !editText?.text.isNullOrEmpty()) hintTitle else hintContent
+    }
 }
+
+/**
+ * 加载图片，支持String（path），Int（res）、Uri，file
+ */
+@BindingAdapter(
+    value = [
+        "setImage",
+        "setImagePlaceholderDrawable",
+        "setImageErrorDrawable",
+        "setImageSize",
+        "setImageWidth",
+        "setImageHeight",
+        "setImageCenterInside",
+        "setImageCache",
+        "setImageNoFade",
+        "setImageAsBackground",
+        "setImageHighQualityBitmap",
+        "setImageAsGif"
+    ],
+    requireAll = false
+)
+fun ImageView.setImage(
+    image: Any?,
+    placeholderDrawable: Drawable? = null,
+    errorDrawable: Drawable? = null,
+    size: Float? = null,
+    w: Float? = null,
+    h: Float? = null,
+    centerInside: Boolean? = null, //默认false
+    cache: Boolean? = null, // 默认true
+    noFade: Boolean? = null, //默认为false
+    asBackground: Boolean? = null, //默认为false
+    highQualityBitmap: Boolean? = null, //高质量bitmap，默认为false
+    asGif: Boolean? = null //是否为gif，默认为false
+) {
+    setImageViaGlide(
+        image,
+        placeholderDrawable,
+        errorDrawable,
+        size,
+        w,
+        h,
+        centerInside,
+        cache,
+        noFade,
+        asBackground,
+        highQualityBitmap,
+        asGif
+    )
+}
+
 
 /**
  * 动画显示及隐藏
@@ -356,7 +424,8 @@ fun bindConstraint(
     if (constraintLeftToLeft != null || constraintLeftToRight != null) {
         val startSide = ConstraintSet.LEFT
         val endID = (constraintLeftToLeft ?: constraintLeftToRight)!!.id
-        val endSide = if (constraintLeftToLeft != null) ConstraintSet.LEFT else ConstraintSet.RIGHT
+        val endSide =
+            if (constraintLeftToLeft != null) ConstraintSet.LEFT else ConstraintSet.RIGHT
         constraintSet.connect(view.id, startSide, endID, endSide)
     } else if (clearUnSet) {
         constraintSet.clear(view.id, ConstraintSet.LEFT)
@@ -365,7 +434,8 @@ fun bindConstraint(
     if (constraintTopToTop != null || constraintTopToBottom != null) {
         val startSide = ConstraintSet.TOP
         val endID = (constraintTopToTop ?: constraintTopToBottom)!!.id
-        val endSide = if (constraintTopToTop != null) ConstraintSet.TOP else ConstraintSet.BOTTOM
+        val endSide =
+            if (constraintTopToTop != null) ConstraintSet.TOP else ConstraintSet.BOTTOM
         constraintSet.connect(view.id, startSide, endID, endSide)
     } else if (clearUnSet) {
         constraintSet.clear(view.id, ConstraintSet.TOP)
