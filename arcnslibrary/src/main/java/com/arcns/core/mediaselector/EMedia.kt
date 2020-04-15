@@ -8,7 +8,7 @@ import java.lang.Exception
 
 data class EMedia(
     /**
-     * 媒体文件id
+     * 媒体文件 id
      */
     var id: Long? = null,
     /**
