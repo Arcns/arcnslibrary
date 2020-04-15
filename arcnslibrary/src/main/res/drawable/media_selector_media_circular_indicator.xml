@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:right="@dimen/media_selector_media_circular_indicator_margin"
+        android:top="@dimen/media_selector_media_circular_indicator_margin"
+        android:bottom="@dimen/media_selector_media_circular_indicator_margin"
+        android:left="@dimen/media_selector_media_circular_indicator_margin">
+        <shape android:shape="oval">
+            <solid android:color="@color/media_selector_media_circular_indicator" />
+            <stroke
+                android:width="@dimen/media_selector_media_circular_indicator_border"
+                android:color="@color/media_selector_media_circular_indicator_border" />
+        </shape>
+    </item>
+</layer-list>

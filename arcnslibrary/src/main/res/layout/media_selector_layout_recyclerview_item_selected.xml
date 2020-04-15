@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.arcns.core.mediaselector.MediaSelectorViewModel" />
+
+        <variable
+            name="item"
+            type="com.arcns.core.mediaselector.ESelectedMedia" />
+
+    </data>
+
+    <ImageView
+        android:id="@+id/ivImage"
+        setImage="@{item.media.value}"
+        setImageAsBackground="@{true}"
+        setImageSize="@{@dimen/media_selector_media_size}"
+        android:layout_marginRight="@dimen/media_selector_media_selected_margin_rl"
+        android:layout_marginLeft="@dimen/media_selector_media_selected_margin_rl"
+        android:layout_marginTop="@dimen/media_selector_media_selected_margin_tb"
+        android:layout_marginBottom="@dimen/media_selector_media_selected_margin_tb"
+        android:layout_width="@dimen/media_selector_media_selected_size"
+        android:layout_height="@dimen/media_selector_media_selected_size"
+        android:foreground="?selectableItemBackground"
+        android:onClick="@{()->viewModel.onSetCurrentMedia(item.media)}"
+        android:src="@{item.currentMedia?@drawable/media_selector_media_selected_border:null}"
+        android:transitionName="@{item.media.idToString}" />
+
+</layout>

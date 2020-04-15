@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="media_selector_media_size">60dp</dimen>
+<!--    <dimen name="image_selector_image_details_width">195dp</dimen>-->
+    <dimen name="media_selector_media_details_width">480dp</dimen>
+    <dimen name="media_selector_media_circular_indicator_size">32dp</dimen>
+    <dimen name="media_selector_media_circular_indicator_margin">6dp</dimen>
+    <dimen name="media_selector_media_circular_indicator_border">1.5dp</dimen>
+    <dimen name="media_selector_media_circular_indicator_text">12sp</dimen>
+    <dimen name="media_selector_media_bottom_bar_padding">18dp</dimen>
+    <dimen name="media_selector_media_bottom_bar_text">14sp</dimen>
+    <dimen name="media_selector_media_bottom_bar_text_padding">6dp</dimen>
+    <dimen name="media_selector_media_bottom_bar_height">56dp</dimen>
+    <dimen name="media_selector_media_selected_border">1.5dp</dimen>
+    <dimen name="media_selector_media_selected_size">60dp</dimen>
+    <dimen name="media_selector_media_selected_margin_rl">8dp</dimen>
+    <dimen name="media_selector_media_selected_margin_tb">16dp</dimen>
+    <dimen name="media_selector_media_video_or_audio_icon_height">24dp</dimen>
+    <dimen name="media_selector_media_video_or_audio_icon_margin">6dp</dimen>
+    <dimen name="media_selector_media_video_or_audio_duration">14sp</dimen>
+    <dimen name="media_selector_media_audio_name">10sp</dimen>
+    <dimen name="media_selector_media_audio_name_padding_ltr">6dp</dimen>
+    <dimen name="media_selector_media_audio_name_padding_b">36dp</dimen>
+</resources>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.arcns.core.mediaselector.MediaSelectorViewModel" />
+
+        <variable
+            name="item"
+            type="com.arcns.core.mediaselector.EMedia" />
+
+    </data>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="0.6dp"
+        android:layout_marginBottom="0.6dp">
+
+        <ImageView
+            android:id="@+id/ivImage"
+            setImage="@{item.value}"
+            setImageSize="@{@dimen/media_selector_media_size}"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/media_selector_media_placeholder"
+            android:foreground="?selectableItemBackground"
+            android:onClick="@{()->viewModel.onClickMedia(item)}"
+            android:transitionName="@{item.idToString}"
+            app:layout_constraintDimensionRatio="w,1:1"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <TextView
+            android:paddingTop="@dimen/media_selector_media_audio_name_padding_ltr"
+            android:paddingLeft="@dimen/media_selector_media_audio_name_padding_ltr"
+            android:paddingRight="@{viewModel.isSelector?@dimen/media_selector_media_circular_indicator_size:@dimen/media_selector_media_audio_name_padding_ltr}"
+            android:paddingBottom="@dimen/media_selector_media_audio_name_padding_b"
+            android:textSize="@dimen/media_selector_media_audio_name"
+            android:maxLines="4"
+            android:gravity="center"
+            android:ellipsize="end"
+            android:text="@{item.isAudio?item.nameToString:null}"
+            android:textColor="@color/media_selector_media_circular_indicator_border"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@{viewModel.isSelector?(viewModel.isSelectedMedia(item)?@color/media_selector_media_darken_dark:@color/media_selector_media_darken):@android:color/transparent}"
+            app:layout_constraintBottom_toBottomOf="@id/ivImage"
+            app:layout_constraintLeft_toLeftOf="@id/ivImage"
+            app:layout_constraintRight_toRightOf="@id/ivImage"
+            app:layout_constraintTop_toTopOf="@id/ivImage" />
+
+        <TextView
+            android:id="@+id/tvToggleSelectedMedia"
+            android:layout_width="@dimen/media_selector_media_circular_indicator_size"
+            android:layout_height="@dimen/media_selector_media_circular_indicator_size"
+            android:background="@{viewModel.isSelectedMedia(item)?@drawable/media_selector_media_circular_indicator_selected:@drawable/media_selector_media_circular_indicator}"
+            android:gravity="center"
+            android:text="@{viewModel.getSelectedMediaIndex(item)}"
+            android:textColor="@color/media_selector_media_circular_indicator_text"
+            android:textSize="@dimen/media_selector_media_circular_indicator_text"
+            android:visibility="@{viewModel.isSelector?View.VISIBLE:View.GONE}"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            customDrawableLeft="@{item.isVideo?@drawable/media_selector_media_type_video:@drawable/media_selector_media_type_audio}"
+            customDrawableLeftSize="@{@dimen/media_selector_media_video_or_audio_icon_height}"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/media_selector_media_video_or_audio_icon_margin"
+            android:drawablePadding="@dimen/media_selector_media_video_or_audio_icon_margin"
+            android:gravity="center_vertical"
+            android:text="@{item.durationToString}"
+            android:textColor="@color/media_selector_media_circular_indicator_border"
+            android:textSize="@dimen/media_selector_media_video_or_audio_duration"
+            android:visibility="@{item.isImage?View.GONE:View.VISIBLE}"
+            app:layout_constraintBottom_toBottomOf="@id/ivImage" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

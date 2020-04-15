@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.arcns.core.mediaselector.MediaSelectorViewModel" />
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.viewpager2.widget.ViewPager2
+            bindMediaSelectorDetailsCurrentMedia="@{viewModel.currentMedia}"
+            bindMediaSelectorDetailsCurrentMediaViewModel="@{viewModel}"
+            bindMediaSelectorDetailsData="@{viewModel.detailsMedias}"
+            bindMediaSelectorDetailsViewModel="@{viewModel}"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            bindMediaSelectorDetailsCurrentMedia="@{viewModel.currentMedia}"
+            bindMediaSelectorSelectedData="@{viewModel.selectedMedias}"
+            bindMediaSelectorSelectedViewModel="@{viewModel}"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/media_selector_media_bottom_bar"
+            android:orientation="horizontal"
+            android:visibility="@{(viewModel.detailsIsFullScreen || !viewModel.isSelector)?View.GONE:View.VISIBLE}"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toTopOf="@id/viewBottomBar" />
+
+        <View
+            android:id="@+id/viewBottomBar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/media_selector_media_bottom_bar_height"
+            android:background="@color/media_selector_media_bottom_bar"
+            android:visibility="@{(viewModel.detailsIsFullScreen || !viewModel.isSelector)?View.GONE:View.VISIBLE}"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
+            android:id="@+id/tvToggleSelectedMedia"
+            android:layout_width="@dimen/media_selector_media_circular_indicator_size"
+            android:layout_height="@dimen/media_selector_media_circular_indicator_size"
+            android:background="@{viewModel.isSelectedMedia(viewModel.currentMedia)?@drawable/media_selector_media_circular_indicator_selected:@drawable/media_selector_media_circular_indicator}"
+            android:gravity="center"
+            android:onClick="@{()->viewModel.onToggleSelectedMedia(viewModel.currentMedia)}"
+            android:text="@{viewModel.getSelectedMediaIndex(viewModel.currentMedia)}"
+            android:textColor="@color/media_selector_media_circular_indicator_text"
+            android:textSize="@dimen/media_selector_media_circular_indicator_text"
+            android:visibility="@{(viewModel.detailsIsFullScreen || !viewModel.isSelector)?View.GONE:View.VISIBLE}"
+            app:layout_constraintBottom_toBottomOf="@id/viewBottomBar"
+            app:layout_constraintRight_toLeftOf="@id/tvToggleSelectedMediaTitle"
+            app:layout_constraintTop_toTopOf="@id/viewBottomBar" />
+
+        <TextView
+            android:id="@+id/tvToggleSelectedMediaTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginRight="@dimen/media_selector_media_bottom_bar_padding"
+            android:foreground="?actionBarItemBackground"
+            android:gravity="center"
+            android:onClick="@{()->viewModel.onToggleSelectedMedia(viewModel.currentMedia)}"
+            android:paddingLeft="@dimen/media_selector_media_bottom_bar_text_padding"
+            android:paddingRight="@dimen/media_selector_media_bottom_bar_text_padding"
+            android:text="@string/media_selector_media_bottom_bar_toggle_selected_media"
+            android:textColor="@color/media_selector_media_bottom_bar_text"
+            android:textSize="@dimen/media_selector_media_bottom_bar_text"
+            android:visibility="@{(viewModel.detailsIsFullScreen || !viewModel.isSelector)?View.GONE:View.VISIBLE}"
+            app:layout_constraintBottom_toBottomOf="@id/viewBottomBar"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/viewBottomBar" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="@{viewModel.loadIng?View.VISIBLE:View.GONE}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

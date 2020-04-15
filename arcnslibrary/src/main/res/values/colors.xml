@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="media_selector_media_accent">#00cb5f</color>
+    <color name="media_selector_media_placeholder">#484848</color>
+    <color name="media_selector_media_darken">#15000000</color>
+    <color name="media_selector_media_darken_dark">#75000000</color>
+    <color name="media_selector_media_circular_indicator_border">#fff</color>
+    <color name="media_selector_media_circular_indicator">#45000000</color>
+    <color name="media_selector_media_circular_indicator_selected">@color/media_selector_media_accent</color>
+    <color name="media_selector_media_circular_indicator_text">#fff</color>
+    <color name="media_selector_media_bottom_bar">#B3000000</color>
+    <color name="media_selector_media_bottom_bar_text">#fff</color>
+    <color name="media_selector_media_bottom_bar_disable_text">#95ffffff</color>
+    <color name="media_selector_media_selected_border">@color/media_selector_media_accent</color>
+    <color name="media_selector_media_type_video_or_audio_play_foreground">@color/media_selector_media_accent</color>
+</resources>
