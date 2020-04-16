@@ -1,4 +1,4 @@
-package com.arcns.core.mediaselector
+package com.arcns.core.media.selector
 
 import android.view.LayoutInflater
 import android.view.View

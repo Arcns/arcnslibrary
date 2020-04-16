@@ -433,7 +433,7 @@ fun ImageView.setImageViaPicasso(
     var requestCreator = when (image) {
         is Int -> picasso.load(image)
         is String -> {
-            if (image.startsWith("http://", true) || image.startsWith("https://", true))
+            if (image.isInternetResources)
                 picasso.load(image)
             else
                 picasso.load(File(image))
@@ -525,7 +525,7 @@ fun ImageView.setImageViaGlide(
         is Int -> if (asGif == true) glide.asGif().load(image) else glide.load(image)
         is String -> {
             val checkAsGif = asGif ?: image.endsWith(".gif", true)
-            if (image.startsWith("http://", true) || image.startsWith("https://", true)) {
+            if (image.isInternetResources) {
                 if (checkAsGif) glide.asGif().load(image) else glide.load(image)
             } else {
                 if (checkAsGif) glide.asGif().load(File(image)) else glide.load(File(image))
@@ -694,11 +694,9 @@ fun saveImageAsLocal(
         Glide.with(APP.INSTANCE).asBitmap()
     when (image) {
         is Int -> requestBuilder.load(image)
-        is String -> if (image.startsWith("http://", true) || image.startsWith(
-                "https://",
-                true
-            )
-        ) requestBuilder.load(image) else requestBuilder.load(File(image))
+        is String -> if (image.isInternetResources) requestBuilder.load(image) else requestBuilder.load(
+            File(image)
+        )
         is Uri -> requestBuilder.load(image)
         is File -> requestBuilder.load(image)
         else -> throw java.lang.Exception("iamge type error")
@@ -726,6 +724,13 @@ fun saveImageAsLocal(
 }
 
 /***********************************打开app**************************************/
+fun Context.openAppByPath(path: String, mimeType: String, authority: String? = null) {
+    if (path.isInternetResources) {
+        openAppByUri(Uri.parse(path), mimeType)
+    } else if (authority != null) {
+        openAppByFile(File(path), mimeType, authority)
+    }
+}
 
 fun Context.openAppByUri(uri: Uri, mimeType: String) {
     var intent = Intent(Intent.ACTION_VIEW)
@@ -868,3 +873,12 @@ fun Calendar.copy(): Calendar {
         time = copyTime
     }
 }
+
+/**
+ * 是否为网络资源
+ */
+val String.isInternetResources: Boolean
+    get() = startsWith(
+        "http://",
+        true
+    ) || startsWith("https://", true)

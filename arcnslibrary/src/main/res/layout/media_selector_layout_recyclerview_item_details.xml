@@ -9,11 +9,11 @@
 
         <variable
             name="viewModel"
-            type="com.arcns.core.mediaselector.MediaSelectorViewModel" />
+            type="com.arcns.core.media.selector.MediaSelectorViewModel" />
 
         <variable
             name="item"
-            type="com.arcns.core.mediaselector.EMedia" />
+            type="com.arcns.core.media.selector.EMedia" />
 
     </data>
 

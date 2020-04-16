@@ -1,4 +1,4 @@
-package com.arcns.core.mediaselector
+package com.arcns.core.media.selector
 
 import android.net.Uri
 import com.arcns.core.R
