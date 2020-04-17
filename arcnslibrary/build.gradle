@@ -80,4 +80,5 @@ dependencies {
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     // 波浪动画
     implementation 'com.github.Jay-Goo:WaveLineView:v1.0.4'
+    implementation 'com.github.CarGuo:GSYRecordWave:2.0.1'
 }

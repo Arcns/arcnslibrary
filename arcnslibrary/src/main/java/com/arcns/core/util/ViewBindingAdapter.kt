@@ -539,7 +539,6 @@ fun bindAppBarLayoutAdaptiveScroll(recyclerView: RecyclerView, AppBarLayoutChild
                 bindAppBarLayoutScrollEnabled(AppBarLayoutChildren, true)
             }
         }
-
     })
 }
 

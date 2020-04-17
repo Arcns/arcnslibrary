@@ -10,13 +10,18 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.arcns.core.APP
 import com.arcns.core.util.fileProviderAuthority
+import com.arcns.core.media.selector.EMedia
 import java.io.File
 
 const val MEDIA_MIME_TYPE_PREFIX_IMAGE = "image"
 const val MEDIA_MIME_TYPE_PREFIX_VIDEO = "video"
 const val MEDIA_MIME_TYPE_PREFIX_AUDIO = "audio"
 
-fun getMediasFromMediaStore(vararg mediaQuerys: EMediaQuery = arrayOf(EMediaQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI))): ArrayList<EMedia> {
+fun getMediasFromMediaStore(vararg mediaQuerys: EMediaQuery = arrayOf(
+    com.arcns.core.media.selector.EMediaQuery(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    )
+)): ArrayList<EMedia> {
     var medias = ArrayList<EMedia>()
     if (mediaQuerys.isEmpty()) {
         return medias
@@ -204,6 +209,9 @@ fun getRandomPhotoCacheFilePath(suffixName: String = ".jpg"): String =
     getRandomCacheFilePath(suffixName)
 
 fun getRandomVideoCacheFilePath(suffixName: String = ".mp4"): String =
+    getRandomCacheFilePath(suffixName)
+
+fun getRandomAudioCacheFilePath(suffixName: String = ".mp3"): String =
     getRandomCacheFilePath(suffixName)
 
 fun getRandomCacheFilePath(suffixName: String): String =
