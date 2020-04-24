@@ -10,18 +10,19 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.arcns.core.APP
 import com.arcns.core.util.fileProviderAuthority
-import com.arcns.core.media.selector.EMedia
 import java.io.File
 
 const val MEDIA_MIME_TYPE_PREFIX_IMAGE = "image"
 const val MEDIA_MIME_TYPE_PREFIX_VIDEO = "video"
 const val MEDIA_MIME_TYPE_PREFIX_AUDIO = "audio"
 
-fun getMediasFromMediaStore(vararg mediaQuerys: EMediaQuery = arrayOf(
-    com.arcns.core.media.selector.EMediaQuery(
-        MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+fun getMediasFromMediaStore(
+    vararg mediaQuerys: EMediaQuery = arrayOf(
+        com.arcns.core.media.selector.EMediaQuery(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        )
     )
-)): ArrayList<EMedia> {
+): ArrayList<EMedia> {
     var medias = ArrayList<EMedia>()
     if (mediaQuerys.isEmpty()) {
         return medias
@@ -96,7 +97,7 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
 
 
 typealias PhtotoListener = (String?) -> Unit
-typealias PhtotoUriListener = (Uri?) -> Unit
+typealias FileUriListener = (Uri?) -> Unit
 
 /**
  * 打开系统相机拍照和打开系统相册选择相片的工具类
@@ -107,8 +108,27 @@ class MediaUtil(var fragment: Fragment) {
     private val requestCodeForImageCapture: Int = 101
     private val requestCodeForPhotoAlbum: Int = 102
     private val requestCodeForVideoCapture: Int = 103
+    private val requestCodeForFileSelector: Int = 104
     private var phtotoListener: PhtotoListener? = null
-    private var phtotoUriListener: PhtotoUriListener? = null
+    private var phtotoUriListener: FileUriListener? = null
+    private var fileUriListener: FileUriListener? = null
+
+    /**
+     * 打开SAF文件选择器
+     */
+    fun onFileSelector(type: String = "*/*", fileUriListener: FileUriListener? = null) {
+        this.fileUriListener = fileUriListener
+        // 启动一个展示所有匹配到的document provider的选择器
+        var intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        // 设置仅可打开过滤类型的文件
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        // 设置过滤类型
+        intent.type = type
+        fragment.startActivityForResult(
+            intent,
+            requestCodeForFileSelector
+        )
+    }
 
     /**
      * 打开系统相机拍照
@@ -175,7 +195,7 @@ class MediaUtil(var fragment: Fragment) {
     /**
      * 打开系统相册选择相片
      */
-    fun onPhotoAlbum(phtotoUriListener: PhtotoUriListener? = null) {
+    fun onPhotoAlbum(phtotoUriListener: FileUriListener? = null) {
         this.captureSaveFilePath = null
         this.phtotoUriListener = phtotoUriListener
         fragment.startActivityForResult(Intent(Intent.ACTION_PICK).apply {
@@ -198,6 +218,9 @@ class MediaUtil(var fragment: Fragment) {
             requestCodeForPhotoAlbum -> {
                 phtotoUriListener?.invoke(data?.data)
                 return true
+            }
+            requestCodeForFileSelector -> {
+                fileUriListener?.invoke(data?.data)
             }
         }
         return false

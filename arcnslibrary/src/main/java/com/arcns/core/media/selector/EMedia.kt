@@ -53,6 +53,11 @@ data class EMedia(
     var saveAsException: Exception? = null
 ) {
     /**
+     * 附加信息
+     */
+    var tag: String? = null
+
+    /**
      * 是否选中
      */
     var isSelected = false

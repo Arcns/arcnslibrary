@@ -136,6 +136,8 @@ class MediaSelectorViewModel : ViewModel() {
         }
     }
 
+    var mediaStoreMediaQuerys:List<EMediaQuery>? = null
+
     /**
      * 初始化
      */
@@ -173,6 +175,7 @@ class MediaSelectorViewModel : ViewModel() {
                 }
             }
         } else if (isSetupFromMediaStore) {
+            mediaStoreMediaQuerys = setupFromMediaStoreMediaQuerys.toList()
             //初始化媒体库里的文件（注意需要先获取READ_EXTERNAL_STORAGE权限）
             viewModelScope.async(Dispatchers.IO) {
                 _loadIng.postValue(true)
@@ -196,6 +199,7 @@ class MediaSelectorViewModel : ViewModel() {
         }
         _isOnlyDetails.value = isOnlyPreview
         _detailsIsPreview.value = false
+        _detailsIsFullScreen.value = false
         if (saveAsOption != null) {
             _saveAsOption.value = saveAsOption
         } else if (_saveAsOption.value == null) {

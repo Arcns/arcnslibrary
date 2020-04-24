@@ -140,6 +140,11 @@ val String.html: Spanned
         Html.fromHtml(this)
     }
 
+fun String.colorHtmlToString(colorRes: Int): String =
+    "<font color='${String.format("#%06X", 0xFFFFFF and colorRes.color)}'>$this</font>"
+
+fun String.colorHtml(color: Int): Spanned = colorHtmlToString(color).html
+
 /***********************************键盘显示隐藏**************************************/
 
 // 隐藏键盘
