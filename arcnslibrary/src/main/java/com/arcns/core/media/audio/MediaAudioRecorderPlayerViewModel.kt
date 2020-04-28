@@ -1,6 +1,7 @@
 package com.arcns.core.media.audio
 
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Handler
 import android.os.Message
 import androidx.lifecycle.*
@@ -9,7 +10,6 @@ import com.arcns.core.media.selector.getRandomAudioCacheFilePath
 import com.arcns.core.util.Event
 import com.arcns.core.util.LOG
 import com.czt.mp3recorder.MP3Recorder
-import com.shuyu.waveview.AudioPlayer
 import kotlinx.coroutines.*
 import java.io.File
 import java.text.SimpleDateFormat
@@ -71,7 +71,7 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
         value = MediaAudioPlayerState.None
     }
     var playerState: LiveData<MediaAudioPlayerState> = _playerState
-    private var audioPlayer: AudioPlayer? = null
+    private var audioPlayer: MediaAudioPlayer? = null
     private var playerPath = MutableLiveData<String>()
 
     // 显示的时间
@@ -288,7 +288,7 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
                 _loading.postValue(true)
                 var mediaPlayer = MediaPlayer()
                 val duration = try {
-                    mediaPlayer.setDataSource(path);
+                    mediaPlayer.setDataSource(APP.INSTANCE, Uri.parse(path));
                     mediaPlayer.prepare()
                     mediaPlayer.duration
                 } catch (e: java.lang.Exception) {
@@ -311,27 +311,32 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
         if (audioPlayer != null) {
             return
         }
-        audioPlayer = AudioPlayer(APP.INSTANCE, object : Handler() {
+        audioPlayer = MediaAudioPlayer(APP.INSTANCE, object : Handler() {
             override fun handleMessage(msg: Message) {
                 super.handleMessage(msg)
                 when (msg.what) {
                     // 更新时间
-                    AudioPlayer.HANDLER_CUR_TIME -> {
+                    MediaAudioPlayer.HANDLER_CUR_TIME -> {
                         playerCurrent.value = (msg.obj as? Int ?: 0).toLong()
                     }
                     // 播放结束
-                    AudioPlayer.HANDLER_COMPLETE -> finishPlayer()
+                    MediaAudioPlayer.HANDLER_COMPLETE -> finishPlayer()
                     // 播放开始
-                    AudioPlayer.HANDLER_PREPARED -> {
+                    MediaAudioPlayer.HANDLER_PREPARED -> {
                         playerCurrent.value = 0
                         playerDuration.value = (msg.obj as? Int ?: 0).toLong()
                     }
                     // 播放错误
-                    AudioPlayer.HANDLER_ERROR -> failedPlayer()
+                    MediaAudioPlayer.HANDLER_ERROR -> failedPlayer()
                 }
             }
         })
-        if (audioPlayer?.playUrl(playerPath.value ?: return) == 100) {
+        if (audioPlayer?.playBySetDataSource {
+                it?.setDataSource(
+                    APP.INSTANCE,
+                    Uri.parse(playerPath.value)
+                )
+            } == 100) {
             _playerState.value = MediaAudioPlayerState.Playing
             // 启动动画
             _eventWaveLineAnim.value = Event(true)

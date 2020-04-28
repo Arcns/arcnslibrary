@@ -25,7 +25,7 @@
 
         <ImageView
             android:id="@+id/ivImage"
-            setImage="@{item.value}"
+            setImage="@{item.isImage||item.isVideo?item.value:null}"
             setImageSize="@{@dimen/media_selector_media_size}"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -38,19 +38,17 @@
 
 
         <TextView
-            android:paddingTop="@dimen/media_selector_media_audio_name_padding_ltr"
-            android:paddingLeft="@dimen/media_selector_media_audio_name_padding_ltr"
-            android:paddingRight="@{viewModel.isSelector?@dimen/media_selector_media_circular_indicator_size:@dimen/media_selector_media_audio_name_padding_ltr}"
-            android:paddingBottom="@dimen/media_selector_media_audio_name_padding_b"
-            android:textSize="@dimen/media_selector_media_audio_name"
-            android:maxLines="4"
-            android:gravity="center"
-            android:ellipsize="end"
-            android:text="@{item.isAudio?item.nameToString:null}"
-            android:textColor="@color/media_selector_media_circular_indicator_border"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@{viewModel.isSelector?(viewModel.isSelectedMedia(item)?@color/media_selector_media_darken_dark:@color/media_selector_media_darken):@android:color/transparent}"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:padding="@dimen/media_selector_media_suffix_padding"
+            android:singleLine="true"
+            android:text="@{(item.isImage||item.isVideo)?null:item.suffix}"
+            android:textColor="@color/media_selector_media_accent"
+            android:textSize="@dimen/media_selector_media_suffix"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@id/ivImage"
             app:layout_constraintLeft_toLeftOf="@id/ivImage"
             app:layout_constraintRight_toRightOf="@id/ivImage"
@@ -70,16 +68,16 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            customDrawableLeft="@{item.isVideo?@drawable/media_selector_media_type_video:@drawable/media_selector_media_type_audio}"
-            customDrawableLeftSize="@{@dimen/media_selector_media_video_or_audio_icon_height}"
+            customDrawableLeft="@{item.isVideo?@drawable/media_selector_media_type_video:(item.isAudio?@drawable/media_selector_media_type_audio:@drawable/media_selector_media_type_file)}"
+            customDrawableLeftSize="@{@dimen/media_selector_media_icon_size}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/media_selector_media_video_or_audio_icon_margin"
-            android:drawablePadding="@dimen/media_selector_media_video_or_audio_icon_margin"
+            android:layout_margin="@dimen/media_selector_media_icon_margin"
+            android:drawablePadding="@dimen/media_selector_media_icon_margin"
             android:gravity="center_vertical"
             android:text="@{item.durationToString}"
             android:textColor="@color/media_selector_media_circular_indicator_border"
-            android:textSize="@dimen/media_selector_media_video_or_audio_duration"
+            android:textSize="@dimen/media_selector_media_play_duration"
             android:visibility="@{item.isImage?View.GONE:View.VISIBLE}"
             app:layout_constraintBottom_toBottomOf="@id/ivImage" />
 

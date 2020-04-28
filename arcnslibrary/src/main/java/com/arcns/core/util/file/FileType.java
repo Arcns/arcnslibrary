@@ -1,5 +1,8 @@
 package com.arcns.core.util.file;
 
+/**
+ * 文件真实类型枚举
+ */
 public enum FileType {
 
     /** JPEG */

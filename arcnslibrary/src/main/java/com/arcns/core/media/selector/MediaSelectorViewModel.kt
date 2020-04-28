@@ -104,7 +104,7 @@ class MediaSelectorViewModel : ViewModel() {
     private var _eventClickMedia = MutableLiveData<Event<EMedia>>()
     var eventClickMedia: LiveData<Event<EMedia>> = _eventClickMedia
 
-    // 点击预览事件
+    // 点击预览事件（点击左下角预览按钮）
     private var _eventClickPreview = MutableLiveData<Event<Unit>>()
     var eventClickPreview: LiveData<Event<Unit>> = _eventClickPreview
 
@@ -136,7 +136,11 @@ class MediaSelectorViewModel : ViewModel() {
         }
     }
 
-    var mediaStoreMediaQuerys:List<EMediaQuery>? = null
+    // 媒体库查询内容
+    var mediaStoreMediaQuerys: List<EMediaQuery>? = null
+
+    // 详情页中，点击打开文件时的回调事件，此变量为空或返回false时使用默认的打开方式（打开对应的app），返回true时表示由使用者自行使用打开方式
+    var onDetailsFileClickOpenApp: ((item: EMedia) -> Boolean)? = null
 
     /**
      * 初始化
@@ -149,7 +153,8 @@ class MediaSelectorViewModel : ViewModel() {
         currentMedia: Any? = null,
         isOnlyPreview: Boolean = false,
         saveAsOption: EMediaSaveAsOption? = null,
-        vararg setupFromMediaStoreMediaQuerys: EMediaQuery = arrayOf(EMediaQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
+        setupFromMediaStoreMediaQuerys: Array<EMediaQuery> = arrayOf(EMediaQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)),
+        onDetailsFileClickOpenApp: ((item: EMedia) -> Boolean)? = null
     ) {
         if (allMedias.value != null) {
             return
@@ -197,6 +202,7 @@ class MediaSelectorViewModel : ViewModel() {
                 }
             }
         }
+        this.onDetailsFileClickOpenApp = onDetailsFileClickOpenApp
         _isOnlyDetails.value = isOnlyPreview
         _detailsIsPreview.value = false
         _detailsIsFullScreen.value = false

@@ -12,9 +12,6 @@ import com.arcns.core.APP
 import com.arcns.core.util.fileProviderAuthority
 import java.io.File
 
-const val MEDIA_MIME_TYPE_PREFIX_IMAGE = "image"
-const val MEDIA_MIME_TYPE_PREFIX_VIDEO = "video"
-const val MEDIA_MIME_TYPE_PREFIX_AUDIO = "audio"
 
 fun getMediasFromMediaStore(
     vararg mediaQuerys: EMediaQuery = arrayOf(

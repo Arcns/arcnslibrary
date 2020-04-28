@@ -19,6 +19,7 @@ import com.afollestad.materialdialogs.customview.customView
 import com.arcns.core.APP
 import com.arcns.core.databinding.MediaAudioRecorderPlayerLayoutDefaultBinding
 import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemDetailsBinding
+import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemDetailsNoPreviewBinding
 import com.arcns.core.media.audio.MediaAudioRecorderPlayerViewModel
 import com.arcns.core.util.*
 
@@ -28,29 +29,41 @@ class MediaSelectorDetailsAdapter(val viewModel: MediaSelectorViewModel) :
         diffCallback
     ) {
 
-    val IMAGE = 1
+    val HAS_PREVIEW = 1
+    val NO_PREVIEW = 2
 
-    override fun getItemViewType(position: Int): Int {
-        return IMAGE
-    }
+    override fun getItemViewType(position: Int): Int =
+        if (getItem(position).isImage || getItem(position).isVideo) HAS_PREVIEW else NO_PREVIEW
 
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): RecyclerView.ViewHolder = MediaSelectorDetailsViewHolder(
-        MediaSelectorLayoutRecyclerviewItemDetailsBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        ).apply {
-            viewModel = this@MediaSelectorDetailsAdapter.viewModel
-        }
-    )
+    ): RecyclerView.ViewHolder = when (viewType) {
+        HAS_PREVIEW -> MediaSelectorDetailsViewHolder(
+            MediaSelectorLayoutRecyclerviewItemDetailsBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            ).apply {
+                viewModel = this@MediaSelectorDetailsAdapter.viewModel
+            }
+        )
+        else -> MediaSelectorDetailsNoPreviewViewHolder(
+            MediaSelectorLayoutRecyclerviewItemDetailsNoPreviewBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            ).apply {
+                viewModel = this@MediaSelectorDetailsAdapter.viewModel
+            }
+        )
+    }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is MediaSelectorDetailsViewHolder -> holder.bindTo(getItem(position))
+            is MediaSelectorDetailsNoPreviewViewHolder -> holder.bindTo(getItem(position))
         }
     }
 
@@ -67,6 +80,15 @@ class MediaSelectorDetailsAdapter(val viewModel: MediaSelectorViewModel) :
 
 class MediaSelectorDetailsViewHolder(
     var binding: MediaSelectorLayoutRecyclerviewItemDetailsBinding
+) : RecyclerView.ViewHolder(binding.root) {
+
+    fun bindTo(item: EMedia) {
+        binding.item = item
+    }
+}
+
+class MediaSelectorDetailsNoPreviewViewHolder(
+    var binding: MediaSelectorLayoutRecyclerviewItemDetailsNoPreviewBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bindTo(item: EMedia) {
@@ -132,22 +154,31 @@ fun bindMediaSelectorDetailsCurrentMedia(
 /**
  * 设置点击控件打开相应媒体文件对应的app
  */
-@BindingAdapter("bindVideoOrAudioClickOpenApp")
-fun bindVideoOrAudioClickOpenApp(
+@BindingAdapter(
+    value = [
+        "bindFileClickOpenApp",
+        "bindFileClickOpenAppViewModel"
+    ],
+    requireAll = true
+)
+fun bindFileClickOpenApp(
     view: View,
-    currentMedia: EMedia
+    currentMedia: EMedia,
+    viewModel: MediaSelectorViewModel
 ) {
     view.setOnClickListener {
-        when (currentMedia.value) {
-            is Uri -> view.context.openAppByUri(
-                currentMedia.value,
-                currentMedia.mimeTypeIfNullGetOfSuffix
-            )
-            is String -> view.context.openAppByPath(
-                currentMedia.value,
-                currentMedia.mimeTypeIfNullGetOfSuffix,
-                APP.fileProviderAuthority ?: return@setOnClickListener
-            )
+        if (viewModel.onDetailsFileClickOpenApp?.invoke(currentMedia) != true) {
+            when (currentMedia.value) {
+                is Uri -> view.context.openAppByUri(
+                    currentMedia.value,
+                    currentMedia.mimeTypeIfNullGetOfSuffix
+                )
+                is String -> view.context.openAppByPath(
+                    currentMedia.value,
+                    currentMedia.mimeTypeIfNullGetOfSuffix,
+                    APP.fileProviderAuthority ?: return@setOnClickListener
+                )
+            }
         }
     }
 }

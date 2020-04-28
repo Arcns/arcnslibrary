@@ -3,7 +3,7 @@ package com.arcns.core.media.selector
 import android.net.Uri
 import com.arcns.core.R
 import com.arcns.core.util.dimen
-import com.arcns.core.util.file.FileUtil
+import com.arcns.core.util.file.*
 import java.lang.Exception
 
 data class EMedia(
@@ -70,12 +70,12 @@ data class EMedia(
     /**
      * 文件名
      */
-    val nameToString: String get() = name ?: FileUtil.getFileName(path ?: "")
+    val nameToString: String get() = name ?: FileUtil.getFileName(path)
 
     /**
      * 文件后缀名
      */
-    val suffix: String get() = FileUtil.getFileSuffix(name) ?: FileUtil.getFileNameNotSuffix(path)
+    val suffix: String get() = FileUtil.getFileSuffix(name ?: path)
 
     /**
      * 文件值 uri优先于path
@@ -91,8 +91,9 @@ data class EMedia(
     /**
      * 持续时间，格式为 分:秒
      */
-    val durationToString: String
+    val durationToString: String?
         get() {
+            if (!isVideo && !isAudio) return null
             if (duration == null) return "--:--"
             val totalSeconds = duration!! / 1000
             return "${totalSeconds / 60}:" + (totalSeconds % 60).let {
@@ -107,9 +108,9 @@ data class EMedia(
         get() {
             if (mimeType == null) {
                 val value = name ?: path ?: return false
-                return FileUtil.isImageSuffix(value)
+                return value.isImageMimeType
             }
-            return mimeType?.startsWith(MEDIA_MIME_TYPE_PREFIX_IMAGE, true) ?: false
+            return mimeType?.startsWith(MIME_TYPE_PREFIX_IMAGE, true) ?: false
         }
 
     /**
@@ -119,9 +120,9 @@ data class EMedia(
         get() {
             if (mimeType == null) {
                 val value = name ?: path ?: return false
-                return FileUtil.isVideoSuffix(value)
+                return value.isVideoMimeType
             }
-            return mimeType?.startsWith(MEDIA_MIME_TYPE_PREFIX_VIDEO, true) ?: false
+            return mimeType?.startsWith(MIME_TYPE_PREFIX_VIDEO, true) ?: false
         }
 
     /**
@@ -131,18 +132,18 @@ data class EMedia(
         get() {
             if (mimeType == null) {
                 val value = name ?: path ?: return false
-                return FileUtil.isAudioSuffix(value)
+                return value.isAudioMimeType
             }
-            return mimeType?.startsWith(MEDIA_MIME_TYPE_PREFIX_AUDIO, true) ?: false
+            return mimeType?.startsWith(MIME_TYPE_PREFIX_AUDIO, true) ?: false
         }
 
     /**
      * 获取媒体文件的MimeType，如果为空则根据后缀名来获取MimeType
      */
     val mimeTypeIfNullGetOfSuffix: String
-        get() = mimeType ?: if (isImage) "$MEDIA_MIME_TYPE_PREFIX_IMAGE/*"
-        else if (isVideo) "$MEDIA_MIME_TYPE_PREFIX_VIDEO/*"
-        else if (isAudio) "$MEDIA_MIME_TYPE_PREFIX_AUDIO/*"
+        get() = mimeType ?: if (isImage) "$MIME_TYPE_PREFIX_IMAGE/*"
+        else if (isVideo) "$MIME_TYPE_PREFIX_VIDEO/*"
+        else if (isAudio) "$MIME_TYPE_PREFIX_AUDIO/*"
         else "*/*"
 }
 

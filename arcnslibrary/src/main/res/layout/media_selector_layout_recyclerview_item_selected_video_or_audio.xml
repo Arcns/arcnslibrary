@@ -18,13 +18,13 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:background="@color/media_selector_media_placeholder"
         android:layout_width="@dimen/media_selector_media_selected_size"
         android:layout_height="@dimen/media_selector_media_selected_size"
         android:layout_marginLeft="@dimen/media_selector_media_selected_margin_rl"
         android:layout_marginTop="@dimen/media_selector_media_selected_margin_tb"
         android:layout_marginRight="@dimen/media_selector_media_selected_margin_rl"
-        android:layout_marginBottom="@dimen/media_selector_media_selected_margin_tb">
+        android:layout_marginBottom="@dimen/media_selector_media_selected_margin_tb"
+        android:background="@color/media_selector_media_placeholder2">
 
         <ImageView
             android:id="@+id/ivImage"
@@ -38,11 +38,10 @@
             android:src="@{item.currentMedia?@drawable/media_selector_media_selected_border:null}"
             android:transitionName="@{item.media.idToString}" />
 
-        <ImageView
+        <TextView
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:scaleType="fitXY"
-            android:src="@{item.media.isVideo?@drawable/media_selector_media_type_video:@drawable/media_selector_media_type_audio}"
+            android:background="@{item.media.isVideo?@drawable/media_selector_media_type_video:(item.media.isAudio?@drawable/media_selector_media_type_audio:@drawable/media_selector_media_type_file)}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="w,1:1"
             app:layout_constraintLeft_toLeftOf="parent"

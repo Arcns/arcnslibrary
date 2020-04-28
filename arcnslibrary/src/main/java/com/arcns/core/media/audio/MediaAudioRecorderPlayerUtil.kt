@@ -7,6 +7,7 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.BindingAdapter
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.*
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
@@ -19,7 +20,7 @@ import com.arcns.core.util.showDialog
 class MediaAudioRecorderPlayerUtil {
 
     // 宿主
-    private var activity: AppCompatActivity? = null
+    private var activity: FragmentActivity? = null
     private var fragment: Fragment? = null
 
     // 生命周期
@@ -31,7 +32,7 @@ class MediaAudioRecorderPlayerUtil {
     private var binding: MediaAudioRecorderPlayerLayoutDefaultBinding? = null
     private var dialog: MaterialDialog? = null
 
-    constructor(activity: AppCompatActivity) {
+    constructor(activity: FragmentActivity) {
         this.activity = activity
         viewModel = ViewModelProvider(activity).get(MediaAudioRecorderPlayerViewModel::class.java)
         setupEvent()

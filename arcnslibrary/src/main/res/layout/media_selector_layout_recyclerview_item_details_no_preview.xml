@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.arcns.core.media.selector.MediaSelectorViewModel" />
+
+        <variable
+            name="item"
+            type="com.arcns.core.media.selector.EMedia" />
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:onClick="@{()->viewModel.onToggleDetailsFullScreen()}">
+
+        <View
+            android:id="@+id/viewLayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="w,1:1"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <TextView
+            android:id="@+id/tvName"
+            customDrawableTop="@{item.isAudio?@drawable/media_selector_media_type_audio:@drawable/media_selector_media_type_file}"
+            customDrawableTopSize="@{@dimen/media_selector_media_details_icon_size}"
+            customDrawableTopTint="@{@color/media_selector_media_details_foreground}"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="@dimen/media_selector_media_details_no_preview_padding_tb"
+            android:gravity="center_horizontal|top"
+            android:maxLines="5"
+            android:paddingLeft="@dimen/media_selector_media_details_no_preview_padding_rl"
+            android:paddingTop="@dimen/media_selector_media_details_no_preview_padding_tb"
+            android:paddingRight="@dimen/media_selector_media_details_no_preview_padding_rl"
+            android:paddingBottom="@dimen/media_selector_media_details_no_preview_padding_tb"
+            android:text="@{item.nameToString}"
+            android:textColor="@color/media_selector_media_details_foreground"
+            android:textSize="@dimen/media_selector_media_details_name"
+            app:layout_constraintTop_toTopOf="@id/viewLayout" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingLeft="@dimen/media_selector_media_details_no_preview_padding_rl"
+            android:paddingRight="@dimen/media_selector_media_details_no_preview_padding_rl"
+            android:textColor="@color/media_selector_media_details_foreground"
+            android:textSize="@dimen/media_selector_media_details_extra"
+            app:layout_constraintTop_toBottomOf="@id/tvName" />
+
+
+        <TextView
+            bindFileClickOpenApp="@{item}"
+            bindFileClickOpenAppViewModel="@{viewModel}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/media_selector_media_details_no_preview_padding_tb"
+            android:background="@drawable/media_selector_media_button"
+            android:paddingLeft="@dimen/media_selector_media_details_no_preview_padding_rl"
+            android:paddingTop="@dimen/media_selector_media_details_no_preview_padding_tb"
+            android:paddingRight="@dimen/media_selector_media_details_no_preview_padding_rl"
+            android:paddingBottom="@dimen/media_selector_media_details_no_preview_padding_tb"
+            android:text="@string/media_selector_media_button"
+            android:textColor="@color/media_selector_media_button_foreground"
+            android:textSize="@dimen/media_selector_media_button"
+            app:layout_constraintBottom_toBottomOf="@id/viewLayout"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

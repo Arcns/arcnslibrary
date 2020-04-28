@@ -15,10 +15,16 @@
     <dimen name="media_selector_media_selected_size">60dp</dimen>
     <dimen name="media_selector_media_selected_margin_rl">8dp</dimen>
     <dimen name="media_selector_media_selected_margin_tb">16dp</dimen>
-    <dimen name="media_selector_media_video_or_audio_icon_height">24dp</dimen>
-    <dimen name="media_selector_media_video_or_audio_icon_margin">6dp</dimen>
-    <dimen name="media_selector_media_video_or_audio_duration">14sp</dimen>
-    <dimen name="media_selector_media_audio_name">10sp</dimen>
-    <dimen name="media_selector_media_audio_name_padding_ltr">6dp</dimen>
-    <dimen name="media_selector_media_audio_name_padding_b">36dp</dimen>
+    <dimen name="media_selector_media_icon_size">24dp</dimen>
+    <dimen name="media_selector_media_icon_margin">6dp</dimen>
+    <dimen name="media_selector_media_play_duration">14sp</dimen>
+    <dimen name="media_selector_media_suffix">24sp</dimen>
+    <dimen name="media_selector_media_suffix_padding">6dp</dimen>
+    <dimen name="media_selector_media_details_icon_size">56dp</dimen>
+    <dimen name="media_selector_media_details_name">22sp</dimen>
+    <dimen name="media_selector_media_details_extra">14sp</dimen>
+    <dimen name="media_selector_media_details_no_preview_padding_rl">26dp</dimen>
+    <dimen name="media_selector_media_details_no_preview_padding_tb">16dp</dimen>
+    <dimen name="media_selector_media_button_radius">46dp</dimen>
+    <dimen name="media_selector_media_button">14sp</dimen>
 </resources>

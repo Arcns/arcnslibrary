@@ -23,6 +23,7 @@ import android.view.animation.Animation
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -38,13 +39,14 @@ import com.afollestad.materialdialogs.DialogBehavior
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.Companion.DEFAULT_BEHAVIOR
 import com.arcns.core.APP
+import com.arcns.core.R
+import com.arcns.core.util.file.MIME_TYPE_APPLICATION_JS
+import com.arcns.core.util.file.mimeType
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.model.GlideUrl
-import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
-import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -729,7 +731,11 @@ fun saveImageAsLocal(
 }
 
 /***********************************打开app**************************************/
-fun Context.openAppByPath(path: String, mimeType: String, authority: String? = null) {
+fun Context.openAppByPath(
+    path: String,
+    mimeType: String = path.mimeType,
+    authority: String? = null
+) {
     if (path.isInternetResources) {
         openAppByUri(Uri.parse(path), mimeType)
     } else if (authority != null) {
@@ -740,11 +746,20 @@ fun Context.openAppByPath(path: String, mimeType: String, authority: String? = n
 fun Context.openAppByUri(uri: Uri, mimeType: String) {
     var intent = Intent(Intent.ACTION_VIEW)
     intent.setDataAndType(uri, mimeType)
+    if (intent.resolveActivity(packageManager) == null) {
+        Toast.makeText(this, R.string.text_not_find_open_app_by_mime_type.string, Toast.LENGTH_LONG)
+            .show()
+        return
+    }
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     startActivity(intent)
 }
 
-fun Context.openAppByFile(file: File, mimeType: String, authority: String) {
+fun Context.openAppByFile(
+    file: File,
+    mimeType: String = file.absolutePath.mimeType,
+    authority: String
+) {
     if (!file.exists()) {
         return
     }
@@ -758,6 +773,11 @@ fun Context.openAppByFile(file: File, mimeType: String, authority: String) {
         // anddroid N以下可以直接设置Uri
         var uri = file.toUri()
         intent.setDataAndType(uri, mimeType)
+    }
+    if (intent.resolveActivity(packageManager) == null) {
+        Toast.makeText(this, R.string.text_not_find_open_app_by_mime_type.string, Toast.LENGTH_LONG)
+            .show()
+        return
     }
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     startActivity(intent)
