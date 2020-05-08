@@ -6,6 +6,14 @@ ext.versions = [
         publish_name: "0.0.14"
 ]
 ext.deps = [
+        gradle_plugins : [
+                android : "com.android.tools.build:gradle:3.6.3",
+                kotlin  : "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72",
+                // 引入navigation插件库
+                nav_args: "androidx.navigation:navigation-safe-args-gradle-plugin:2.2.2",
+                // 引入仓库插件 需运行gradle wrapper和gradlew install
+                maven   : "com.github.dcendents:android-maven-gradle-plugin:2.1"
+        ],
         kotlin         : [
                 stdlib: "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.72"
         ],
@@ -45,7 +53,7 @@ ext.deps = [
         // 事件传递
         eventbus       : "org.greenrobot:eventbus:3.1.1",
         // 图片控件
-        photo_view      : "com.github.chrisbanes:PhotoView:2.3.0",
+        photo_view     : "com.github.chrisbanes:PhotoView:2.3.0",
         // 图片压缩
         compressor     : "me.shouheng.compressor:compressor:1.3.1",
         // 波浪动画

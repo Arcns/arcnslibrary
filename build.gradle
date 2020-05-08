@@ -2,26 +2,22 @@
 apply from: rootProject.file("dependencies.gradle")
 
 buildscript {
-    ext.kotlin_version = '1.3.72'
+    apply from: rootProject.file("dependencies.gradle")
     repositories {
         mavenCentral()
         google()
         jcenter()
         maven { url 'https://dl.bintray.com/umsdk/release' }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        
+
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.3'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-
+        classpath deps.gradle_plugins.android
+        classpath deps.gradle_plugins.kotlin
         // 引入navigation插件库
-        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.2.2"
-
+        classpath deps.gradle_plugins.nav_args
         // 引入仓库插件 需运行gradle wrapper和gradlew install
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
+        classpath deps.gradle_plugins.maven
     }
 }
 
@@ -31,7 +27,7 @@ allprojects {
         google()
         jcenter()
         maven { url "https://jitpack.io" }
-        
+
     }
 }
 
