@@ -2,5 +2,5 @@
 
 ### 地址
 ```
-    implementation 'com.github.Arcns:arcnslibrary:0.0.9'
+    implementation 'com.github.Arcns.arcnslibrary:arcns-core:0.0.14'
 ```
