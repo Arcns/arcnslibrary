@@ -15,6 +15,10 @@ android {
         versionName "1.1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
+        ndk {
+            //设置支持的SO库架构（开发者可以根据需要，选择一个或多个平台的so）
+            abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86","x86_64"
+        }
     }
     kotlinOptions { jvmTarget = 1.8}
     buildTypes {
@@ -115,6 +119,11 @@ dependencies {
     implementation 'id.zelory:compressor:2.1.0'
     // 蓝牙
     implementation 'com.clj.fastble:FastBleLib:2.3.4'
+
+    //高德3D地图so及jar
+    implementation 'com.amap.api:3dmap:7.4.0'
+    //高德定位功能
+    implementation 'com.amap.api:location:4.9.0'
 
 //    implementation 'com.github.Arcns:arcnslibrary:0.0.8'
     implementation project(path: ':arcns-core')

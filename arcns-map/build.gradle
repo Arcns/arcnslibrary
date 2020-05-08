@@ -8,4 +8,5 @@ dependencies {
     androidTestImplementation deps.test.androidx_espresso
     implementation deps.androidx.appcompat
     implementation deps.androidx.ktx
+    implementation project(path: ':arcns-core')
 }

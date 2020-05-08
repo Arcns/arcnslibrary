@@ -21,6 +21,8 @@ import com.example.arcns.util.openPermission
 import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelMain
 import kotlinx.android.synthetic.main.fragment_empty.*
+import kotlinx.android.synthetic.main.fragment_empty.toolbar
+import kotlinx.android.synthetic.main.fragment_main.*
 
 
 /**
@@ -77,6 +79,10 @@ class FragmentMain : Fragment() {
         viewModelActivityMain.eventBluetoothState.observe(this, EventObserver {
             viewModel.startBluetooth()
         })
+        //
+        btnGoMap.setOnClickListener {
+            findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentMap())
+        }
     }
 
     private fun openBluetoothAndPermission() {

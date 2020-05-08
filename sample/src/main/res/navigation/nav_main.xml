@@ -19,6 +19,18 @@
     <fragment
         android:id="@+id/fragmentMain"
         android:name="com.example.arcns.ui.FragmentMain"
-        android:label="FragmentMain" />
+        android:label="FragmentMain">
+        <action
+            android:id="@+id/action_fragmentMain_to_fragmentMap"
+            app:destination="@id/fragmentMap"
+            app:enterAnim="@anim/slide_enter"
+            app:exitAnim="@anim/slide_exit"
+            app:popEnterAnim="@anim/slide_pop_enter"
+            app:popExitAnim="@anim/slide_pop_exit" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentMap"
+        android:name="com.example.arcns.ui.FragmentMap"
+        android:label="FragmentMap" />
 
 </navigation>
