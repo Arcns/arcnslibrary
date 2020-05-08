@@ -119,5 +119,5 @@ dependencies {
     implementation 'com.clj.fastble:FastBleLib:2.3.4'
 
 //    implementation 'com.github.Arcns:arcnslibrary:0.0.8'
-    implementation project(path: ':arcnslibrary')
+    implementation project(path: ':arcns-core')
 }

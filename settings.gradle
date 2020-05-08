@@ -1,2 +1,2 @@
-include ':sample', ':arcnslibrary'
+include ':sample', ':arcns-core'
 rootProject.name='Arcns'
