@@ -2,6 +2,6 @@
 
 ### 地址
 ```
-    implementation 'com.github.Arcns.arcnslibrary:arcns-core:0.0.15'
-    implementation 'com.github.Arcns.arcnslibrary:arcns-map:0.0.15'
+    implementation 'com.github.Arcns.arcnslibrary:arcns-core:0.0.16'
+    implementation 'com.github.Arcns.arcnslibrary:arcns-map:0.0.16'
 ```
