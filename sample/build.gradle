@@ -120,4 +120,5 @@ dependencies {
 
 //    implementation 'com.github.Arcns:arcnslibrary:0.0.8'
     implementation project(path: ':arcns-core')
+    implementation project(path: ':arcns-map')
 }
