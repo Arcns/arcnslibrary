@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 多媒体选择器 -->
     <dimen name="media_selector_media_size">60dp</dimen>
 <!--    <dimen name="image_selector_image_details_width">195dp</dimen>-->
     <dimen name="media_selector_media_details_width">480dp</dimen>
@@ -27,4 +28,10 @@
     <dimen name="media_selector_media_details_no_preview_padding_tb">16dp</dimen>
     <dimen name="media_selector_media_button_radius">46dp</dimen>
     <dimen name="media_selector_media_button">14sp</dimen>
+    <!-- 指南针 -->
+    <dimen name="compass_direction_nesw_text_size">16sp</dimen>
+    <dimen name="compass_direction_degree_text_size">14sp</dimen>
+    <dimen name="compass_current_direction_text_size">38sp</dimen>
+    <dimen name="compass_current_degree_text_size">42sp</dimen>
+    <dimen name="compass_current_direction_text_height">80dp</dimen>
 </resources>

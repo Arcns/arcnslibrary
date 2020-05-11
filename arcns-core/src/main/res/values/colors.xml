@@ -17,4 +17,19 @@
     <color name="media_selector_media_details_foreground">@color/media_selector_media_accent</color>
     <color name="media_selector_media_button_bg">#24D90B</color>
     <color name="media_selector_media_button_foreground">#fff</color>
+    <!-- 指南针 -->
+    <color name="compass_inner_shader_center_color">#00000000</color>
+    <color name="compass_inner_shader_edge_color">#00000000</color>
+    <color name="compass_current_direction_text_color">#1797ff</color>
+    <color name="compass_current_degree_text_color">#5d9ea0</color>
+    <color name="compass_direction_line_main_color">#FF0000</color>
+    <color name="compass_direction_line_minor_color">#83c4fa</color>
+    <color name="compass_direction_degree_text_color">#1797ff</color>
+    <color name="compass_direction_north_text_color">#FF0000</color>
+    <color name="compass_direction_esw_text_color">#1797ff</color>
+    <color name="compass_outer_ring_1_color">#1797ff</color>
+    <color name="compass_outer_ring_2_color">#f8bb15</color>
+    <color name="compass_outer_ring_3_color">#dd133b</color>
+    <color name="compass_contour_circle_color">#1797ff</color>
+    <color name="compass_contour_circle_offset_color">#FF0000</color>
 </resources>

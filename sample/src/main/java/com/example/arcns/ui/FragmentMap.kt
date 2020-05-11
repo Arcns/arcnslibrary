@@ -1,6 +1,6 @@
 package com.example.arcns.ui
 
-import android.graphics.Color
+import android.graphics.Point
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +13,12 @@ import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.amap.api.maps.AMap
 import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.model.*
+import com.amap.api.maps.model.animation.Animation
+import com.amap.api.maps.model.animation.TranslateAnimation
+import com.amap.api.services.core.LatLonPoint
+import com.amap.api.services.core.PoiItem
+import com.amap.api.services.poisearch.PoiResult
+import com.amap.api.services.poisearch.PoiSearch
 import com.arcns.core.APP
 import com.arcns.core.util.*
 import com.example.arcns.R
@@ -23,6 +29,7 @@ import com.example.arcns.viewmodel.ViewModelMap
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
 import kotlinx.android.synthetic.main.fragment_map.*
 import java.net.URL
+import kotlin.math.sqrt
 
 
 /**
@@ -95,7 +102,43 @@ class FragmentMap : Fragment() {
         }
         btnDownload.setOnClickListener {
 //            startActivity(Intent(context, OfflineMapActivity::class.java))
-            addPolyline()
+            addMarker()
+//            addPolyline()
+        }
+        compassView.setLifecycleOwner(this)
+        btnCompass.setOnClickListener {
+            if (compassView.visibility == View.GONE) {
+                compassView.registerSensor()
+                compassView.visibility = View.VISIBLE
+            } else {
+                compassView.unregisterSensor()
+                compassView.visibility = View.GONE
+            }
+        }
+        btnAddPin.setOnClickListener {
+            addPin(cameraCenterMarker?.position?:return@setOnClickListener)
+        }
+        btnDelPin.setOnClickListener {
+            delLastPin()
+        }
+    }
+
+    private fun addPin(latLng: LatLng) {
+        val marker = mapView.map.addMarker(
+            MarkerOptions().position(latLng)
+        )
+        viewModel.calculateLineMapPositionGroup.addMapPosition(marker.id, marker.position)
+    }
+
+    private fun delLastPin() {
+        viewModel.calculateLineMapPositionGroup.removeMapPosition()?.run {
+            mapView.map.mapScreenMarkers.forEach {
+                if (it.id == this.id) {
+                    it.remove()
+                    mapView.invalidate()
+                    return@run
+                }
+            }
         }
     }
 
@@ -190,7 +233,7 @@ class FragmentMap : Fragment() {
         mapView.map.myLocationStyle = MyLocationStyle()
         mapView.map.isMyLocationEnabled = true
         mapView.map.addOnMyLocationChangeListener {
-            if (mapView.map.myLocationStyle.myLocationType != MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
+            if (mapView.map.myLocationStyle.myLocationType != MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER) {
                 mapView.map.myLocationStyle = MyLocationStyle().apply {
                     myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
                     interval(2000)
@@ -204,6 +247,7 @@ class FragmentMap : Fragment() {
                         )
                     )
                 }
+            }
         }
         // 绘制点点击
         mapView.map.setOnMarkerClickListener {
@@ -246,8 +290,93 @@ class FragmentMap : Fragment() {
             }
 
         })
+
+        mapView.map.addOnCameraChangeListener(object : AMap.OnCameraChangeListener {
+            override fun onCameraChangeFinish(p0: CameraPosition?) {
+                addCameraCenterMarker(p0?.target)
+                startCameraCenterMarkerAnimation()
+                searchPOI(p0!!.target)
+            }
+
+            override fun onCameraChange(p0: CameraPosition?) {
+            }
+
+        })
     }
 
+    private var cameraCenterMarker: Marker? = null
+    private fun addCameraCenterMarker(position: LatLng?) {
+        if (cameraCenterMarker == null) {
+            val screenPosition: Point =
+                mapView.map.projection.toScreenLocation(position)
+            cameraCenterMarker = mapView.map.addMarker(
+                MarkerOptions()
+                    .anchor(0.5f, 0.5f)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.purple_pin))
+            )
+            //设置Marker在屏幕上,不跟随地图移动
+            cameraCenterMarker?.setPositionByPixels(screenPosition.x, screenPosition.y)
+        }
+    }
+
+    private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
+        var query = PoiSearch.Query("黑龙江", "", "")//keyWord，type，cityCode
+        query.pageSize = 10;
+        query.pageNum = 0
+        var poiSearch = PoiSearch(context, query)
+        if (isContainsBound) {
+            //设置周边搜索的中心点以及半径
+            poiSearch.bound = PoiSearch.SearchBound(
+                LatLonPoint(
+                    position.latitude,
+                    position.longitude
+                ), Int.MAX_VALUE
+            )
+        }
+        poiSearch.setOnPoiSearchListener(object : PoiSearch.OnPoiSearchListener {
+            override fun onPoiItemSearched(item: PoiItem?, rCode: Int) {
+            }
+
+            override fun onPoiSearched(result: PoiResult?, rCode: Int) {
+                if (result?.pois?.size ?: 0 == 0 && isContainsBound) {
+                    searchPOI(position, false)
+                } else {
+                    Toast.makeText(context, "count:" + result?.pois?.size, Toast.LENGTH_LONG).show()
+                }
+            }
+        });
+        poiSearch.searchPOIAsyn();
+    }
+
+
+    /**
+     * 屏幕中心marker 跳动
+     */
+    fun startCameraCenterMarkerAnimation() {
+        if (cameraCenterMarker != null) {
+            //根据屏幕距离计算需要移动的目标点
+            val latLng = cameraCenterMarker?.position
+            val point: Point = mapView.map.projection.toScreenLocation(latLng)
+            point.y -= 125.dp
+            val target = mapView.map.projection
+                .fromScreenLocation(point)
+            //使用TranslateAnimation,填写一个需要移动的目标点
+            val animation = TranslateAnimation(target)
+            animation.setInterpolator { input -> // 模拟重加速度的interpolator
+                if (input <= 0.5) {
+                    (0.5f - 2 * (0.5 - input) * (0.5 - input)).toFloat()
+                } else {
+                    (0.5f - sqrt((input - 0.5f) * (1.5f - input).toDouble())).toFloat()
+                }
+            }
+            //整个移动所需要的时间
+            animation.setDuration(600)
+            //设置动画
+            cameraCenterMarker?.setAnimation(animation)
+            //开始动画
+            cameraCenterMarker?.startAnimation()
+        }
+    }
 
     override fun onDestroyView() {
         mapView.onDestroy()

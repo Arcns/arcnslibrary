@@ -124,6 +124,8 @@ dependencies {
     implementation 'com.amap.api:3dmap:7.4.0'
     //高德定位功能
     implementation 'com.amap.api:location:4.9.0'
+    //高德搜索
+    implementation 'com.amap.api:search:7.3.0'
 
 //    implementation 'com.github.Arcns:arcnslibrary:0.0.8'
     implementation project(path: ':arcns-core')

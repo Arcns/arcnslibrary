@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 指南针的属性 -->
+    <attr name="compass_inner_shader_center_color" format="color" />
+    <attr name="compass_inner_shader_edge_color" format="color" />
+    <attr name="compass_current_direction_text_color" format="color" />
+    <attr name="compass_current_degree_text_color" format="color" />
+    <attr name="compass_direction_line_main_color" format="color" />
+    <attr name="compass_direction_line_minor_color" format="color" />
+    <attr name="compass_direction_degree_text_color" format="color" />
+    <attr name="compass_direction_north_text_color" format="color" />
+    <attr name="compass_direction_esw_text_color" format="color" />
+    <attr name="compass_outer_ring_1_color" format="color" />
+    <attr name="compass_outer_ring_2_color" format="color" />
+    <attr name="compass_outer_ring_3_color" format="color" />
+    <attr name="compass_contour_circle_color" format="color" />
+    <attr name="compass_contour_circle_offset_color" format="color" />
+    <attr name="compass_direction_nesw_text_size" format="dimension" />
+    <attr name="compass_direction_degree_text_size" format="dimension" />
+    <attr name="compass_current_direction_text_size" format="dimension" />
+    <attr name="compass_current_degree_text_size" format="dimension" />
+    <attr name="compass_current_direction_text_height" format="dimension" />
+    <declare-styleable name="CompassView">
+        <attr name="compass_inner_shader_center_color" />
+        <attr name="compass_inner_shader_edge_color" />
+        <attr name="compass_current_direction_text_color" />
+        <attr name="compass_current_degree_text_color" />
+        <attr name="compass_direction_line_main_color" />
+        <attr name="compass_direction_line_minor_color" />
+        <attr name="compass_direction_degree_text_color" />
+        <attr name="compass_direction_north_text_color" />
+        <attr name="compass_direction_esw_text_color" />
+        <attr name="compass_outer_ring_1_color" />
+        <attr name="compass_outer_ring_2_color" />
+        <attr name="compass_outer_ring_3_color" />
+        <attr name="compass_contour_circle_color" />
+        <attr name="compass_contour_circle_offset_color" />
+        <attr name="compass_direction_nesw_text_size" />
+        <attr name="compass_direction_degree_text_size" />
+        <attr name="compass_current_direction_text_size" />
+        <attr name="compass_current_degree_text_size" />
+        <attr name="compass_current_direction_text_height" />
+    </declare-styleable>
+</resources>
