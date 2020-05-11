@@ -39,6 +39,10 @@ class MapPositionGroup {
         MutableLiveData<ArrayList<MapPosition>>().apply { value = ArrayList() }
     var mapPositions: LiveData<ArrayList<MapPosition>> = _mapPositions
 
+    var mapPositionLatLngs: List<LatLng> = mapPositions.value?.map {
+        it.position
+    }?.toList() ?: listOf()
+
     fun setGroupID(groupID: String) {
         _groupID.value = groupID
     }

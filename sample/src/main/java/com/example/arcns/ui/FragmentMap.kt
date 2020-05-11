@@ -13,7 +13,6 @@ import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.amap.api.maps.AMap
 import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.model.*
-import com.amap.api.maps.model.animation.Animation
 import com.amap.api.maps.model.animation.TranslateAnimation
 import com.amap.api.services.core.LatLonPoint
 import com.amap.api.services.core.PoiItem
@@ -128,6 +127,7 @@ class FragmentMap : Fragment() {
             MarkerOptions().position(latLng)
         )
         viewModel.calculateLineMapPositionGroup.addMapPosition(marker.id, marker.position)
+        val polygonOptions = PolygonOptions()
     }
 
     private fun delLastPin() {
