@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.amap.api.maps.AMap
 import com.amap.api.maps.CameraUpdateFactory
+import com.amap.api.maps.MapView
 import com.amap.api.maps.model.*
 import com.amap.api.maps.model.animation.TranslateAnimation
 import com.amap.api.services.core.LatLonPoint
@@ -23,6 +24,7 @@ import com.arcns.core.util.*
 import com.example.arcns.R
 import com.example.arcns.databinding.FragmentMapBinding
 import com.example.arcns.databinding.LayoutInfoWindowBinding
+import com.example.arcns.viewmodel.MapPositionGroup
 import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelMap
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
@@ -38,6 +40,7 @@ class FragmentMap : Fragment() {
     private lateinit var binding: FragmentMapBinding
     private val viewModel by viewModels<ViewModelMap>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
+    private lateinit var mapViewManager: MapViewManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,6 +65,7 @@ class FragmentMap : Fragment() {
     var mapTypeSelectionIndex = 0
 
     private fun setupResult() {
+        mapViewManager = MapViewManager(mapView)
         viewModel.toast.observe(this, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
@@ -115,7 +119,7 @@ class FragmentMap : Fragment() {
             }
         }
         btnAddPin.setOnClickListener {
-            addPin(cameraCenterMarker?.position?:return@setOnClickListener)
+            addPin(cameraCenterMarker?.position ?: return@setOnClickListener)
         }
         btnDelPin.setOnClickListener {
             delLastPin()
@@ -123,22 +127,25 @@ class FragmentMap : Fragment() {
     }
 
     private fun addPin(latLng: LatLng) {
-        val marker = mapView.map.addMarker(
-            MarkerOptions().position(latLng)
-        )
-        viewModel.calculateLineMapPositionGroup.addMapPosition(marker.id, marker.position)
-        val polygonOptions = PolygonOptions()
+        mapViewManager.addMarker(latLng, viewModel.calculateLineMapPositionGroup)
+        mapViewManager.addOrUpdatePolygons(viewModel.calculateLineMapPositionGroup)
     }
 
     private fun delLastPin() {
-        viewModel.calculateLineMapPositionGroup.removeMapPosition()?.run {
-            mapView.map.mapScreenMarkers.forEach {
-                if (it.id == this.id) {
-                    it.remove()
-                    mapView.invalidate()
-                    return@run
-                }
-            }
+        mapViewManager.removeLastMarker(viewModel.calculateLineMapPositionGroup)
+        mapViewManager.addOrUpdatePolygons(viewModel.calculateLineMapPositionGroup)
+    }
+
+    private fun updatePolygon(mapPositionGroup: MapPositionGroup) {
+        if (mapPositionGroup.groupID.value.isNullOrBlank()) {
+            val polygon = mapView.map.addPolygon(
+                PolygonOptions().addAll(mapPositionGroup.mapPositionLatLngs)
+                    .fillColor(
+                        R.color.tmchartblue.color
+                    ).strokeColor(R.color.colorAccent.color).strokeWidth(8f).zIndex(900f)
+            )
+            mapPositionGroup.setGroupID(polygon.id)
+        } else {
         }
     }
 
@@ -399,3 +406,63 @@ class FragmentMap : Fragment() {
     }
 }
 
+class MapViewManager(val mapView: MapView) {
+    val markers = HashMap<String, Marker>()
+    val polygons = HashMap<String, Polygon>()
+    val polylines = HashMap<String, Polyline>()
+
+//    fun remove
+
+    fun addOrUpdatePolyline(mapPositionGroup: MapPositionGroup) {
+        if (mapPositionGroup.groupID.value.isNullOrBlank()) {
+            val polyline = mapView.map.addPolyline(
+                PolylineOptions().addAll(mapPositionGroup.mapPositionLatLngs)
+                    .color(R.color.colorAccent.color).width(4f).zIndex(900f)
+            )
+            mapPositionGroup.setGroupID(polyline.id)
+            polylines[polyline.id] = polyline
+        } else {
+            polylines[mapPositionGroup.groupID.value ?: return]?.points =
+                mapPositionGroup.mapPositionLatLngs
+        }
+    }
+
+    fun addOrUpdatePolygons(mapPositionGroup: MapPositionGroup) {
+        if (mapPositionGroup.groupID.value.isNullOrBlank()) {
+            val polygon = mapView.map.addPolygon(
+                PolygonOptions().addAll(mapPositionGroup.mapPositionLatLngs)
+                    .fillColor(
+                        R.color.tmchartblue.color
+                    ).strokeColor(R.color.colorAccent.color).strokeWidth(4f).zIndex(900f)
+            )
+            mapPositionGroup.setGroupID(polygon.id)
+            polygons[polygon.id] = polygon
+        } else {
+            polygons[mapPositionGroup.groupID.value ?: return]?.points =
+                mapPositionGroup.mapPositionLatLngs
+        }
+    }
+
+    fun addMarker(latLng: LatLng, mapPositionGroup: MapPositionGroup? = null): Marker {
+        val marker = mapView.map.addMarker(
+            MarkerOptions().position(latLng)
+        )
+        mapPositionGroup?.addMapPosition(marker.id, marker.position)
+        markers[marker.id] = marker
+        return marker
+    }
+
+    fun removeLastMarker(mapPositionGroup: MapPositionGroup) {
+        mapPositionGroup.removeMapPosition()?.run {
+            removeMarker(id)
+        }
+    }
+
+    fun removeMarker(id: String, mapPositionGroup: MapPositionGroup? = null) {
+        mapPositionGroup?.removeMapPosition(id)
+        markers[id]?.remove()
+        mapView.invalidate()
+    }
+
+
+}

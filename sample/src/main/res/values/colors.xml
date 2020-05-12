@@ -8,6 +8,7 @@
     <color name="black50">#80000000</color>
     <color name="transparent">#00000000</color>
     <color name="purple">#6A7BFD</color>
+    <color name="tmchartblue">#996A7BFD</color> <!-- chart蓝色 -->
 
     <!-- 颜色库 -->
     <color name="chartblue">#33B5E5</color> <!-- chart蓝色 -->

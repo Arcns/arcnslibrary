@@ -528,7 +528,7 @@ fun bindAppBarLayoutAdaptiveScroll(recyclerView: RecyclerView, AppBarLayoutChild
             val layoutManager =
                 recyclerView?.layoutManager as? LinearLayoutManager ?: return
             var itemCount = (recyclerView?.adapter as? ListAdapter<*, *>)?.itemCount
-                ?: return
+                ?: (recyclerView?.adapter as? RecyclerView.Adapter)?.itemCount ?: return
             var firstPosition =
                 layoutManager.findFirstCompletelyVisibleItemPosition()
             var lastPosition =

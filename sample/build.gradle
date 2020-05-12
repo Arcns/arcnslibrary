@@ -17,29 +17,29 @@ android {
         multiDexEnabled true
         ndk {
             //设置支持的SO库架构（开发者可以根据需要，选择一个或多个平台的so）
-            abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86","x86_64"
+            abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
         }
     }
-    kotlinOptions { jvmTarget = 1.8}
+    kotlinOptions { jvmTarget = 1.8 }
     buildTypes {
         def baseurl_official = '"http://14.116.254.82:8088/est/"'
         def baseurl_test = '"http://183.56.194.120:8088/est/"'
         def baseurl_jj = '"http://183.56.194.120:8084/est/"'
         def baseurl_cq = '"http://183.56.194.120:8086/est/"'
-        all{
-            buildConfigField 'String','BASEURL_OFFICIAL',baseurl_official
-            buildConfigField 'String','BASEURL_TEST',baseurl_test
-            buildConfigField 'String','BASEURL_JIUJIANG',baseurl_jj
-            buildConfigField 'String','BASEURL_CHONGQING',baseurl_cq
+        all {
+            buildConfigField 'String', 'BASEURL_OFFICIAL', baseurl_official
+            buildConfigField 'String', 'BASEURL_TEST', baseurl_test
+            buildConfigField 'String', 'BASEURL_JIUJIANG', baseurl_jj
+            buildConfigField 'String', 'BASEURL_CHONGQING', baseurl_cq
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
-            buildConfigField 'String','BASEURL',baseurl_official
+            buildConfigField 'String', 'BASEURL', baseurl_official
         }
         debug {
-            buildConfigField 'String','BASEURL',baseurl_test
+            buildConfigField 'String', 'BASEURL', baseurl_test
         }
     }
     dataBinding {
@@ -55,7 +55,7 @@ android {
             jniLibs.srcDir 'libs'
         }
     }
-    compileOptions{
+    compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -110,7 +110,8 @@ dependencies {
     // viewpager2
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     // 列表上拉下拉刷新布局
-    implementation 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.0'  //1.0.5及以前版本的老用户升级需谨慎，API改动过 大
+    implementation 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.0'
+    //1.0.5及以前版本的老用户升级需谨慎，API改动过 大
     implementation 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.0'  //没有使用特殊Header，可以不加这行
 
     // 权限检查
