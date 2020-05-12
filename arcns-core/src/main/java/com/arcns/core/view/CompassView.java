@@ -725,6 +725,23 @@ public class CompassView extends View {
         return percentArr;
     }
 
+    public void toggleVisibility() {
+        if (getVisibility() == View.VISIBLE) {
+            setVisibility(GONE);
+        } else {
+            setVisibility(VISIBLE);
+        }
+    }
+
+    @Override
+    public void setVisibility(int visibility) {
+        super.setVisibility(visibility);
+        if (visibility == VISIBLE) {
+            registerSensor();
+        } else {
+            unregisterSensor();
+        }
+    }
 
     private SensorManager mSensorManager;
     private SensorEventListener mSensorEventListener;

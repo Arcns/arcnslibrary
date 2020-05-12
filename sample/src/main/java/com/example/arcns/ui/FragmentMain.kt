@@ -40,7 +40,7 @@ class FragmentMain : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentMainBinding.inflate(inflater, container, false).apply {
-            lifecycleOwner = this@FragmentMain
+            setFragmentLifecycleOwner(this@FragmentMain)
             viewModel = this@FragmentMain.viewModel
         }
         setHasOptionsMenu(true)
