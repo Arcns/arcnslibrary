@@ -10,6 +10,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.arcns.core.util.EventObserver
+import com.arcns.core.util.autoCleared
+import com.example.arcns.databinding.FragmentMapBinding
 import com.example.arcns.databinding.FragmentStartupPageBinding
 import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelStartupPage
@@ -18,7 +20,8 @@ import com.example.arcns.viewmodel.ViewModelStartupPage
  * 启动页
  */
 class FragmentStartupPage : Fragment() {
-    private lateinit var binding: FragmentStartupPageBinding
+    private var binding by autoCleared<FragmentStartupPageBinding>()
+//private lateinit var binding:FragmentStartupPageBinding
     private val viewModel by viewModels<ViewModelStartupPage>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
 

@@ -28,6 +28,7 @@ import com.amap.api.services.poisearch.PoiSearch
 import com.arcns.core.APP
 import com.arcns.core.util.*
 import com.example.arcns.R
+import com.example.arcns.databinding.FragmentEmptyBinding
 import com.example.arcns.databinding.FragmentMapBinding
 import com.example.arcns.databinding.LayoutInfoWindowBinding
 import com.example.arcns.viewmodel.*
@@ -36,30 +37,14 @@ import kotlinx.android.synthetic.main.fragment_map.*
 import java.net.URL
 import kotlin.math.sqrt
 
-
-fun ViewDataBinding.setFragmentLifecycleOwner(fragment: Fragment) {
-    lifecycleOwner = fragment
-    fragment.viewLifecycleOwner.lifecycle.addObserver(object : LifecycleObserver {
-        @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-        fun onDestroy() {
-            this@setFragmentLifecycleOwner.lifecycleOwner = null
-        }
-    })
-}
-
 /**
  *
  */
 class FragmentMap : Fragment() {
-    private lateinit var binding: FragmentMapBinding
+    private var binding by autoCleared<FragmentMapBinding>()
     private val viewModel by viewModels<ViewModelMap>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
     private lateinit var mapViewManager: MapViewManager
-
-    override fun onDestroy() {
-        super.onDestroy()
-        binding.lifecycleOwner = null
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,7 +52,7 @@ class FragmentMap : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentMapBinding.inflate(inflater, container, false).apply {
-            setFragmentLifecycleOwner(this@FragmentMap)
+            lifecycleOwner = this@FragmentMap
             viewModel = this@FragmentMap.viewModel
         }
         setHasOptionsMenu(true)

@@ -8,6 +8,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.arcns.core.util.setActionBarAsToolbar
 import com.arcns.core.util.EventObserver
+import com.arcns.core.util.autoCleared
 import com.example.arcns.databinding.FragmentEmptyBinding
 import com.example.arcns.viewmodel.*
 import kotlinx.android.synthetic.main.fragment_empty.*
@@ -16,7 +17,7 @@ import kotlinx.android.synthetic.main.fragment_empty.*
  *
  */
 class FragmentEmpty : Fragment() {
-    private lateinit var binding: FragmentEmptyBinding
+    private var binding by autoCleared<FragmentEmptyBinding>()
     private val viewModel by viewModels<ViewModelEmpty>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
 

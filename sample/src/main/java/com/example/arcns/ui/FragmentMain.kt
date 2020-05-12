@@ -30,7 +30,7 @@ import kotlinx.android.synthetic.main.fragment_main.*
  *
  */
 class FragmentMain : Fragment() {
-    private lateinit var binding: FragmentMainBinding
+    private var binding by autoCleared<FragmentMainBinding>()
     private val viewModel by viewModels<ViewModelMain>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
 
@@ -40,7 +40,7 @@ class FragmentMain : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentMainBinding.inflate(inflater, container, false).apply {
-            setFragmentLifecycleOwner(this@FragmentMain)
+            lifecycleOwner = this@FragmentMain
             viewModel = this@FragmentMain.viewModel
         }
         setHasOptionsMenu(true)
