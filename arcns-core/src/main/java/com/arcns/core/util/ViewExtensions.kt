@@ -16,6 +16,7 @@ import android.os.Handler
 import android.text.Html
 import android.text.Spanned
 import android.util.Base64
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -26,6 +27,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
 import androidx.core.content.pm.PackageInfoCompat
@@ -33,9 +35,6 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.NavigationUI
-import androidx.navigation.ui.setupActionBarWithNavController
 import com.afollestad.materialdialogs.DialogBehavior
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.Companion.DEFAULT_BEHAVIOR
@@ -61,6 +60,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.regex.Pattern
 
 /***********************************格式转换**************************************/
 
@@ -191,16 +191,44 @@ fun Context.getStatusBarHeight(): Int {
     if (resId > 0) {
         result = resources.getDimensionPixelSize(resId);
     }
-    return result;
+    return result
+}
+
+/**
+ * 获取ActionBar默认高度
+ */
+fun Context?.getActionBarHeight(): Int {
+    if (this == null) {
+        return 48.dp
+    }
+    val typedValue = TypedValue()
+    if (theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)) {
+        return TypedValue.complexToDimensionPixelSize(typedValue.data, resources.displayMetrics)
+    }
+    return 48.dp
 }
 
 /**
  * 上内边距增加系统状态栏的高度大小
  */
-fun View.setPaddingStatusBarHeight() {
+fun View.setPaddingStatusBarHeight(
+    notRepeat: Boolean = false, // 判断是否重复添加，若现有padding高度为状态栏高度，则不再添加
+    autoHeightExpansion: Boolean = true // 是否自动扩展高度，增加状态栏高度（仅当非自适应时生效）
+) {
+    val statusBarHeight = context.getStatusBarHeight()
+    if (notRepeat && paddingTop == statusBarHeight) {
+        // 已添加状态栏高度时不再重复添加
+        return
+    }
+    if (autoHeightExpansion && layoutParams.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+        // 如果高度不是自适应时，需要增加状态栏的高度
+        layoutParams = layoutParams.apply {
+            height += statusBarHeight
+        }
+    }
     setPadding(
         paddingLeft,
-        paddingTop + context.getStatusBarHeight(),
+        paddingTop + statusBarHeight,
         paddingRight,
         paddingBottom
     )
@@ -803,21 +831,48 @@ fun Fragment.setActionBarAsToolbar(
 fun Fragment.setActionBar(
     toolbar: Toolbar,
     displayShowTitleEnabled: Boolean = false,
-    isTopLevelDestination: Boolean = false
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true
 ) {
-    if (isTopLevelDestination) {
-        // 设置为顶级页面，toolbar不会有后退按钮
-        NavigationUI.setupWithNavController(
-            toolbar,
-            findNavController(),
-            AppBarConfiguration.Builder(findNavController().currentDestination?.id ?: return)
-                .build()
-        )
-    } else {
-        NavigationUI.setupWithNavController(toolbar, findNavController())
+    if (isPaddingStatusBarHeight) {
+        toolbar.setPaddingStatusBarHeight(true, false)
     }
-    if (!displayShowTitleEnabled) {
+    toolbar.layoutParams = toolbar.layoutParams.apply {
+        height = context.getActionBarHeight() + toolbar.paddingTop + toolbar.paddingBottom
+    }
+    if (displayShowTitleEnabled) {
+        findNavController().currentDestination?.label?.let {
+            val title = StringBuffer()
+            val fillInPattern = Pattern.compile("\\{(.+?)\\}")
+            val matcher = fillInPattern.matcher(it)
+            while (matcher.find()) {
+                val argName = matcher.group(1)
+                if (arguments != null && arguments!!.containsKey(argName)) {
+                    matcher.appendReplacement(title, "")
+                    title.append(arguments!![argName].toString())
+                } else {
+                    throw IllegalArgumentException(
+                        "Could not find " + argName + " in "
+                                + arguments + " to fill label " + it
+                    )
+                }
+            }
+            matcher.appendTail(title)
+            toolbar.title = title
+        }
+    } else {
         toolbar.title = null
+    }
+    if (!isTopLevelDestination) {
+        toolbar.navigationIcon = DrawerArrowDrawable(toolbar.context).apply {
+            progress = 1f
+        }
+        toolbar.setNavigationContentDescription(androidx.navigation.ui.R.string.nav_app_bar_navigate_up_description)
+        toolbar.setNavigationOnClickListener {
+            findNavController().navigateUp()
+        }
+    } else {
+        toolbar.navigationIcon = null
     }
 }
 

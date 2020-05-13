@@ -228,10 +228,8 @@ fun customDrawableTopSize(
  * 把状态栏的高度填充到控件的内边距中
  */
 @BindingAdapter("paddingStatusBarHeight")
-fun paddingStatusBarHeight(view: View, padding: Boolean) {
-    if (padding) {
-        view.setPaddingStatusBarHeight()
-    }
+fun paddingStatusBarHeight(view: View, notRepeat: Boolean) {
+    view.setPaddingStatusBarHeight(notRepeat)
 }
 
 /**
