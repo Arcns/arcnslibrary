@@ -34,13 +34,13 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.afollestad.materialdialogs.DialogBehavior
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.Companion.DEFAULT_BEHAVIOR
 import com.arcns.core.APP
 import com.arcns.core.R
-import com.arcns.core.util.file.MIME_TYPE_APPLICATION_JS
 import com.arcns.core.util.file.mimeType
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
@@ -801,25 +801,23 @@ fun Fragment.setActionBarAsToolbar(
  * 设置ToolBar为ActionBar，并设置NavController
  */
 fun Fragment.setActionBar(
-    toolbar: View,
+    toolbar: Toolbar,
     displayShowTitleEnabled: Boolean = false,
     isTopLevelDestination: Boolean = false
 ) {
-    appCompatActivity?.apply {
-        setSupportActionBar(toolbar as Toolbar)
-        if (isTopLevelDestination) {
-            // 设置为顶级页面，actionbar不会有后退按钮
-            setupActionBarWithNavController(
-                findNavController(),
-                AppBarConfiguration.Builder(findNavController().currentDestination?.id ?: return)
-                    .build()
-            )
-        } else {
-            setupActionBarWithNavController(
-                findNavController()
-            )
-        }
-        supportActionBar?.setDisplayShowTitleEnabled(displayShowTitleEnabled)
+    if (isTopLevelDestination) {
+        // 设置为顶级页面，toolbar不会有后退按钮
+        NavigationUI.setupWithNavController(
+            toolbar,
+            findNavController(),
+            AppBarConfiguration.Builder(findNavController().currentDestination?.id ?: return)
+                .build()
+        )
+    } else {
+        NavigationUI.setupWithNavController(toolbar, findNavController())
+    }
+    if (!displayShowTitleEnabled) {
+        toolbar.title = null
     }
 }
 

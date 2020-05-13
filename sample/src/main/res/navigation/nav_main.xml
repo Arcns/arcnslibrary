@@ -32,5 +32,9 @@
         android:id="@+id/fragmentMap"
         android:name="com.example.arcns.ui.FragmentMap"
         android:label="FragmentMap" />
+    <fragment
+        android:id="@+id/fragmentEmpty"
+        android:name="com.example.arcns.ui.FragmentEmpty"
+        android:label="FragmentEmpty" /><action android:id="@+id/action_global_fragmentEmpty" app:destination="@id/fragmentEmpty"/>
 
 </navigation>

@@ -23,6 +23,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
@@ -747,6 +748,15 @@ public class CompassView extends View {
     private SensorEventListener mSensorEventListener;
     private LifecycleOwner mLifecycleOwner = null;
     private OnLifecycleListener mOnLifecycleListener = null;
+
+    /**
+     * 设置声明周期
+     *
+     * @param fragment
+     */
+    public void setLifecycleOwner(@Nullable Fragment fragment) {
+        setLifecycleOwner(fragment.getViewLifecycleOwner());
+    }
 
     /**
      * 设置声明周期

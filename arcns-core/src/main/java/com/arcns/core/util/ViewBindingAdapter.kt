@@ -1,10 +1,7 @@
 package com.arcns.core.util
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.View.OnFocusChangeListener
@@ -15,6 +12,7 @@ import android.view.animation.Animation
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.graphics.drawable.DrawableCompat
@@ -23,19 +21,9 @@ import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.RequestBuilder
-import com.bumptech.glide.load.DecodeFormat
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.resource.gif.GifDrawable
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.textfield.TextInputLayout
-import com.squareup.picasso.MemoryPolicy
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.Target
-import java.io.File
+import java.lang.ref.WeakReference
 
 
 // 设置TextView Drawable的大小
@@ -517,26 +505,36 @@ fun bindMargin(
 
 // 让CoordinatorLayout和AppBarLayout滚动能够自适应，在列表内容未撑满时禁用，在撑满时开启
 @BindingAdapter("bindAppBarLayoutAdaptiveScroll")
-fun bindAppBarLayoutAdaptiveScroll(recyclerView: RecyclerView, AppBarLayoutChildren: View) {
-    (recyclerView.tag as? ViewTreeObserver.OnGlobalLayoutListener)?.run {
-        recyclerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+fun bindAppBarLayoutAdaptiveScroll(recyclerView: RecyclerView, appBarLayoutChildren: View) {
+    // 删除上一个监听，避免重复监听
+    (recyclerView?.tag as? View.OnLayoutChangeListener)?.run {
+        recyclerView.removeOnLayoutChangeListener(this)
     }
-    recyclerView.viewTreeObserver.addOnGlobalLayoutListener(object :
-        ViewTreeObserver.OnGlobalLayoutListener {
-        override fun onGlobalLayout() {
+    recyclerView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+        override fun onLayoutChange(
+            v: View?,
+            left: Int,
+            top: Int,
+            right: Int,
+            bottom: Int,
+            oldLeft: Int,
+            oldTop: Int,
+            oldRight: Int,
+            oldBottom: Int
+        ) {
             recyclerView.tag = this
             val layoutManager =
-                recyclerView?.layoutManager as? LinearLayoutManager ?: return
-            var itemCount = (recyclerView?.adapter as? ListAdapter<*, *>)?.itemCount
-                ?: (recyclerView?.adapter as? RecyclerView.Adapter)?.itemCount ?: return
+                recyclerView.layoutManager as? LinearLayoutManager ?: return
+            var itemCount = (recyclerView.adapter as? ListAdapter<*, *>)?.itemCount
+                ?: (recyclerView.adapter as? RecyclerView.Adapter)?.itemCount ?: return
             var firstPosition =
                 layoutManager.findFirstCompletelyVisibleItemPosition()
             var lastPosition =
                 layoutManager.findLastCompletelyVisibleItemPosition()
             if (itemCount == 0 || (firstPosition == 0 && lastPosition + 1 == itemCount)) {
-                bindAppBarLayoutScrollEnabled(AppBarLayoutChildren, false)
+                bindAppBarLayoutScrollEnabled(appBarLayoutChildren, false)
             } else {
-                bindAppBarLayoutScrollEnabled(AppBarLayoutChildren, true)
+                bindAppBarLayoutScrollEnabled(appBarLayoutChildren, true)
             }
         }
     })

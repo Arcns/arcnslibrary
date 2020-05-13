@@ -11,10 +11,8 @@ import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.*
+import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.amap.api.maps.AMap
 import com.amap.api.maps.MapView
@@ -27,6 +25,7 @@ import com.amap.api.services.poisearch.PoiResult
 import com.amap.api.services.poisearch.PoiSearch
 import com.arcns.core.APP
 import com.arcns.core.util.*
+import com.example.arcns.NavMainDirections
 import com.example.arcns.R
 import com.example.arcns.databinding.FragmentEmptyBinding
 import com.example.arcns.databinding.FragmentMapBinding
@@ -69,9 +68,6 @@ class FragmentMap : Fragment() {
     var mapTypeSelectionIndex = 0
 
     private fun setupResult() {
-        mapViewManager = MapViewManager(mapView)
-        mapViewManager.lifecycleOwner = this
-        mapViewManager.centerFixedMarkerEnabled = true
         viewModel.toast.observe(this, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
@@ -109,7 +105,8 @@ class FragmentMap : Fragment() {
             mapView.map.isTrafficEnabled = !binding.mapView.map.isTrafficEnabled
         }
         btnDownload.setOnClickListener {
-            startActivity(Intent(context, OfflineMapActivity::class.java))
+//            startActivity(Intent(context, OfflineMapActivity::class.java))
+            findNavController().navigate(NavMainDirections.actionGlobalFragmentEmpty())
         }
         compassView.setLifecycleOwner(this)
         btnCompass.setOnClickListener {
@@ -137,6 +134,9 @@ class FragmentMap : Fragment() {
             isCompassEnabled = true
             isScaleControlsEnabled = true
         }
+        mapViewManager = MapViewManager(mapView, viewModel)
+        mapViewManager.setLifecycleOwner(this)
+        mapViewManager.centerFixedMarkerEnabled = true
         // 定位
         mapViewManager.locateMyLocation(followUpType = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
         // 绘制点点击
@@ -232,12 +232,21 @@ class FragmentMap : Fragment() {
     }
 }
 
+
+open class MapViewManagerViewModel : ViewModel() {
+    private var _isfirstLoad = MutableLiveData<Boolean>()
+    var isfirstLoad: Boolean = _isfirstLoad.value ?: true
+    fun onFirstLoadComplete() {
+        _isfirstLoad.value = true
+    }
+}
+
 /**
  * 地图视图管理器
  */
-class MapViewManager(val mapView: MapView) {
-    // 地图场景是否正在移动
-    var isCameraChange: Boolean = true
+class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewModel) {
+    // 是否加载完成
+    var isMapLoaded = false
 
     // 点、线、面
     val markers = HashMap<String, Marker>()
@@ -256,37 +265,33 @@ class MapViewManager(val mapView: MapView) {
 
     // 设置生命周期感知，设置生命周期后可以不需要再在onDestroy、onResume、onPause中进行回调
     private var lifecycleListener: MapViewManagerLifecycleListener? = null
-    var lifecycleOwner: LifecycleOwner? = null
-        set(value) {
-            if (value != null) {
-                if (lifecycleListener == null) {
-                    lifecycleListener = MapViewManagerLifecycleListener(this)
-                }
-                value?.lifecycle?.addObserver(lifecycleListener!!)
-            } else {
-                if (lifecycleListener != null) {
-                    field?.lifecycle?.removeObserver(lifecycleListener!!)
-                }
+    private var _lifecycleOwner: LifecycleOwner? = null
+    fun setLifecycleOwner(fragment: Fragment) = setLifecycleOwner(fragment.viewLifecycleOwner)
+    fun setLifecycleOwner(value: LifecycleOwner) {
+        if (value != null) {
+            if (lifecycleListener == null) {
+                lifecycleListener = MapViewManagerLifecycleListener(this)
             }
-            field = value
+            value?.lifecycle?.addObserver(lifecycleListener!!)
+        } else {
+            if (lifecycleListener != null) {
+                _lifecycleOwner?.lifecycle?.removeObserver(lifecycleListener!!)
+            }
         }
+        _lifecycleOwner = value
+    }
 
     // 当前谷歌图层
     private var currentGoogleTileOverlay: TileOverlay? = null
 
     init {
-        // 地图场景移动监听
-        mapView.map.addOnCameraChangeListener(object : AMap.OnCameraChangeListener {
-            override fun onCameraChangeFinish(cameraPosition: CameraPosition) {
-                isCameraChange = false
-                updateCenterFixedMarker(cameraPosition)
-                centerFixedMarker?.startBeatingAnimation(mapView)
-            }
-
-            override fun onCameraChange(cameraPosition: CameraPosition) {
-                isCameraChange = true
-            }
-        })
+        var onMapLoadedListener: AMap.OnMapLoadedListener? = null
+        onMapLoadedListener = AMap.OnMapLoadedListener {
+            isMapLoaded = true
+            updateCenterFixedMarker()
+            mapView.map.removeOnMapLoadedListener(onMapLoadedListener)
+        }
+        mapView.map.addOnMapLoadedListener(onMapLoadedListener)
     }
 
     /**
@@ -295,14 +300,21 @@ class MapViewManager(val mapView: MapView) {
     fun locateMyLocation(
         firstType: Int = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE, //第一次定位类型
         followUpType: Int = firstType,//后续定位类型
-        applyCustomMyLocationStyle: ((MyLocationStyle) -> Unit)? = null
+        applyCustomMyLocationStyle: ((MyLocationStyle) -> Unit)? = null,
+        firstLoadMode: Boolean = true // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
     ) {
+        val initType = if (firstLoadMode && !viewModel.isfirstLoad) followUpType else firstType
         mapView.map.myLocationStyle = MyLocationStyle().apply {
             applyCustomMyLocationStyle?.invoke(this)
-            myLocationType(firstType)
+            myLocationType(initType)
         }
         mapView.map.isMyLocationEnabled = true
-        if (firstType == followUpType) {
+        if (firstLoadMode && !viewModel.isfirstLoad) {
+            // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
+            return
+        }
+        if (initType == followUpType) {
+            // 第一次定位类型与后续定位类型一致
             return
         }
         var listener: AMap.OnMyLocationChangeListener? = null;
@@ -321,7 +333,7 @@ class MapViewManager(val mapView: MapView) {
     /**
      * 更新中心点（固定）
      */
-    fun updateCenterFixedMarker(cameraPosition: CameraPosition = mapView.map.cameraPosition) {
+    fun updateCenterFixedMarker() {
         if (!centerFixedMarkerEnabled) {
             // 禁用时，删除中心点（固定）
             if (centerFixedMarker != null) {
@@ -334,12 +346,13 @@ class MapViewManager(val mapView: MapView) {
         if (centerFixedMarker != null) {
             return
         }
-        // 地图场景移动时，取消创建，避免中间点不准确
-        if (isCameraChange) {
+        // 未加载完成时停止创建
+        if (!isMapLoaded) {
             return
         }
         // 开始创建
-        val screenPosition = mapView.map.projection.toScreenLocation(cameraPosition.target)
+        val screenPosition =
+            mapView.map.projection.toScreenLocation(mapView.map.cameraPosition.target)
         centerFixedMarker = mapView.map.addMarker(
             MarkerOptions().anchor(0.5f, 0.5f).apply {
                 if (centerFixedMarkerApplyCustomOptions != null) {
