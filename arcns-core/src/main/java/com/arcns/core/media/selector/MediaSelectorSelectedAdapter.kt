@@ -1,6 +1,7 @@
 package com.arcns.core.media.selector
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.databinding.BindingAdapter
@@ -153,11 +154,19 @@ fun bindMediaSelectorSelected(
         )
     }?.toList() ?: ArrayList())
     // 选中列表跳转到选中媒体文件
-    recyclerView.viewTreeObserver.addOnGlobalLayoutListener(object :
-        ViewTreeObserver.OnGlobalLayoutListener {
-        override fun onGlobalLayout() {
-            LOG("onGlobalLayout")
-            recyclerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+    recyclerView.addOnLayoutChangeListener(object :View.OnLayoutChangeListener{
+        override fun onLayoutChange(
+            v: View?,
+            left: Int,
+            top: Int,
+            right: Int,
+            bottom: Int,
+            oldLeft: Int,
+            oldTop: Int,
+            oldRight: Int,
+            oldBottom: Int
+        ) {
+            recyclerView.removeOnLayoutChangeListener(this)
             currentMediaPosition?.run {
                 val layoutManager = (recyclerView.layoutManager as? LinearLayoutManager) ?: return
                 if (this > layoutManager.findLastCompletelyVisibleItemPosition() || this < layoutManager.findFirstCompletelyVisibleItemPosition()) {
@@ -168,5 +177,20 @@ fun bindMediaSelectorSelected(
         }
 
     })
+//    recyclerView.viewTreeObserver.addOnGlobalLayoutListener(object :
+//        ViewTreeObserver.OnGlobalLayoutListener {
+//        override fun onGlobalLayout() {
+//            LOG("onGlobalLayout")
+//            recyclerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+//            currentMediaPosition?.run {
+//                val layoutManager = (recyclerView.layoutManager as? LinearLayoutManager) ?: return
+//                if (this > layoutManager.findLastCompletelyVisibleItemPosition() || this < layoutManager.findFirstCompletelyVisibleItemPosition()) {
+//                    layoutManager.scrollToPosition(this)
+////            layoutManager.stackFromEnd = true
+//                }
+//            }
+//        }
+//
+//    })
 
 }

@@ -17,9 +17,7 @@ import android.text.Html
 import android.text.Spanned
 import android.util.Base64
 import android.util.TypedValue
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
+import android.view.*
 import android.view.animation.Animation
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
@@ -34,6 +32,7 @@ import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.DialogBehavior
 import com.afollestad.materialdialogs.MaterialDialog
@@ -814,19 +813,28 @@ fun Context.openAppByFile(
 /***********************************其他**************************************/
 
 /**
- * 设置ToolBar为ActionBar，并设置NavController
+ * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
  */
 fun Fragment.setActionBarAsToolbar(
-    toolbar: View, displayShowTitleEnabled: Boolean = false,
-    isTopLevelDestination: Boolean = false
-) {
-    (toolbar as? Toolbar)?.run {
-        setActionBar(this, displayShowTitleEnabled, isTopLevelDestination)
-    }
+    toolbar: View,
+    displayShowTitleEnabled: Boolean = false,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    menuResId: Int? = null,
+    menuItemClickListener: ((MenuItem) -> Unit)? = null
+) = (toolbar as? Toolbar)?.run {
+    setActionBar(
+        this,
+        displayShowTitleEnabled,
+        isTopLevelDestination,
+        isPaddingStatusBarHeight,
+        menuResId,
+        menuItemClickListener
+    )
 }
 
 /**
- * 设置ToolBar为ActionBar，并设置NavController
+ * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
  */
 fun Fragment.setActionBar(
     toolbar: Toolbar,
@@ -834,12 +842,22 @@ fun Fragment.setActionBar(
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true
 ) {
-    if (isPaddingStatusBarHeight) {
-        toolbar.setPaddingStatusBarHeight(true, false)
+    if (toolbar.layoutParams.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+        // 设置系统状态栏
+        if (isPaddingStatusBarHeight) {
+            toolbar.setPaddingStatusBarHeight(true, false)
+        }
+        // 自适应高度时，设置Toolbar高度为actionBar默认高度
+        toolbar.layoutParams = toolbar.layoutParams.apply {
+            height = context.getActionBarHeight() + toolbar.paddingTop + toolbar.paddingBottom
+        }
+    } else {
+        // 非自适应高度时，不再重新设置高度；同时在设置系统状态栏，自动扩展高度
+        if (isPaddingStatusBarHeight) {
+            toolbar.setPaddingStatusBarHeight(true, true)
+        }
     }
-    toolbar.layoutParams = toolbar.layoutParams.apply {
-        height = context.getActionBarHeight() + toolbar.paddingTop + toolbar.paddingBottom
-    }
+
     if (displayShowTitleEnabled) {
         findNavController().currentDestination?.label?.let {
             val title = StringBuffer()
@@ -876,6 +894,93 @@ fun Fragment.setActionBar(
     }
 }
 
+/**
+ * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
+ */
+fun Fragment.setActionBar(
+    toolbar: Toolbar,
+    displayShowTitleEnabled: Boolean = false,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    menuResId: Int? = TOOLBAR_NO_ACTION,
+    onMenuItemClick: ((MenuItem) -> Unit)? = null
+) {
+    setActionBar(
+        toolbar,
+        displayShowTitleEnabled,
+        isTopLevelDestination,
+        isPaddingStatusBarHeight
+    )
+    toolbar.setMenu(menuResId, onMenuItemClick)
+}
+
+/**
+ * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
+ */
+fun Fragment.setActionBar(
+    toolbar: Toolbar,
+    displayShowTitleEnabled: Boolean = false,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    hasMenu: LiveData<Boolean>,
+    onInflateMenu: () -> Int,
+    onMenuItemClick: ((MenuItem) -> Unit)? = null
+) {
+    setActionBar(
+        toolbar,
+        displayShowTitleEnabled,
+        isTopLevelDestination,
+        isPaddingStatusBarHeight
+    )
+    toolbar.setMenu(this.viewLifecycleOwner, hasMenu, onInflateMenu, onMenuItemClick)
+}
+
+/**
+ * 为Toolbar设置菜单
+ */
+fun Toolbar.setMenu(
+    owner: LifecycleOwner,
+    hasMenu: LiveData<Boolean>,
+    onInflateMenu: () -> Int,
+    onMenuItemClick: ((MenuItem) -> Unit)? = null
+) {
+    hasMenu.observe(owner) {
+        if (!it) clearMenu()
+        else setMenu(onInflateMenu())
+    }
+    setMenu(onMenuItemClick = onMenuItemClick)
+}
+
+/**
+ * 设置菜单
+ * menuResId为-1时，不对菜单做更改
+ * 若menuItemClickListener为空，则使用上一个设置的menuItemClickListener
+ */
+fun Toolbar.setMenu(
+    menuResId: Int? = TOOLBAR_NO_ACTION,
+    onMenuItemClick: ((MenuItem) -> Unit)? = null
+): Menu {
+    if (menuResId == null) {
+        clearMenu()
+    } else if (menuResId != TOOLBAR_NO_ACTION) {
+        clearMenu()
+        inflateMenu(menuResId)
+    }
+    if (onMenuItemClick != null) {
+        setOnMenuItemClickListener {
+            onMenuItemClick(it)
+            true
+        }
+    }
+    return menu
+}
+
+val TOOLBAR_NO_ACTION: Int = -1
+
+/**
+ * 清除存在的菜单
+ */
+fun Toolbar.clearMenu() = menu.clear()
 
 /**
  * 监听返回键
@@ -960,3 +1065,29 @@ val String.isInternetResources: Boolean
         "http://",
         true
     ) || startsWith("https://", true)
+
+
+/**
+ * 测量后回调
+ */
+inline fun <T : View> T.afterMeasure(crossinline onAfterMeasureCallback: T.() -> Unit) {
+    addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+        override fun onLayoutChange(
+            v: View?,
+            left: Int,
+            top: Int,
+            right: Int,
+            bottom: Int,
+            oldLeft: Int,
+            oldTop: Int,
+            oldRight: Int,
+            oldBottom: Int
+        ) {
+            if (measuredWidth > 0 && measuredHeight > 0) {
+                removeOnLayoutChangeListener(this)
+                onAfterMeasureCallback()
+            }
+        }
+
+    })
+}

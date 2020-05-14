@@ -21,7 +21,6 @@ import com.example.arcns.viewmodel.ViewModelStartupPage
  */
 class FragmentStartupPage : Fragment() {
     private var binding by autoCleared<FragmentStartupPageBinding>()
-//private lateinit var binding:FragmentStartupPageBinding
     private val viewModel by viewModels<ViewModelStartupPage>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
 
