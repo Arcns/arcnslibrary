@@ -1,6 +1,7 @@
 package com.example.arcns.ui
 
 import android.content.Intent
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -106,7 +107,8 @@ class FragmentMap : Fragment() {
         }
         btnDownload.setOnClickListener {
 //            startActivity(Intent(context, OfflineMapActivity::class.java))
-            findNavController().navigate(NavMainDirections.actionGlobalFragmentEmpty())
+//            findNavController().navigate(NavMainDirections.actionGlobalFragmentEmpty())
+//            mapView.map
         }
         compassView.setLifecycleOwner(this)
         btnCompass.setOnClickListener {
@@ -117,11 +119,11 @@ class FragmentMap : Fragment() {
                 mapViewManager.centerFixedMarker?.position ?: return@setOnClickListener,
                 viewModel.calculateLineMapPositionGroup
             )
-            mapViewManager.addOrUpdatePolyline(viewModel.calculateLineMapPositionGroup)
+            mapViewManager.addOrUpdatePolygons(viewModel.calculateLineMapPositionGroup)
         }
         btnDelPin.setOnClickListener {
             mapViewManager.removeLastMarker(viewModel.calculateLineMapPositionGroup)
-            mapViewManager.addOrUpdatePolyline(viewModel.calculateLineMapPositionGroup)
+            mapViewManager.addOrUpdatePolygons(viewModel.calculateLineMapPositionGroup)
         }
     }
 
@@ -158,9 +160,10 @@ class FragmentMap : Fragment() {
             }
 
             override fun onMarkerDrag(marker: Marker?) {
-//                viewModel.calculateLineMapPositionGroup.findMapPositionByID(
-//                    marker?.id ?: return
-//                )?.position = marker.position
+                viewModel.calculateLineMapPositionGroup.findMapPositionByID(
+                    marker?.id ?: return
+                )?.position = marker.position
+                mapViewManager.addOrUpdatePolygons(viewModel.calculateLineMapPositionGroup)
             }
 
         })
@@ -185,33 +188,40 @@ class FragmentMap : Fragment() {
         })
 
         mapView.map.addOnCameraChangeListener(object : AMap.OnCameraChangeListener {
-            override fun onCameraChangeFinish(p0: CameraPosition?) {
+            override fun onCameraChangeFinish(position: CameraPosition?) {
 //                addCameraCenterMarker(p0?.target)
 //                cameraCenterMarker?.startBeatingAnimation(mapView)
-                searchPOI(p0!!.target)
+                searchPOI(position!!.target)
             }
 
-            override fun onCameraChange(p0: CameraPosition?) {
+            override fun onCameraChange(position: CameraPosition?) {
             }
 
         })
     }
 
+    var poiSearch: PoiSearch? = null
     private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
         var query = PoiSearch.Query("黑龙江", "", "")//keyWord，type，cityCode
         query.pageSize = 10;
         query.pageNum = 0
-        var poiSearch = PoiSearch(context, query)
+        if (poiSearch == null) {
+            poiSearch = PoiSearch(context, query)
+        } else {
+            poiSearch?.query = query
+        }
         if (isContainsBound) {
             //设置周边搜索的中心点以及半径
-            poiSearch.bound = PoiSearch.SearchBound(
+            poiSearch?.bound = PoiSearch.SearchBound(
                 LatLonPoint(
                     position.latitude,
                     position.longitude
                 ), Int.MAX_VALUE
             )
+        } else {
+            poiSearch?.bound = null
         }
-        poiSearch.setOnPoiSearchListener(object : PoiSearch.OnPoiSearchListener {
+        poiSearch?.setOnPoiSearchListener(object : PoiSearch.OnPoiSearchListener {
             override fun onPoiItemSearched(item: PoiItem?, rCode: Int) {
             }
 
@@ -223,7 +233,7 @@ class FragmentMap : Fragment() {
                 }
             }
         });
-        poiSearch.searchPOIAsyn();
+        poiSearch?.searchPOIAsyn();
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -317,17 +327,17 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
             // 第一次定位类型与后续定位类型一致
             return
         }
-        var listener: AMap.OnMyLocationChangeListener? = null;
-        listener = AMap.OnMyLocationChangeListener {
-            if (mapView.map.myLocationStyle.myLocationType != followUpType) {
-                mapView.map.myLocationStyle = MyLocationStyle().apply {
-                    applyCustomMyLocationStyle?.invoke(this)
-                    myLocationType(followUpType)
+        mapView.map.addOnMyLocationChangeListener(object : AMap.OnMyLocationChangeListener {
+            override fun onMyLocationChange(location: Location?) {
+                if (mapView.map.myLocationStyle.myLocationType != followUpType) {
+                    mapView.map.myLocationStyle = MyLocationStyle().apply {
+                        applyCustomMyLocationStyle?.invoke(this)
+                        myLocationType(followUpType)
+                    }
                 }
-                mapView.map.addOnMyLocationChangeListener(listener)
+                mapView.map.removeOnMyLocationChangeListener(this)
             }
-        }
-        mapView.map.addOnMyLocationChangeListener(listener)
+        })
     }
 
     /**
