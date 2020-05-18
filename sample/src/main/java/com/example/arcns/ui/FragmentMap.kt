@@ -1,8 +1,10 @@
 package com.example.arcns.ui
 
+import android.app.Service
 import android.content.Intent
 import android.location.Location
 import android.os.Bundle
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -115,15 +117,26 @@ class FragmentMap : Fragment() {
             compassView.toggleVisibility()
         }
         btnAddPin.setOnClickListener {
-            mapViewManager.addMarker(
-                mapViewManager.centerFixedMarker?.position ?: return@setOnClickListener,
-                viewModel.calculateLineMapPositionGroup
-            )
-            mapViewManager.addOrUpdatePolygons(viewModel.calculateLineMapPositionGroup)
+            mapViewManager.addCenterFixedMarker(viewModel.calculateAreaMapPositionGroup)
+            mapViewManager.addOrUpdatePolygons(viewModel.calculateAreaMapPositionGroup)
         }
         btnDelPin.setOnClickListener {
+            mapViewManager.removeLastMarker(viewModel.calculateAreaMapPositionGroup)
+            mapViewManager.addOrUpdatePolygons(viewModel.calculateAreaMapPositionGroup)
+        }
+        btnClearPin.setOnClickListener {
+            mapViewManager.clear(polygonMapPositionGroups = listOf(viewModel.calculateAreaMapPositionGroup))
+        }
+        btnAddLinePin.setOnClickListener {
+            mapViewManager.addCenterFixedMarker(viewModel.calculateLineMapPositionGroup)
+            mapViewManager.addOrUpdatePolyline(viewModel.calculateLineMapPositionGroup)
+        }
+        btnDelLinePin.setOnClickListener {
             mapViewManager.removeLastMarker(viewModel.calculateLineMapPositionGroup)
-            mapViewManager.addOrUpdatePolygons(viewModel.calculateLineMapPositionGroup)
+            mapViewManager.addOrUpdatePolyline(viewModel.calculateLineMapPositionGroup)
+        }
+        btnClearLinePin.setOnClickListener {
+            mapViewManager.clear(polylineMapPositionGroups = listOf(viewModel.calculateLineMapPositionGroup))
         }
     }
 
@@ -295,13 +308,15 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     private var currentGoogleTileOverlay: TileOverlay? = null
 
     init {
-        var onMapLoadedListener: AMap.OnMapLoadedListener? = null
-        onMapLoadedListener = AMap.OnMapLoadedListener {
-            isMapLoaded = true
-            updateCenterFixedMarker()
-            mapView.map.removeOnMapLoadedListener(onMapLoadedListener)
-        }
-        mapView.map.addOnMapLoadedListener(onMapLoadedListener)
+        // 加载完成回调
+        mapView.map.addOnMapLoadedListener(object : AMap.OnMapLoadedListener {
+            override fun onMapLoaded() {
+                isMapLoaded = true
+                // 更新中心点（固定）
+                updateCenterFixedMarker()
+                mapView.map.removeOnMapLoadedListener(this)
+            }
+        })
     }
 
     /**
@@ -389,6 +404,25 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     }
 
     /**
+     * 按传入的新数据进行清空
+     */
+    fun clear(
+        markerMapPositionGroups: List<MapPositionGroup>? = null,
+        polygonMapPositionGroups: List<MapPositionGroup>? = null,
+        polylineMapPositionGroups: List<MapPositionGroup>? = null
+    ) {
+        markerMapPositionGroups?.forEach {
+            removeMarkers(it)
+        }
+        polygonMapPositionGroups?.forEach {
+            removePolygon(it)
+        }
+        polylineMapPositionGroups?.forEach {
+            removePolyline(it)
+        }
+    }
+
+    /**
      * 按传入的新数据进行刷新
      */
     fun refresh(
@@ -411,30 +445,43 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 删除线
      */
-    fun removePolyline(mapPositionGroup: MapPositionGroup) {
-        polylines[mapPositionGroup.groupID.value]?.run {
+    fun removePolyline(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean = true) {
+        polylines[mapPositionGroup.groupID]?.run {
             remove()
-            polylines.remove(mapPositionGroup.groupID.value)
+            polylines.remove(mapPositionGroup.groupID)
             mapPositionGroup.clearGroupID()
+            if (isRemoveMarkers) {
+                removeMarkers(mapPositionGroup)
+            }
         }
     }
 
     /**
      * 删除多边形
      */
-    fun removePolygon(mapPositionGroup: MapPositionGroup) {
-        polygons[mapPositionGroup.groupID.value]?.run {
-            remove()
-            polygons.remove(mapPositionGroup.groupID.value)
-            mapPositionGroup.clearGroupID()
+    fun removePolygon(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean = true) {
+        // 状态为线时
+        if (polylines.containsKey(mapPositionGroup.groupID)) {
+            removePolyline(mapPositionGroup, isRemoveMarkers)
+            return
         }
+        // 状态为多边形时
+        polygons[mapPositionGroup.groupID]?.run {
+            remove()
+            polygons.remove(mapPositionGroup.groupID)
+            mapPositionGroup.clearGroupID()
+            if (isRemoveMarkers) {
+                removeMarkers(mapPositionGroup)
+            }
+        }
+
     }
 
     /**
      * 添加或刷新线
      */
     fun addOrUpdatePolyline(mapPositionGroup: MapPositionGroup) {
-        if (mapPositionGroup.groupID.value.isNullOrBlank()) {
+        if (mapPositionGroup.groupID.isNullOrBlank()) {
             val polyline = mapView.map.addPolyline(
                 PolylineOptions().addAll(mapPositionGroup.mapPositionLatLngs).apply {
                     // 应用自定义样式
@@ -445,7 +492,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
             mapPositionGroup.setGroupID(polyline.id)
             polylines[polyline.id] = polyline
         } else {
-            polylines[mapPositionGroup.groupID.value ?: return]?.points =
+            polylines[mapPositionGroup.groupID ?: return]?.points =
                 mapPositionGroup.mapPositionLatLngs
         }
     }
@@ -456,13 +503,13 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     fun addOrUpdatePolygons(mapPositionGroup: MapPositionGroup) {
         // 低于3个时画线
         if (mapPositionGroup.mapPositionLatLngs.size < 3) {
-            removePolygon(mapPositionGroup)
+            removePolygon(mapPositionGroup, false)
             addOrUpdatePolyline(mapPositionGroup)
             return
         }
         // 大于等于3个时画多边形
-        removePolyline(mapPositionGroup)
-        if (mapPositionGroup.groupID.value.isNullOrBlank()) {
+        removePolyline(mapPositionGroup, false)
+        if (mapPositionGroup.groupID.isNullOrBlank()) {
             val polygon = mapView.map.addPolygon(
                 PolygonOptions().addAll(mapPositionGroup.mapPositionLatLngs).apply {
                     // 应用自定义样式
@@ -475,7 +522,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
             mapPositionGroup.setGroupID(polygon.id)
             polygons[polygon.id] = polygon
         } else {
-            polygons[mapPositionGroup.groupID.value ?: return]?.points =
+            polygons[mapPositionGroup.groupID ?: return]?.points =
                 mapPositionGroup.mapPositionLatLngs
         }
     }
@@ -484,7 +531,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
      * 添加或更新多个点
      */
     fun addOrUpdateMarkers(mapPositionGroup: MapPositionGroup) {
-        mapPositionGroup.setMapPositions(mapPositionGroup.mapPositions.value?.apply {
+        mapPositionGroup.setMapPositions(mapPositionGroup.mapPositions.apply {
             forEach {
                 addOrUpdateMarker(it, mapPositionGroup)
             }
@@ -507,6 +554,13 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
                     applyCustomOptions = mapPositionGroup?.applyCustomOptions
                 ).id
         }
+    }
+
+    /**
+     * 添加中心点（固定）的坐标到坐标组
+     */
+    fun addCenterFixedMarker(mapPositionGroup: MapPositionGroup): Marker? {
+        return addMarker(centerFixedMarker?.position ?: return null, mapPositionGroup)
     }
 
     /**
@@ -542,6 +596,17 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     fun removeMarker(id: String?, mapPositionGroup: MapPositionGroup? = null) {
         mapPositionGroup?.removeMapPosition(id)
         markers[id]?.remove()
+        mapView.invalidate()
+    }
+
+    /**
+     * 删除多个点（同时更新数据到MapPositionGroup）
+     */
+    fun removeMarkers(mapPositionGroup: MapPositionGroup) {
+        mapPositionGroup.mapPositions.forEach {
+            markers[it.id]?.remove()
+        }
+        mapPositionGroup.clearMapPosition()
         mapView.invalidate()
     }
 

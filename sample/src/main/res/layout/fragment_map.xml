@@ -78,6 +78,34 @@
             app:layout_constraintTop_toBottomOf="@id/btnDownload" />
 
         <Button
+            android:id="@+id/btnDelLinePin"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/btnAddLinePin"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="撤销线的点"/>
+
+        <Button
+            android:id="@+id/btnAddLinePin"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintLeft_toRightOf="@id/btnDelLinePin"
+            app:layout_constraintRight_toLeftOf="@id/btnClearLinePin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="添加线的点"/>
+
+        <Button
+            android:id="@+id/btnClearLinePin"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintLeft_toRightOf="@id/btnAddLinePin"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="清空线"/>
+
+        <Button
             android:id="@+id/btnDelPin"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -85,16 +113,25 @@
             app:layout_constraintHorizontal_chainStyle="packed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="撤销"/>
+            android:text="撤销多边形的点"/>
 
         <Button
             android:id="@+id/btnAddPin"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toRightOf="@id/btnDelPin"
+            app:layout_constraintRight_toLeftOf="@id/btnClearPin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="添加多边形的点"/>
+
+        <Button
+            android:id="@+id/btnClearPin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/btnAddPin"
             app:layout_constraintRight_toRightOf="parent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="确定"/>
+            android:text="清空多边形"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -33,18 +33,24 @@ class ViewModelMap : MapViewManagerViewModel() {
             }
         }
     }
-    var calculateAreaMapPositionGroup = MapPositionGroup()
+    var calculateAreaMapPositionGroup = MapPositionGroup().apply {
+        applyCustomOptions = {
+            when (it) {
+                is MarkerOptions -> it.draggable(true)
+            }
+        }
+    }
 }
 
 typealias ApplyCustomOptions = ((options: Any) -> Unit)
 
 class MapPositionGroup {
     private var _groupID = MutableLiveData<String>()
-    var groupID: LiveData<String> = _groupID
+    val groupID: String? get() = _groupID.value
 
     private var _mapPositions =
         MutableLiveData<ArrayList<MapPosition>>().apply { value = ArrayList() }
-    var mapPositions: LiveData<ArrayList<MapPosition>> = _mapPositions
+    val mapPositions: ArrayList<MapPosition> get() = _mapPositions.value ?: arrayListOf()
 
     /**
      * 添加时样式配置格式化，如果如果使用自定义样式时，可以使用该变量，其中options为MarkerOptions或PolylineOptions或PolygonOptions等
@@ -55,15 +61,15 @@ class MapPositionGroup {
      * 返回所有地图点坐标
      */
     val mapPositionLatLngs: List<LatLng>
-        get() = mapPositions.value?.map {
+        get() = mapPositions.map {
             it.position
-        }?.toList() ?: listOf()
+        }?.toList()
 
     /**
      * 根据id查找地图点
      */
     fun findMapPositionByID(id: String): MapPosition? {
-        mapPositions.value?.forEach {
+        mapPositions.forEach {
             if (it.id == id) {
                 return it
             }
@@ -126,6 +132,10 @@ class MapPositionGroup {
                 }
             }
         return null
+    }
+
+    fun clearMapPosition() {
+        _mapPositions.value = arrayListOf()
     }
 
     /**
