@@ -3,13 +3,8 @@ package com.example.arcns.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.amap.api.maps.model.MarkerOptions
-import com.arcns.core.util.Event
-import com.arcns.core.util.MapPosition
-import com.arcns.core.util.MapLatLngType
-import com.arcns.core.util.MapPositionGroup
+import com.arcns.core.util.*
 import com.example.arcns.data.network.NetworkDataSource
-import com.example.arcns.ui.MapViewManagerViewModel
-import kotlin.collections.ArrayList
 
 
 class ViewModelMap : MapViewManagerViewModel() {

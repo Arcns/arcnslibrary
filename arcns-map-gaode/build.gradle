@@ -9,4 +9,10 @@ dependencies {
     implementation deps.androidx.appcompat
     implementation deps.androidx.ktx
     implementation project(path: ':arcns-core')
+    //高德3D地图so及jar
+    implementation 'com.amap.api:3dmap:7.4.0'
+    //高德定位功能
+    implementation 'com.amap.api:location:4.9.0'
+    //高德搜索
+    implementation 'com.amap.api:search:7.3.0'
 }

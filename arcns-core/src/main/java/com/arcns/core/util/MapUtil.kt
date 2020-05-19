@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItems
 import com.arcns.core.R
@@ -454,5 +455,40 @@ class MapPositionGroup {
             }
 
         return null
+    }
+}
+
+
+open class MapViewManagerViewModel : ViewModel() {
+    private var _isfirstLoad = MutableLiveData<Boolean>()
+    val isfirstLoad: Boolean get() = _isfirstLoad.value ?: true
+    fun onFirstLoadComplete() {
+        _isfirstLoad.value = false
+    }
+
+    private var _cameraPositionTarget = MutableLiveData<MapPosition>()
+    val cameraPositionTarget get() = _cameraPositionTarget.value
+
+    // 缩放级别
+    private var _cameraPositionZoom = MutableLiveData<Float>()
+    val cameraPositionZoom get() = _cameraPositionZoom.value
+
+    // 俯仰角0°~45°（垂直与地图时为0）
+    private var _cameraPositionTilt = MutableLiveData<Float>()
+    val cameraPositionTilt get() = _cameraPositionTilt.value
+
+    // 偏航角 0~360° (正北方为0)
+    private var _cameraPositionBearing = MutableLiveData<Float>()
+    val cameraPositionBearing get() = _cameraPositionBearing.value
+    fun savePauseCameraPosition(
+        mapPosition: MapPosition,
+        zoom: Float,
+        tilt: Float,
+        bearing: Float
+    ) {
+        _cameraPositionTarget.value = mapPosition
+        _cameraPositionZoom.value = zoom
+        _cameraPositionTilt.value = tilt
+        _cameraPositionBearing.value = bearing
     }
 }
