@@ -30,10 +30,10 @@
             app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
         <com.arcns.core.view.CompassView
-            android:visibility="gone"
             android:id="@+id/compassView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
@@ -77,61 +77,77 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btnDownload" />
 
+        <TextView
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.calculateLineValue}"
+            app:layout_constraintBottom_toTopOf="@id/tvCalculateAreaValue" />
+
+        <TextView
+            android:gravity="center"
+            android:id="@+id/tvCalculateAreaValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.calculateAreaValue}"
+            app:layout_constraintBottom_toTopOf="@id/btnDelLinePin" />
+
+
         <Button
             android:id="@+id/btnDelLinePin"
-            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/btnAddLinePin"
-            app:layout_constraintHorizontal_chainStyle="packed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="撤销线的点"/>
+            android:text="撤销线点"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/btnAddLinePin" />
 
         <Button
             android:id="@+id/btnAddLinePin"
-            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
-            app:layout_constraintLeft_toRightOf="@id/btnDelLinePin"
-            app:layout_constraintRight_toLeftOf="@id/btnClearLinePin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="添加线的点"/>
+            android:text="添加线点"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintLeft_toRightOf="@id/btnDelLinePin"
+            app:layout_constraintRight_toLeftOf="@id/btnClearLinePin" />
 
         <Button
             android:id="@+id/btnClearLinePin"
-            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
-            app:layout_constraintLeft_toRightOf="@id/btnAddLinePin"
-            app:layout_constraintRight_toRightOf="parent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="清空线"/>
+            android:text="清空线"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintLeft_toRightOf="@id/btnAddLinePin"
+            app:layout_constraintRight_toRightOf="parent" />
 
         <Button
             android:id="@+id/btnDelPin"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/btnAddPin"
-            app:layout_constraintHorizontal_chainStyle="packed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="撤销多边形的点"/>
+            android:text="撤销多边形点"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/btnAddPin" />
 
         <Button
             android:id="@+id/btnAddPin"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@id/btnDelPin"
-            app:layout_constraintRight_toLeftOf="@id/btnClearPin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="添加多边形的点"/>
+            android:text="添加多边形点"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/btnDelPin"
+            app:layout_constraintRight_toLeftOf="@id/btnClearPin" />
 
         <Button
             android:id="@+id/btnClearPin"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@id/btnAddPin"
-            app:layout_constraintRight_toRightOf="parent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="清空多边形"/>
+            android:text="清空多边形"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/btnAddPin"
+            app:layout_constraintRight_toRightOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

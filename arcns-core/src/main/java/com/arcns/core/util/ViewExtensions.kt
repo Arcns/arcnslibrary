@@ -23,6 +23,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
@@ -935,6 +936,128 @@ fun Fragment.setActionBar(
         isPaddingStatusBarHeight
     )
     toolbar.setMenu(this.viewLifecycleOwner, hasMenu, onInflateMenu, onMenuItemClick)
+}
+
+
+/**
+ * 设置ToolBar为模拟ActionBar效果，并设置返回按钮和事件（Activity）
+ */
+fun ComponentActivity.setActionBarAsToolbar(
+    toolbar: View,
+    showTitleResId: Int? = null,
+    showTitle: String? = null,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    isTransparentStatusBar: Boolean = true,
+    menuResId: Int? = null,
+    menuItemClickListener: ((MenuItem) -> Unit)? = null
+) = (toolbar as? Toolbar)?.run {
+    setActionBar(
+        this,
+        showTitleResId,
+        showTitle,
+        isTopLevelDestination,
+        isPaddingStatusBarHeight,
+        isTransparentStatusBar,
+        menuResId,
+        menuItemClickListener
+    )
+}
+
+/**
+ * 设置ToolBar为模拟ActionBar效果，并设置返回按钮和事件（Activity）
+ */
+fun ComponentActivity.setActionBar(
+    toolbar: Toolbar,
+    showTitleResId: Int? = null,
+    showTitle: String? = null,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    isTransparentStatusBar: Boolean = true
+) {
+    if (isTransparentStatusBar) {
+        setupTransparentStatusBar()
+    }
+    if (toolbar.layoutParams.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+        // 设置系统状态栏
+        if (isPaddingStatusBarHeight) {
+            toolbar.setPaddingStatusBarHeight(true, false)
+        }
+        // 自适应高度时，设置Toolbar高度为actionBar默认高度
+        toolbar.layoutParams = toolbar.layoutParams.apply {
+            height = getActionBarHeight() + toolbar.paddingTop + toolbar.paddingBottom
+        }
+    } else {
+        // 非自适应高度时，不再重新设置高度；同时在设置系统状态栏，自动扩展高度
+        if (isPaddingStatusBarHeight) {
+            toolbar.setPaddingStatusBarHeight(true, true)
+        }
+    }
+    if (showTitleResId != null) {
+        toolbar.setTitle(showTitleResId)
+    } else {
+        toolbar.title = showTitle
+    }
+    if (!isTopLevelDestination) {
+        toolbar.navigationIcon = DrawerArrowDrawable(toolbar.context).apply {
+            progress = 1f
+        }
+        toolbar.setNavigationContentDescription(androidx.navigation.ui.R.string.nav_app_bar_navigate_up_description)
+        toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
+    } else {
+        toolbar.navigationIcon = null
+    }
+}
+
+/**
+ * 设置ToolBar为模拟ActionBar效果，并设置返回按钮和事件（Activity）
+ */
+fun ComponentActivity.setActionBar(
+    toolbar: Toolbar,
+    showTitleResId: Int? = null,
+    showTitle: String? = null,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    isTransparentStatusBar: Boolean = true,
+    menuResId: Int? = TOOLBAR_NO_ACTION,
+    onMenuItemClick: ((MenuItem) -> Unit)? = null
+) {
+    setActionBar(
+        toolbar,
+        showTitleResId,
+        showTitle,
+        isTopLevelDestination,
+        isPaddingStatusBarHeight,
+        isTransparentStatusBar
+    )
+    toolbar.setMenu(menuResId, onMenuItemClick)
+}
+
+/**
+ * 设置ToolBar为模拟ActionBar效果，并设置返回按钮和事件（Activity）
+ */
+fun ComponentActivity.setActionBar(
+    toolbar: Toolbar,
+    showTitleResId: Int? = null,
+    showTitle: String? = null,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    isTransparentStatusBar: Boolean = true,
+    hasMenu: LiveData<Boolean>,
+    onInflateMenu: () -> Int,
+    onMenuItemClick: ((MenuItem) -> Unit)? = null
+) {
+    setActionBar(
+        toolbar,
+        showTitleResId,
+        showTitle,
+        isTopLevelDestination,
+        isPaddingStatusBarHeight,
+        isTransparentStatusBar
+    )
+    toolbar.setMenu(this, hasMenu, onInflateMenu, onMenuItemClick)
 }
 
 /**

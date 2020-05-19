@@ -1,27 +1,20 @@
 package com.example.arcns.ui
 
-import android.app.Service
-import android.content.Intent
 import android.location.Location
 import android.os.Bundle
-import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.databinding.Observable
-import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
-import com.amap.api.maps.AMap
-import com.amap.api.maps.MapView
+import com.amap.api.maps.*
 import com.amap.api.maps.model.*
 import com.amap.api.maps.model.animation.TranslateAnimation
-import com.amap.api.maps.offlinemap.OfflineMapActivity
 import com.amap.api.services.core.LatLonPoint
 import com.amap.api.services.core.PoiItem
 import com.amap.api.services.poisearch.PoiResult
@@ -30,7 +23,6 @@ import com.arcns.core.APP
 import com.arcns.core.util.*
 import com.example.arcns.NavMainDirections
 import com.example.arcns.R
-import com.example.arcns.databinding.FragmentEmptyBinding
 import com.example.arcns.databinding.FragmentMapBinding
 import com.example.arcns.databinding.LayoutInfoWindowBinding
 import com.example.arcns.viewmodel.*
@@ -46,7 +38,7 @@ class FragmentMap : Fragment() {
     private var binding by autoCleared<FragmentMapBinding>()
     private val viewModel by viewModels<ViewModelMap>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
-    private lateinit var mapViewManager: MapViewManager
+    private lateinit var mapViewManager: IMapViewManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -89,16 +81,16 @@ class FragmentMap : Fragment() {
                     ),
                     initialSelection = mapTypeSelectionIndex
                 ) { dialog, index, text ->
-                    mapViewManager.clearGoogleTileOverlay()
+                    mapViewManager.asGaoDe?.clearGoogleTileOverlay()
                     mapTypeSelectionIndex = index
                     when (index) {
                         0 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NORMAL
                         1 -> binding.mapView.map.mapType = AMap.MAP_TYPE_SATELLITE
                         2 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NIGHT
                         3 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NAVI
-                        4 -> mapViewManager.setGoogleTileOverlay("m")
-                        5 -> mapViewManager.setGoogleTileOverlay("p")
-                        6 -> mapViewManager.setGoogleTileOverlay("y")
+                        4 -> mapViewManager.asGaoDe?.setGoogleTileOverlay("m")
+                        5 -> mapViewManager.asGaoDe?.setGoogleTileOverlay("p")
+                        6 -> mapViewManager.asGaoDe?.setGoogleTileOverlay("y")
                     }
 
                 }
@@ -109,7 +101,7 @@ class FragmentMap : Fragment() {
         }
         btnDownload.setOnClickListener {
 //            startActivity(Intent(context, OfflineMapActivity::class.java))
-//            findNavController().navigate(NavMainDirections.actionGlobalFragmentEmpty())
+            findNavController().navigate(NavMainDirections.actionGlobalFragmentEmpty())
 //            mapView.map
         }
         compassView.setLifecycleOwner(this)
@@ -119,24 +111,42 @@ class FragmentMap : Fragment() {
         btnAddPin.setOnClickListener {
             mapViewManager.addCenterFixedMarker(viewModel.calculateAreaMapPositionGroup)
             mapViewManager.addOrUpdatePolygons(viewModel.calculateAreaMapPositionGroup)
+            viewModel.calculateAreaValue.value =
+                mapViewManager.calculateArea(mapPositionGroup = viewModel.calculateAreaMapPositionGroup)
+                    .toString()
         }
         btnDelPin.setOnClickListener {
             mapViewManager.removeLastMarker(viewModel.calculateAreaMapPositionGroup)
             mapViewManager.addOrUpdatePolygons(viewModel.calculateAreaMapPositionGroup)
+            viewModel.calculateAreaValue.value =
+                mapViewManager.calculateArea(mapPositionGroup = viewModel.calculateAreaMapPositionGroup)
+                    .toString()
         }
         btnClearPin.setOnClickListener {
             mapViewManager.clear(polygonMapPositionGroups = listOf(viewModel.calculateAreaMapPositionGroup))
+            viewModel.calculateAreaValue.value =
+                mapViewManager.calculateArea(mapPositionGroup = viewModel.calculateAreaMapPositionGroup)
+                    .toString()
         }
         btnAddLinePin.setOnClickListener {
             mapViewManager.addCenterFixedMarker(viewModel.calculateLineMapPositionGroup)
             mapViewManager.addOrUpdatePolyline(viewModel.calculateLineMapPositionGroup)
+            viewModel.calculateLineValue.value =
+                mapViewManager.calculateLineDistance(mapPositionGroup = viewModel.calculateLineMapPositionGroup)
+                    .toString()
         }
         btnDelLinePin.setOnClickListener {
             mapViewManager.removeLastMarker(viewModel.calculateLineMapPositionGroup)
             mapViewManager.addOrUpdatePolyline(viewModel.calculateLineMapPositionGroup)
+            viewModel.calculateLineValue.value =
+                mapViewManager.calculateLineDistance(mapPositionGroup = viewModel.calculateLineMapPositionGroup)
+                    .toString()
         }
         btnClearLinePin.setOnClickListener {
             mapViewManager.clear(polylineMapPositionGroups = listOf(viewModel.calculateLineMapPositionGroup))
+            viewModel.calculateLineValue.value =
+                mapViewManager.calculateLineDistance(mapPositionGroup = viewModel.calculateLineMapPositionGroup)
+                    .toString()
         }
     }
 
@@ -149,11 +159,10 @@ class FragmentMap : Fragment() {
             isCompassEnabled = true
             isScaleControlsEnabled = true
         }
-        mapViewManager = MapViewManager(mapView, viewModel)
-        mapViewManager.setLifecycleOwner(this)
+        mapViewManager = GaoDeMapViewManager(this, mapView, viewModel)
         mapViewManager.centerFixedMarkerEnabled = true
         // 定位
-        mapViewManager.locateMyLocation(followUpType = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
+        mapViewManager.asGaoDe?.locateMyLocation(followUpType = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
         // 绘制点点击
         mapView.map.setOnMarkerClickListener {
             if (it.isInfoWindowShown) it.hideInfoWindow() else it.showInfoWindow()
@@ -175,7 +184,10 @@ class FragmentMap : Fragment() {
             override fun onMarkerDrag(marker: Marker?) {
                 viewModel.calculateLineMapPositionGroup.findMapPositionByID(
                     marker?.id ?: return
-                )?.position = marker.position
+                )?.run {
+                    longitude = marker.position.longitude
+                    latitude = marker.position.latitude
+                }
                 mapViewManager.addOrUpdatePolygons(viewModel.calculateLineMapPositionGroup)
             }
 
@@ -258,16 +270,53 @@ class FragmentMap : Fragment() {
 
 open class MapViewManagerViewModel : ViewModel() {
     private var _isfirstLoad = MutableLiveData<Boolean>()
-    var isfirstLoad: Boolean = _isfirstLoad.value ?: true
+    val isfirstLoad: Boolean get() = _isfirstLoad.value ?: true
     fun onFirstLoadComplete() {
-        _isfirstLoad.value = true
+        _isfirstLoad.value = false
+    }
+
+    private var _cameraPositionTarget = MutableLiveData<MapPosition>()
+    val cameraPositionTarget get() = _cameraPositionTarget.value
+
+    // 缩放级别
+    private var _cameraPositionZoom = MutableLiveData<Float>()
+    val cameraPositionZoom get() = _cameraPositionZoom.value
+
+    // 俯仰角0°~45°（垂直与地图时为0）
+    private var _cameraPositionTilt = MutableLiveData<Float>()
+    val cameraPositionTilt get() = _cameraPositionTilt.value
+
+    // 偏航角 0~360° (正北方为0)
+    private var _cameraPositionBearing = MutableLiveData<Float>()
+    val cameraPositionBearing get() = _cameraPositionBearing.value
+    fun savePauseCameraPosition(
+        mapPosition: MapPosition,
+        zoom: Float,
+        tilt: Float,
+        bearing: Float
+    ) {
+        _cameraPositionTarget.value = mapPosition
+        _cameraPositionZoom.value = zoom
+        _cameraPositionTilt.value = tilt
+        _cameraPositionBearing.value = bearing
     }
 }
 
+
 /**
- * 地图视图管理器
+ * 高德地图视图管理器
  */
-class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewModel) {
+class GaoDeMapViewManager(
+    lifecycleOwner: LifecycleOwner,
+    val mapView: MapView,
+    val viewModel: MapViewManagerViewModel
+) : IMapViewManager {
+    constructor(fragment: Fragment, mapView: MapView, viewModel: MapViewManagerViewModel) : this(
+        fragment.viewLifecycleOwner,
+        mapView,
+        viewModel
+    )
+
     // 是否加载完成
     var isMapLoaded = false
 
@@ -280,29 +329,12 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     var centerFixedMarker: Marker? = null
         private set
     var centerFixedMarkerApplyCustomOptions: ApplyCustomOptions? = null
-    var centerFixedMarkerEnabled: Boolean = false
+    override var centerFixedMarkerEnabled: Boolean = false
         set(value) {
             field = value
             updateCenterFixedMarker()
         }
 
-    // 设置生命周期感知，设置生命周期后可以不需要再在onDestroy、onResume、onPause中进行回调
-    private var lifecycleListener: MapViewManagerLifecycleListener? = null
-    private var _lifecycleOwner: LifecycleOwner? = null
-    fun setLifecycleOwner(fragment: Fragment) = setLifecycleOwner(fragment.viewLifecycleOwner)
-    fun setLifecycleOwner(value: LifecycleOwner) {
-        if (value != null) {
-            if (lifecycleListener == null) {
-                lifecycleListener = MapViewManagerLifecycleListener(this)
-            }
-            value?.lifecycle?.addObserver(lifecycleListener!!)
-        } else {
-            if (lifecycleListener != null) {
-                _lifecycleOwner?.lifecycle?.removeObserver(lifecycleListener!!)
-            }
-        }
-        _lifecycleOwner = value
-    }
 
     // 当前谷歌图层
     private var currentGoogleTileOverlay: TileOverlay? = null
@@ -315,6 +347,31 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
                 // 更新中心点（固定）
                 updateCenterFixedMarker()
                 mapView.map.removeOnMapLoadedListener(this)
+            }
+        })
+
+        // 设置生命周期感知，设置生命周期后可以不需要再在onDestroy、onResume、onPause中进行回调
+        lifecycleOwner.lifecycle.addObserver(object : LifecycleObserver {
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+            fun onDestroy() {
+                mapView.onDestroy()
+            }
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+            fun onResume() {
+                mapView.onResume()
+            }
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+            fun onPause() {
+                viewModel.savePauseCameraPosition(
+                    mapView.map.cameraPosition.target.toMapPosition,
+                    mapView.map.cameraPosition.zoom,
+                    mapView.map.cameraPosition.tilt,
+                    mapView.map.cameraPosition.bearing
+                )
+                mapView.onPause()
             }
         })
     }
@@ -336,8 +393,24 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
         mapView.map.isMyLocationEnabled = true
         if (firstLoadMode && !viewModel.isfirstLoad) {
             // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
+
+            viewModel.cameraPositionTarget?.run {
+                // 返回到暂停时保存的状态
+                mapView.map.moveCamera(
+                    CameraUpdateFactory.newCameraPosition(
+                        CameraPosition(
+                            this.toGaoDe,
+                            viewModel.cameraPositionZoom!!,
+                            viewModel.cameraPositionTilt!!,
+                            viewModel.cameraPositionBearing!!
+                        )
+                    )
+                )
+            }
+
             return
         }
+        viewModel.onFirstLoadComplete()
         if (initType == followUpType) {
             // 第一次定位类型与后续定位类型一致
             return
@@ -358,7 +431,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 更新中心点（固定）
      */
-    fun updateCenterFixedMarker() {
+    private fun updateCenterFixedMarker() {
         if (!centerFixedMarkerEnabled) {
             // 禁用时，删除中心点（固定）
             if (centerFixedMarker != null) {
@@ -395,7 +468,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 清空所有数据
      */
-    fun clear() {
+    override fun clear() {
         mapView.isEnabled
         mapView.map.clear()
         markers.clear()
@@ -406,10 +479,10 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 按传入的新数据进行清空
      */
-    fun clear(
-        markerMapPositionGroups: List<MapPositionGroup>? = null,
-        polygonMapPositionGroups: List<MapPositionGroup>? = null,
-        polylineMapPositionGroups: List<MapPositionGroup>? = null
+    override fun clear(
+        markerMapPositionGroups: List<MapPositionGroup>?,
+        polygonMapPositionGroups: List<MapPositionGroup>?,
+        polylineMapPositionGroups: List<MapPositionGroup>?
     ) {
         markerMapPositionGroups?.forEach {
             removeMarkers(it)
@@ -425,10 +498,10 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 按传入的新数据进行刷新
      */
-    fun refresh(
-        markerMapPositionGroups: List<MapPositionGroup>? = null,
-        polygonMapPositionGroups: List<MapPositionGroup>? = null,
-        polylineMapPositionGroups: List<MapPositionGroup>? = null
+    override fun refresh(
+        markerMapPositionGroups: List<MapPositionGroup>?,
+        polygonMapPositionGroups: List<MapPositionGroup>?,
+        polylineMapPositionGroups: List<MapPositionGroup>?
     ) {
         clear()
         markerMapPositionGroups?.forEach {
@@ -445,7 +518,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 删除线
      */
-    fun removePolyline(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean = true) {
+    override fun removePolyline(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean) {
         polylines[mapPositionGroup.groupID]?.run {
             remove()
             polylines.remove(mapPositionGroup.groupID)
@@ -459,7 +532,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 删除多边形
      */
-    fun removePolygon(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean = true) {
+    override fun removePolygon(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean) {
         // 状态为线时
         if (polylines.containsKey(mapPositionGroup.groupID)) {
             removePolyline(mapPositionGroup, isRemoveMarkers)
@@ -480,29 +553,30 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 添加或刷新线
      */
-    fun addOrUpdatePolyline(mapPositionGroup: MapPositionGroup) {
+    override fun addOrUpdatePolyline(mapPositionGroup: MapPositionGroup) {
         if (mapPositionGroup.groupID.isNullOrBlank()) {
             val polyline = mapView.map.addPolyline(
-                PolylineOptions().addAll(mapPositionGroup.mapPositionLatLngs).apply {
-                    // 应用自定义样式
-                    mapPositionGroup.applyCustomOptions?.invoke(this)
+                PolylineOptions().addAll(mapPositionGroup.mapPositions.map { it.toGaoDe })
+                    .apply {
+                        // 应用自定义样式
+                        mapPositionGroup.applyCustomOptions?.invoke(this)
 //                        .color(R.color.colorAccent.color).width(4f).zIndex(900f)
-                }
+                    }
             )
             mapPositionGroup.setGroupID(polyline.id)
             polylines[polyline.id] = polyline
         } else {
             polylines[mapPositionGroup.groupID ?: return]?.points =
-                mapPositionGroup.mapPositionLatLngs
+                mapPositionGroup.mapPositions.map { it.toGaoDe }
         }
     }
 
     /**
      * 添加或刷新多边形
      */
-    fun addOrUpdatePolygons(mapPositionGroup: MapPositionGroup) {
+    override fun addOrUpdatePolygons(mapPositionGroup: MapPositionGroup) {
         // 低于3个时画线
-        if (mapPositionGroup.mapPositionLatLngs.size < 3) {
+        if (mapPositionGroup.mapPositions.size < 3) {
             removePolygon(mapPositionGroup, false)
             addOrUpdatePolyline(mapPositionGroup)
             return
@@ -511,26 +585,27 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
         removePolyline(mapPositionGroup, false)
         if (mapPositionGroup.groupID.isNullOrBlank()) {
             val polygon = mapView.map.addPolygon(
-                PolygonOptions().addAll(mapPositionGroup.mapPositionLatLngs).apply {
-                    // 应用自定义样式
-                    mapPositionGroup.applyCustomOptions?.invoke(this)
-                }
-//                    .fillColor(
-//                        R.color.tmchartblue.color
-//                    ).strokeColor(R.color.colorAccent.color).strokeWidth(4f).zIndex(900f)
+                PolygonOptions().addAll(mapPositionGroup.mapPositions.map { it.toGaoDe })
+                    .apply {
+                        // 应用自定义样式
+                        mapPositionGroup.applyCustomOptions?.invoke(this)
+                    }
+                    .fillColor(
+                        R.color.tmchartblue.color
+                    ).strokeColor(R.color.colorAccent.color).strokeWidth(4f).zIndex(900f)
             )
             mapPositionGroup.setGroupID(polygon.id)
             polygons[polygon.id] = polygon
         } else {
             polygons[mapPositionGroup.groupID ?: return]?.points =
-                mapPositionGroup.mapPositionLatLngs
+                mapPositionGroup.mapPositions.map { it.toGaoDe }
         }
     }
 
     /**
      * 添加或更新多个点
      */
-    fun addOrUpdateMarkers(mapPositionGroup: MapPositionGroup) {
+    override fun addOrUpdateMarkers(mapPositionGroup: MapPositionGroup) {
         mapPositionGroup.setMapPositions(mapPositionGroup.mapPositions.apply {
             forEach {
                 addOrUpdateMarker(it, mapPositionGroup)
@@ -541,50 +616,55 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 添加或更新点（注意，如果数据集合未包含该点的id，则会在添加后把id赋值给对象）
      */
-    fun addOrUpdateMarker(
+    override fun addOrUpdateMarker(
         mapPosition: MapPosition,
-        mapPositionGroup: MapPositionGroup? = null
+        mapPositionGroup: MapPositionGroup?
     ) {
         if (markers.containsKey(mapPosition.id)) {
-            markers[mapPosition.id]?.position = mapPosition.position
+            markers[mapPosition.id]?.position = mapPosition.toGaoDe
         } else {
             mapPosition.id =
                 addMarker(
-                    latLng = mapPosition.position,
+                    position = mapPosition,
                     applyCustomOptions = mapPositionGroup?.applyCustomOptions
-                ).id
+                )
         }
     }
 
     /**
      * 添加中心点（固定）的坐标到坐标组
      */
-    fun addCenterFixedMarker(mapPositionGroup: MapPositionGroup): Marker? {
-        return addMarker(centerFixedMarker?.position ?: return null, mapPositionGroup)
+    override fun addCenterFixedMarker(mapPositionGroup: MapPositionGroup): String? {
+        return addMarker(
+            centerFixedMarker?.position?.toMapPosition ?: return null,
+            mapPositionGroup
+        )
     }
 
     /**
      * 添加点（若mapPositionGroup不为空则同时更新数据到MapPositionGroup）
      */
-    fun addMarker(
-        latLng: LatLng,
-        mapPositionGroup: MapPositionGroup? = null,
-        applyCustomOptions: ApplyCustomOptions? = mapPositionGroup?.applyCustomOptions
-    ): Marker {
+    override fun addMarker(
+        position: MapPosition,
+        mapPositionGroup: MapPositionGroup?,
+        applyCustomOptions: ApplyCustomOptions?
+    ): String {
         val marker = mapView.map.addMarker(
-            MarkerOptions().position(latLng).apply {
+            MarkerOptions().position(position.toGaoDe).apply {
                 applyCustomOptions?.invoke(this)
             }
         )
-        mapPositionGroup?.addMapPosition(marker.id, marker.position)
+        mapPositionGroup?.addMapPosition(marker.position.toMapPosition.apply {
+            id = marker.id
+        })
         markers[marker.id] = marker
-        return marker
+        return marker.id
     }
 
     /**
      * 删除最后一个点（同时更新数据到MapPositionGroup）
      */
-    fun removeLastMarker(mapPositionGroup: MapPositionGroup) {
+    override fun removeLastMarker(mapPositionGroup: MapPositionGroup) {
         mapPositionGroup.removeMapPosition()?.run {
             removeMarker(id)
         }
@@ -593,7 +673,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 删除点（同时更新数据到MapPositionGroup）
      */
-    fun removeMarker(id: String?, mapPositionGroup: MapPositionGroup? = null) {
+    override fun removeMarker(id: String?, mapPositionGroup: MapPositionGroup?) {
         mapPositionGroup?.removeMapPosition(id)
         markers[id]?.remove()
         mapView.invalidate()
@@ -602,7 +682,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
     /**
      * 删除多个点（同时更新数据到MapPositionGroup）
      */
-    fun removeMarkers(mapPositionGroup: MapPositionGroup) {
+    override fun removeMarkers(mapPositionGroup: MapPositionGroup) {
         mapPositionGroup.mapPositions.forEach {
             markers[it.id]?.remove()
         }
@@ -621,7 +701,7 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
      * y：带标签的谷歌卫星图
      * h：谷歌标签层（路名、地名等）
      */
-    fun setGoogleTileOverlay(lyrs: String): TileOverlay {
+    fun setGoogleTileOverlay(lyrs: String) {
         clearGoogleTileOverlay()
         val url = "https://mt3.google.cn/maps/vt?lyrs=%s@167000000&hl=zh-CN&gl=cn&x=%d&y=%d&z=%d"
         val tileProvider = object : UrlTileProvider(256, 256) {
@@ -637,7 +717,6 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
                     .memoryCacheEnabled(true)
                     .memCacheSize(100000)
             )
-        return currentGoogleTileOverlay!!
     }
 
     /**
@@ -650,28 +729,33 @@ class MapViewManager(val mapView: MapView, val viewModel: MapViewManagerViewMode
         }
     }
 
-}
-
-/**
- * 生命周期事件
- */
-internal class MapViewManagerLifecycleListener(val mapViewManager: MapViewManager) :
-    LifecycleObserver {
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    fun onDestroy() {
-        mapViewManager.mapView.onDestroy()
+    /**
+     * 计算长度
+     */
+    override fun calculateLineDistance(mapPositionGroup: MapPositionGroup): Double {
+        var lastPosition: MapPosition? = null
+        var lineDistance: Double = 0.0
+        mapPositionGroup.mapPositions.forEach {
+            if (lastPosition != null) {
+                lineDistance += AMapUtils.calculateLineDistance(
+                    lastPosition?.toGaoDe,
+                    it.toGaoDe
+                );
+            }
+            lastPosition = it
+        }
+        return lineDistance
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    fun onResume() {
-        mapViewManager.mapView.onResume()
+    /**
+     * 计算面积
+     */
+    override fun calculateArea(mapPositionGroup: MapPositionGroup): Double {
+        return AMapUtils.calculateArea(mapPositionGroup.mapPositions.map {
+            it.toGaoDe
+        }).toDouble()
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    fun onPause() {
-        mapViewManager.mapView.onPause()
-    }
 }
 
 /**
@@ -698,3 +782,20 @@ fun Marker.startBeatingAnimation(mapView: MapView) {
     //开始动画
     startAnimation()
 }
+
+val IMapViewManager.asGaoDe: GaoDeMapViewManager? get() = this as? GaoDeMapViewManager
+
+val LatLng.toMapPosition: MapPosition
+    get() = MapPosition(
+        latitude = latitude,
+        longitude = longitude,
+        type = MapLatLngType.GCJ02
+    )
+
+val MapPosition.toGaoDe: LatLng
+    get() = toGCJ02.let {
+        LatLng(
+            it.latitude,
+            it.longitude
+        )
+    }

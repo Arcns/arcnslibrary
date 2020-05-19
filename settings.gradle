@@ -1,3 +1,3 @@
 include ':sample', ':arcns-core'
 rootProject.name='Arcns'
-include ':arcns-map'
+include ':arcns-map-gaode'
