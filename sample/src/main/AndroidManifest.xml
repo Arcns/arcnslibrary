@@ -38,6 +38,18 @@
             android:value="f64b2853c3f8dcc56d8bebd1ca0531f4" />
         <!-- 高德地图离线下载界面 -->
         <activity android:name="com.amap.api.maps.offlinemap.OfflineMapActivity" />
+
+
+        <!-- 百度地图(定位)所需service组件 -->
+        <service
+            android:name="com.baidu.location.f"
+            android:enabled="true"
+            android:process=":remote" />
+
+        <!-- 百度地图所需参数 -->
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="cWnvq9I22WPPxvLEOGvyGQktaW3WIDjq" />
     </application>
 
 

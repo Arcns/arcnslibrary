@@ -59,11 +59,18 @@
             app:layout_constraintTop_toTopOf="@id/pbFindDevice" />
 
         <Button
-            android:id="@+id/btnGoMap"
+            android:id="@+id/btnGoMapGaode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="地图"
+            android:text="高德地图"
             app:layout_constraintTop_toBottomOf="@id/tvFunction" />
+
+        <Button
+            android:id="@+id/btnGoMapBaidu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="百度地图"
+            app:layout_constraintTop_toBottomOf="@id/btnGoMapGaode" />
 
         <ProgressBar
             android:id="@+id/progressBar"

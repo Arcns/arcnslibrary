@@ -1,12 +1,15 @@
 package com.arcns.map.gaode
 
 import com.amap.api.maps.MapView
+import com.amap.api.maps.model.BitmapDescriptorFactory
 import com.amap.api.maps.model.LatLng
 import com.amap.api.maps.model.Marker
 import com.amap.api.maps.model.animation.TranslateAnimation
-import com.arcns.core.map.IMapViewManager
+import com.arcns.core.APP
+import com.arcns.core.map.MapViewManager
 import com.arcns.core.map.MapLatLngType
 import com.arcns.core.map.MapPosition
+import com.arcns.core.util.bitmap
 import com.arcns.core.util.dp
 
 
@@ -38,7 +41,7 @@ fun Marker.startBeatingAnimation(mapView: MapView) {
 /**
  * 把通用地图管理器转为高德地图管理器，通常用于使用高低地图管理器特有的功能
  */
-val IMapViewManager.asGaoDe: GaoDeMapViewManager? get() = this as? GaoDeMapViewManager
+val MapViewManager<*,*,*,*,*,*>.asGaode: GaodeMapViewManager? get() = this as? GaodeMapViewManager
 
 /**
  * 把高德坐标转换为通用坐标
@@ -60,3 +63,15 @@ val MapPosition.toGaoDe: LatLng
             it.longitude
         )
     }
+
+/**
+ * 创建一个高德地图自定义图标
+ */
+fun Int.newGaodeIcon(width: Int? = null, height: Int? = null) =
+    BitmapDescriptorFactory.fromBitmap(
+        bitmap(
+            context = APP.INSTANCE,
+            newWidth = width,
+            newHeight = height
+        )
+    )

@@ -11,7 +11,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.arcns.core.util.EventObserver
 import com.arcns.core.util.autoCleared
-import com.example.arcns.databinding.FragmentMapBinding
 import com.example.arcns.databinding.FragmentStartupPageBinding
 import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelStartupPage

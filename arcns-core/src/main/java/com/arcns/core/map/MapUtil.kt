@@ -4,16 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItems
 import com.arcns.core.R
 import com.arcns.core.util.showDialog
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 
 // 百度地图
@@ -111,14 +105,14 @@ fun Activity.openMapNavigationSeletor(
  */
 fun Context.openMapNavigation(position: MapPosition, mapName: String? = null) = when (mapName) {
     getString(R.string.text_map_navigation_item_baidu) -> openBaiduMapNavigation(position)
-    getString(R.string.text_map_navigation_item_gaode) -> openGaoDeMapNavigation(position)
+    getString(R.string.text_map_navigation_item_gaode) -> openGaodeMapNavigation(position)
     else -> Unit
 }
 
 /**
  * 打开高德导航
  */
-fun Context.openGaoDeMapNavigation(
+fun Context.openGaodeMapNavigation(
     position: MapPosition
 ) {
     var gcLatLng = position.toGCJ02

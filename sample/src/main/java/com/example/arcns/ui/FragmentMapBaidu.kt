@@ -10,40 +10,36 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
-import com.amap.api.maps.*
-import com.amap.api.maps.model.*
-import com.amap.api.services.core.LatLonPoint
-import com.amap.api.services.core.PoiItem
-import com.amap.api.services.poisearch.PoiResult
-import com.amap.api.services.poisearch.PoiSearch
-import com.arcns.core.map.IMapViewManager
+import com.arcns.core.APP
+import com.arcns.core.map.MapViewManager
 import com.arcns.core.util.*
-import com.arcns.map.gaode.GaoDeMapViewManager
-import com.arcns.map.gaode.asGaoDe
+import com.arcns.map.baidu.BaiduMapViewManager
+import com.baidu.mapapi.SDKInitializer
+import com.baidu.mapapi.map.*
 import com.example.arcns.NavMainDirections
-import com.example.arcns.databinding.FragmentMapBinding
+import com.example.arcns.databinding.FragmentMapBaiduBinding
 import com.example.arcns.databinding.LayoutInfoWindowBinding
 import com.example.arcns.viewmodel.*
-import kotlinx.android.synthetic.main.fragment_empty.toolbar
-import kotlinx.android.synthetic.main.fragment_map.*
+import kotlinx.android.synthetic.main.fragment_map_baidu.*
 
 /**
  *
  */
-class FragmentMap : Fragment() {
-    private var binding by autoCleared<FragmentMapBinding>()
+class FragmentMapBaidu : Fragment() {
+    private var binding by autoCleared<FragmentMapBaiduBinding>()
     private val viewModel by viewModels<ViewModelMap>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
-    private lateinit var mapViewManager: IMapViewManager
+    private lateinit var mapViewManager: MapViewManager<*,*,*,*,*,*>
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentMapBinding.inflate(inflater, container, false).apply {
-            lifecycleOwner = this@FragmentMap
-            viewModel = this@FragmentMap.viewModel
+        SDKInitializer.initialize(APP.INSTANCE)
+        binding = FragmentMapBaiduBinding.inflate(inflater, container, false).apply {
+            lifecycleOwner = this@FragmentMapBaidu
+            viewModel = this@FragmentMapBaidu.viewModel
         }
         setHasOptionsMenu(true)
         return binding.root
@@ -53,7 +49,7 @@ class FragmentMap : Fragment() {
         super.onActivityCreated(savedInstanceState)
         setActionBarAsToolbar(toolbar)
         setupResult()
-        setupMap(savedInstanceState)
+        setupMap()
     }
 
     var mapTypeSelectionIndex = 0
@@ -67,26 +63,15 @@ class FragmentMap : Fragment() {
                 title(text = "切换图层")
                 listItemsSingleChoice(
                     items = listOf(
-                        "高德标准图层",
-                        "高德卫星图层",
-                        "高德夜间图层",
-                        "高德导航图层",
-                        "谷歌交通图层",
-                        "谷歌地形图层",
-                        "谷歌卫星图层"
+                        "百度标准图层",
+                        "百度卫星图层"
                     ),
                     initialSelection = mapTypeSelectionIndex
                 ) { dialog, index, text ->
-                    mapViewManager.asGaoDe?.clearGoogleTileOverlay()
                     mapTypeSelectionIndex = index
                     when (index) {
-                        0 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NORMAL
-                        1 -> binding.mapView.map.mapType = AMap.MAP_TYPE_SATELLITE
-                        2 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NIGHT
-                        3 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NAVI
-                        4 -> mapViewManager.asGaoDe?.setGoogleTileOverlay("m")
-                        5 -> mapViewManager.asGaoDe?.setGoogleTileOverlay("p")
-                        6 -> mapViewManager.asGaoDe?.setGoogleTileOverlay("y")
+                        0 -> binding.mapView.map.mapType = BaiduMap.MAP_TYPE_NORMAL
+                        1 -> binding.mapView.map.mapType = BaiduMap.MAP_TYPE_SATELLITE
                     }
 
                 }
@@ -146,27 +131,35 @@ class FragmentMap : Fragment() {
         }
     }
 
-    private fun setupMap(savedInstanceState: Bundle?) {
-        mapView.onCreate(savedInstanceState) // 此方法必须重写
+    private fun setupMap() {
         mapView.map.uiSettings.apply {
-            isMyLocationButtonEnabled = true
-            isZoomControlsEnabled = false
-//            isTiltGesturesEnabled = false
+            isOverlookingGesturesEnabled = false
+            isZoomGesturesEnabled = true
             isCompassEnabled = true
-            isScaleControlsEnabled = true
         }
-        mapViewManager = GaoDeMapViewManager(this, mapView, viewModel)
+        mapView.showScaleControl(true)//比例尺
+        mapView.showZoomControls(false)//缩放按钮
+
+        mapViewManager = BaiduMapViewManager(this, mapView, viewModel)
         mapViewManager.centerFixedMarkerEnabled = true
-        // 定位
-        mapViewManager.asGaoDe?.locateMyLocation(followUpType = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
+        // 定位到我的位置
+        mapViewManager.locateMyLocation()
         // 绘制点点击
         mapView.map.setOnMarkerClickListener {
-            if (it.isInfoWindowShown) it.hideInfoWindow() else it.showInfoWindow()
+            if (it.isInfoWindowEnabled) it.hideInfoWindow() else it.showInfoWindow(
+                InfoWindow(
+                    LayoutInfoWindowBinding.inflate(
+                        LayoutInflater.from(context),
+                        null,
+                        false
+                    ).root, it.position, 0
+                )
+            )
             Toast.makeText(context, it.title, Toast.LENGTH_LONG).show()
             true
         }
         // 绘制点拖拽
-        mapView.map.setOnMarkerDragListener(object : AMap.OnMarkerDragListener {
+        mapView.map.setOnMarkerDragListener(object : BaiduMap.OnMarkerDragListener {
             override fun onMarkerDragEnd(marker: Marker?) {
                 Toast.makeText(context, "结束拖动" + marker?.position?.latitude, Toast.LENGTH_LONG)
                     .show()
@@ -188,79 +181,58 @@ class FragmentMap : Fragment() {
             }
 
         })
-        // 信息窗体点击
-        mapView.map.setOnInfoWindowClickListener {
-            Toast.makeText(context, "setOnInfoWindowClickListener", Toast.LENGTH_LONG).show()
-        }
-        // 信息窗体适配器
-        mapView.map.setInfoWindowAdapter(object : AMap.InfoWindowAdapter {
-            override fun getInfoContents(marker: Marker?): View? {
-                return LayoutInfoWindowBinding.inflate(
-                    LayoutInflater.from(context),
-                    null,
-                    false
-                ).root
+        mapView.map.setOnMapStatusChangeListener(object : BaiduMap.OnMapStatusChangeListener {
+            override fun onMapStatusChangeStart(status: MapStatus?) {
             }
 
-            override fun getInfoWindow(marker: Marker?): View? {
-                return null
+            override fun onMapStatusChangeStart(status: MapStatus?, p1: Int) {
             }
 
-        })
-
-        mapView.map.addOnCameraChangeListener(object : AMap.OnCameraChangeListener {
-            override fun onCameraChangeFinish(position: CameraPosition?) {
-//                addCameraCenterMarker(p0?.target)
-//                cameraCenterMarker?.startBeatingAnimation(mapView)
-                searchPOI(position!!.target)
+            override fun onMapStatusChange(status: MapStatus?) {
             }
 
-            override fun onCameraChange(position: CameraPosition?) {
+            override fun onMapStatusChangeFinish(status: MapStatus?) {
+//                searchPOI(status?.target ?: return)
             }
 
         })
     }
 
-    var poiSearch: PoiSearch? = null
-    private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
-        var query = PoiSearch.Query("黑龙江", "", "")//keyWord，type，cityCode
-        query.pageSize = 10;
-        query.pageNum = 0
-        if (poiSearch == null) {
-            poiSearch = PoiSearch(context, query)
-        } else {
-            poiSearch?.query = query
-        }
-        if (isContainsBound) {
-            //设置周边搜索的中心点以及半径
-            poiSearch?.bound = PoiSearch.SearchBound(
-                LatLonPoint(
-                    position.latitude,
-                    position.longitude
-                ), Int.MAX_VALUE
-            )
-        } else {
-            poiSearch?.bound = null
-        }
-        poiSearch?.setOnPoiSearchListener(object : PoiSearch.OnPoiSearchListener {
-            override fun onPoiItemSearched(item: PoiItem?, rCode: Int) {
-            }
-
-            override fun onPoiSearched(result: PoiResult?, rCode: Int) {
-                if (result?.pois?.size ?: 0 == 0 && isContainsBound) {
-                    searchPOI(position, false)
-                } else {
-                    Toast.makeText(context, "count:" + result?.pois?.size, Toast.LENGTH_LONG).show()
-                }
-            }
-        });
-        poiSearch?.searchPOIAsyn();
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        mapView.onSaveInstanceState(outState)
-    }
+//    var poiSearch: PoiSearch? = null
+//    private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
+//        var query = PoiSearch.Query("黑龙江", "", "")//keyWord，type，cityCode
+//        query.pageSize = 10;
+//        query.pageNum = 0
+//        if (poiSearch == null) {
+//            poiSearch = PoiSearch.newInstance();
+//        } else {
+//            poiSearch?.query = query
+//        }
+//        if (isContainsBound) {
+//            //设置周边搜索的中心点以及半径
+//            poiSearch?.bound = PoiSearch.SearchBound(
+//                LatLonPoint(
+//                    position.latitude,
+//                    position.longitude
+//                ), Int.MAX_VALUE
+//            )
+//        } else {
+//            poiSearch?.bound = null
+//        }
+//        poiSearch?.setOnPoiSearchListener(object : PoiSearch.OnPoiSearchListener {
+//            override fun onPoiItemSearched(item: PoiItem?, rCode: Int) {
+//            }
+//
+//            override fun onPoiSearched(result: PoiResult?, rCode: Int) {
+//                if (result?.pois?.size ?: 0 == 0 && isContainsBound) {
+//                    searchPOI(position, false)
+//                } else {
+//                    Toast.makeText(context, "count:" + result?.pois?.size, Toast.LENGTH_LONG).show()
+//                }
+//            }
+//        });
+//        poiSearch?.searchPOIAsyn();
+//    }
 }
 
 

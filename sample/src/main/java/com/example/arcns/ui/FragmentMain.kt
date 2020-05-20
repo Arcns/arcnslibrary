@@ -81,8 +81,11 @@ class FragmentMain : Fragment() {
             viewModel.startBluetooth()
         })
         //
-        btnGoMap.setOnClickListener {
-            findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentMap())
+        btnGoMapGaode.setOnClickListener {
+            findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentMapGaode())
+        }
+        btnGoMapBaidu.setOnClickListener {
+            findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentMapBaidu())
         }
     }
 

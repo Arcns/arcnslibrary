@@ -13,40 +13,28 @@ import com.amap.api.maps.MapView
 import com.amap.api.maps.model.*
 import com.arcns.core.APP
 import com.arcns.core.map.*
+import com.arcns.core.util.bitmap
+import com.arcns.core.util.dp
 import java.net.URL
 
 /**
  * 高德地图管理器
  */
-class GaoDeMapViewManager(
+class GaodeMapViewManager(
     lifecycleOwner: LifecycleOwner,
-    val mapView: MapView,
-    val viewModel: MapViewManagerViewModel
-) : IMapViewManager {
+    mapView: MapView,
+    viewModel: MapViewManagerViewModel
+) : MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng>(
+    lifecycleOwner,
+    mapView,
+    viewModel
+) {
+
     constructor(fragment: Fragment, mapView: MapView, viewModel: MapViewManagerViewModel) : this(
         fragment.viewLifecycleOwner,
         mapView,
         viewModel
     )
-
-    // 是否加载完成
-    var isMapLoaded = false
-
-    // 点、线、面
-    val markers = HashMap<String, Marker>()
-    val polylines = HashMap<String, Polyline>()
-    val polygons = HashMap<String, Polygon>()
-
-    // 中心点（固定）
-    var centerFixedMarker: Marker? = null
-        private set
-    var centerFixedMarkerApplyCustomOptions: ApplyCustomOptions? = null
-    override var centerFixedMarkerEnabled: Boolean = false
-        set(value) {
-            field = value
-            updateCenterFixedMarker()
-        }
-
 
     // 当前谷歌图层
     private var currentGoogleTileOverlay: TileOverlay? = null
@@ -91,21 +79,50 @@ class GaoDeMapViewManager(
     /**
      * 定位到我的位置
      */
+    override fun locateMyLocation(
+        isLocateMyLocationOnlyWhenFirst: Boolean,
+        isMoveCameraOnlyWhenFirst: Boolean,
+        isFirstFlagFromViewModel: Boolean,
+        applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)?
+    ) {
+        // 连续定位、且将视角移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。（1秒1次定位）高德默认执行此种模式
+        var firstType = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE
+        var followUpType = firstType
+        if (isLocateMyLocationOnlyWhenFirst) {
+            // 定位一次，且将视角移动到地图中心点
+            firstType = MyLocationStyle.LOCATION_TYPE_LOCATE
+            followUpType = firstType
+        } else {
+            followUpType =
+                if (isMoveCameraOnlyWhenFirst)
+                    MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER // 连续定位但不移动地图位置
+                else firstType
+        }
+        locateMyLocation(
+            firstType,
+            followUpType,
+            isFirstFlagFromViewModel,
+            applyCustomMyLocationStyle
+        )
+    }
+
+    /**
+     * 定位到我的位置
+     */
     fun locateMyLocation(
         firstType: Int = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE, //第一次定位类型
-        followUpType: Int = firstType,//后续定位类型
-        applyCustomMyLocationStyle: ((MyLocationStyle) -> Unit)? = null,
-        firstLoadMode: Boolean = true // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
+        followUpType: Int = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER,//后续定位类型
+        isFirstFlagFromViewModel: Boolean = true, // 是否首次加载的标志从viewmodel进行获取，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
+        applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)? = null
     ) {
-        val initType = if (firstLoadMode && !viewModel.isfirstLoad) followUpType else firstType
-        mapView.map.myLocationStyle = MyLocationStyle().apply {
-            applyCustomMyLocationStyle?.invoke(this)
-            myLocationType(initType)
+        val initType =
+            if (isFirstFlagFromViewModel && !viewModel.isfirstLoad) followUpType else firstType
+        mapView.map.myLocationStyle = MyLocationStyle().let {
+            (applyCustomMyLocationStyle?.invoke(it) ?: it).myLocationType(initType)
         }
         mapView.map.isMyLocationEnabled = true
-        if (firstLoadMode && !viewModel.isfirstLoad) {
+        if (isFirstFlagFromViewModel && !viewModel.isfirstLoad) {
             // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
-
             viewModel.cameraPositionTarget?.run {
                 // 返回到暂停时保存的状态
                 mapView.map.moveCamera(
@@ -129,6 +146,7 @@ class GaoDeMapViewManager(
         }
         mapView.map.addOnMyLocationChangeListener(object : AMap.OnMyLocationChangeListener {
             override fun onMyLocationChange(location: Location?) {
+                // 设置后续定位类型（如果和第一次定位类型不一致的话）
                 if (mapView.map.myLocationStyle.myLocationType != followUpType) {
                     mapView.map.myLocationStyle = MyLocationStyle().apply {
                         applyCustomMyLocationStyle?.invoke(this)
@@ -141,9 +159,9 @@ class GaoDeMapViewManager(
     }
 
     /**
-     * 更新中心点（固定）
+     * 更新中心点（固定），注意该更新操作将以centerFixedMarkerEnabled为依据
      */
-    private fun updateCenterFixedMarker() {
+    override fun updateCenterFixedMarker() {
         if (!centerFixedMarkerEnabled) {
             // 禁用时，删除中心点（固定）
             if (centerFixedMarker != null) {
@@ -165,11 +183,9 @@ class GaoDeMapViewManager(
             mapView.map.projection.toScreenLocation(mapView.map.cameraPosition.target)
         centerFixedMarker = mapView.map.addMarker(
             MarkerOptions().anchor(0.5f, 0.5f).apply {
-                if (centerFixedMarkerApplyCustomOptions != null) {
-                    centerFixedMarkerApplyCustomOptions?.invoke(this)
-                } else {
-                    icon(BitmapDescriptorFactory.fromResource(R.drawable.purple_pin))
-                }
+                zIndex(ZINDEX_CENTER_FIXED_MARKER)
+                icon(R.drawable.purple_pin.newGaodeIcon(height = 88.dp))
+                centerFixedMarkerApplyCustomOptions?.invoke(this)
             }
         )
         //设置Marker在屏幕上,不跟随地图移动
@@ -181,86 +197,20 @@ class GaoDeMapViewManager(
      * 清空所有数据
      */
     override fun clear() {
-        mapView.isEnabled
         mapView.map.clear()
-        markers.clear()
-        polygons.clear()
-        polygons.clear()
-    }
-
-    /**
-     * 按传入的新数据进行清空
-     */
-    override fun clear(
-        markerMapPositionGroups: List<MapPositionGroup>?,
-        polygonMapPositionGroups: List<MapPositionGroup>?,
-        polylineMapPositionGroups: List<MapPositionGroup>?
-    ) {
-        markerMapPositionGroups?.forEach {
-            removeMarkers(it)
-        }
-        polygonMapPositionGroups?.forEach {
-            removePolygon(it)
-        }
-        polylineMapPositionGroups?.forEach {
-            removePolyline(it)
-        }
-    }
-
-    /**
-     * 按传入的新数据进行刷新
-     */
-    override fun refresh(
-        markerMapPositionGroups: List<MapPositionGroup>?,
-        polygonMapPositionGroups: List<MapPositionGroup>?,
-        polylineMapPositionGroups: List<MapPositionGroup>?
-    ) {
-        clear()
-        markerMapPositionGroups?.forEach {
-            addOrUpdateMarkers(it)
-        }
-        polygonMapPositionGroups?.forEach {
-            addOrUpdatePolygons(it)
-        }
-        polylineMapPositionGroups?.forEach {
-            addOrUpdatePolyline(it)
-        }
+        super.clear()
     }
 
     /**
      * 删除线
      */
-    override fun removePolyline(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean) {
-        polylines[mapPositionGroup.groupID]?.run {
-            remove()
-            polylines.remove(mapPositionGroup.groupID)
-            mapPositionGroup.clearGroupID()
-            if (isRemoveMarkers) {
-                removeMarkers(mapPositionGroup)
-            }
-        }
-    }
+    override fun removePolyline(polyline: Polyline) = polyline.remove()
 
     /**
      * 删除多边形
      */
-    override fun removePolygon(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean) {
-        // 状态为线时
-        if (polylines.containsKey(mapPositionGroup.groupID)) {
-            removePolyline(mapPositionGroup, isRemoveMarkers)
-            return
-        }
-        // 状态为多边形时
-        polygons[mapPositionGroup.groupID]?.run {
-            remove()
-            polygons.remove(mapPositionGroup.groupID)
-            mapPositionGroup.clearGroupID()
-            if (isRemoveMarkers) {
-                removeMarkers(mapPositionGroup)
-            }
-        }
+    override fun removePolygon(polygon: Polygon) = polygon.remove()
 
-    }
 
     /**
      * 添加或刷新线
@@ -270,6 +220,7 @@ class GaoDeMapViewManager(
             val polyline = mapView.map.addPolyline(
                 PolylineOptions().addAll(mapPositionGroup.mapPositions.map { it.toGaoDe })
                     .apply {
+                        zIndex(ZINDEX_POLYLINE)
                         // 应用自定义样式
                         mapPositionGroup.applyCustomOptions?.invoke(this)
 //                        .color(R.color.colorAccent.color).width(4f).zIndex(900f)
@@ -299,6 +250,7 @@ class GaoDeMapViewManager(
             val polygon = mapView.map.addPolygon(
                 PolygonOptions().addAll(mapPositionGroup.mapPositions.map { it.toGaoDe })
                     .apply {
+                        zIndex(ZINDEX_POLYGON)
                         // 应用自定义样式
                         mapPositionGroup.applyCustomOptions?.invoke(this)
                     }
@@ -314,16 +266,6 @@ class GaoDeMapViewManager(
         }
     }
 
-    /**
-     * 添加或更新多个点
-     */
-    override fun addOrUpdateMarkers(mapPositionGroup: MapPositionGroup) {
-        mapPositionGroup.setMapPositions(mapPositionGroup.mapPositions.apply {
-            forEach {
-                addOrUpdateMarker(it, mapPositionGroup)
-            }
-        })
-    }
 
     /**
      * 添加或更新点（注意，如果数据集合未包含该点的id，则会在添加后把id赋值给对象）
@@ -363,6 +305,8 @@ class GaoDeMapViewManager(
     ): String {
         val marker = mapView.map.addMarker(
             MarkerOptions().position(position.toGaoDe).apply {
+                zIndex(ZINDEX_MARKER)
+                icon(R.drawable.icon_gcoding.newGaodeIcon(height = 38.dp))
                 applyCustomOptions?.invoke(this)
             }
         )
@@ -462,10 +406,10 @@ class GaoDeMapViewManager(
     /**
      * 计算面积
      */
-    override fun calculateArea(mapPositionGroup: MapPositionGroup): Double {
-        return AMapUtils.calculateArea(mapPositionGroup.mapPositions.map {
+    override fun calculateArea(mapPositionGroup: MapPositionGroup): Double =
+        AMapUtils.calculateArea(mapPositionGroup.mapPositions.map {
             it.toGaoDe
         }).toDouble()
-    }
+
 
 }

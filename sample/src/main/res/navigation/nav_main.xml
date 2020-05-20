@@ -21,20 +21,30 @@
         android:name="com.example.arcns.ui.FragmentMain"
         android:label="FragmentMain">
         <action
-            android:id="@+id/action_fragmentMain_to_fragmentMap"
-            app:destination="@id/fragmentMap"
+            android:id="@+id/action_fragmentMain_to_fragmentMapGaode"
+            app:destination="@id/fragmentMapGaode"
             app:enterAnim="@anim/slide_enter"
             app:exitAnim="@anim/slide_exit"
             app:popEnterAnim="@anim/slide_pop_enter"
             app:popExitAnim="@anim/slide_pop_exit" />
+        <action
+            android:id="@+id/action_fragmentMain_to_fragmentMapBaidu"
+            app:destination="@id/fragmentMapBaidu" />
     </fragment>
     <fragment
-        android:id="@+id/fragmentMap"
-        android:name="com.example.arcns.ui.FragmentMap"
+        android:id="@+id/fragmentMapGaode"
+        android:name="com.example.arcns.ui.FragmentMapGaode"
         android:label="FragmentMap" />
     <fragment
         android:id="@+id/fragmentEmpty"
         android:name="com.example.arcns.ui.FragmentEmpty"
-        android:label="FragmentEmpty" /><action android:id="@+id/action_global_fragmentEmpty" app:destination="@id/fragmentEmpty"/>
+        android:label="FragmentEmpty" />
+    <action
+        android:id="@+id/action_global_fragmentEmpty"
+        app:destination="@id/fragmentEmpty" />
+    <fragment
+        android:id="@+id/fragmentMapBaidu"
+        android:name="com.example.arcns.ui.FragmentMapBaidu"
+        android:label="FragmentMapBaidu" />
 
 </navigation>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.example.arcns.viewmodel.ViewModelMap" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/layout_toolbar"
+            app:title="@{@string/app_name}" />
+
+
+        <com.baidu.mapapi.map.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+        <com.arcns.core.view.CompassView
+            android:id="@+id/compassView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+        <ImageButton
+            android:id="@+id/btnUpdMapType"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:padding="14dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/ic_layers"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+        <ImageButton
+            android:id="@+id/btnToggleTraffic"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:padding="14dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/ic_traffic"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnUpdMapType" />
+
+        <ImageButton
+            android:id="@+id/btnDownload"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:padding="14dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/ic_download"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnToggleTraffic" />
+
+        <ImageButton
+            android:id="@+id/btnCompass"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:padding="14dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/ic_compass"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnDownload" />
+
+        <TextView
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.calculateLineValue}"
+            app:layout_constraintBottom_toTopOf="@id/tvCalculateAreaValue" />
+
+        <TextView
+            android:gravity="center"
+            android:id="@+id/tvCalculateAreaValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.calculateAreaValue}"
+            app:layout_constraintBottom_toTopOf="@id/btnDelLinePin" />
+
+
+        <Button
+            android:id="@+id/btnDelLinePin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="撤销线点"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/btnAddLinePin" />
+
+        <Button
+            android:id="@+id/btnAddLinePin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="添加线点"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintLeft_toRightOf="@id/btnDelLinePin"
+            app:layout_constraintRight_toLeftOf="@id/btnClearLinePin" />
+
+        <Button
+            android:id="@+id/btnClearLinePin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="清空线"
+            app:layout_constraintBottom_toTopOf="@id/btnDelPin"
+            app:layout_constraintLeft_toRightOf="@id/btnAddLinePin"
+            app:layout_constraintRight_toRightOf="parent" />
+
+        <Button
+            android:id="@+id/btnDelPin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="撤销多边形点"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/btnAddPin" />
+
+        <Button
+            android:id="@+id/btnAddPin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="添加多边形点"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/btnDelPin"
+            app:layout_constraintRight_toLeftOf="@id/btnClearPin" />
+
+        <Button
+            android:id="@+id/btnClearPin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="清空多边形"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/btnAddPin"
+            app:layout_constraintRight_toRightOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

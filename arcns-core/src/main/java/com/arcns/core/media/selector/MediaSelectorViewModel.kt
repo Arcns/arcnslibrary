@@ -142,6 +142,9 @@ class MediaSelectorViewModel : ViewModel() {
     // 详情页中，点击打开文件时的回调事件，此变量为空或返回false时使用默认的打开方式（打开对应的app），返回true时表示由使用者自行使用打开方式
     var onDetailsFileClickOpenApp: ((item: EMedia) -> Boolean)? = null
 
+    // 协程加载
+    var setupFromMediaStoreDeferred: Deferred<Unit>? = null
+
     /**
      * 初始化
      */
@@ -156,12 +159,13 @@ class MediaSelectorViewModel : ViewModel() {
         setupFromMediaStoreMediaQuerys: Array<EMediaQuery> = arrayOf(EMediaQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)),
         onDetailsFileClickOpenApp: ((item: EMedia) -> Boolean)? = null
     ) {
-        if (allMedias.value != null) {
-            return
-        }
-        if (loadIng.value == true) {
-            return
-        }
+//        if (allMedias.value != null) {
+//            return
+//        }
+//        if (loadIng.value == true) {
+//            return
+//        }
+        destroy()
         if (mediaSelectedMaxSize <= 1) {
             _selectedMaxSize.value = 1
         } else {
@@ -180,9 +184,13 @@ class MediaSelectorViewModel : ViewModel() {
                 }
             }
         } else if (isSetupFromMediaStore) {
+            if (setupFromMediaStoreDeferred != null) {
+                setupFromMediaStoreDeferred?.cancel()
+                setupFromMediaStoreDeferred = null
+            }
             mediaStoreMediaQuerys = setupFromMediaStoreMediaQuerys.toList()
             //初始化媒体库里的文件（注意需要先获取READ_EXTERNAL_STORAGE权限）
-            viewModelScope.async(Dispatchers.IO) {
+            setupFromMediaStoreDeferred = viewModelScope.async(Dispatchers.IO) {
                 _loadIng.postValue(true)
                 _selectedMedias.postValue(null)
                 delay(300)
@@ -190,6 +198,7 @@ class MediaSelectorViewModel : ViewModel() {
                     getMediasFromMediaStore(*setupFromMediaStoreMediaQuerys)
                 )
                 _loadIng.postValue(false)
+                setupFromMediaStoreDeferred = null
             }
         }
         if (currentMedia != null) {
