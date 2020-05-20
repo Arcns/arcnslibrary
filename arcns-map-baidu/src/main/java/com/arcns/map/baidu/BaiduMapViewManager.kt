@@ -238,6 +238,18 @@ class BaiduMapViewManager(
         centerFixedMarker?.setFixedScreenPosition(Point(screenPosition.x, screenPosition.y))
     }
 
+    /**
+     * 重置点坐标
+     */
+    override fun setMarkerPosition(marker: Marker, position: MapPosition) {
+        marker.position = position.toBaidu
+    }
+
+    /**
+     * 重置地图数据
+     */
+    override fun mapViewInvalidate() = mapView.invalidate()
+
 
     /**
      * 清空所有数据

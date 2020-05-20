@@ -192,6 +192,17 @@ class GaodeMapViewManager(
         centerFixedMarker?.setPositionByPixels(screenPosition.x, screenPosition.y)
     }
 
+    /**
+     * 重置点坐标
+     */
+    override fun setMarkerPosition(marker: Marker, position: MapPosition) {
+        marker.position = position.toGaoDe
+    }
+
+    /**
+     * 重置地图数据
+     */
+    override fun mapViewInvalidate() = mapView.invalidate()
 
     /**
      * 清空所有数据

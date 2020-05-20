@@ -52,6 +52,12 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
 
 
     /**
+     * 重置地图数据
+     */
+    abstract fun mapViewInvalidate()
+
+
+    /**
      * 清空所有数据
      */
     open fun clear() {
@@ -100,6 +106,11 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
             addOrUpdatePolyline(it)
         }
     }
+
+    /**
+     * 设置点坐标
+     */
+    abstract fun setMarkerPosition(marker: Marker, position: MapPosition)
 
     /**
      * 删除线
