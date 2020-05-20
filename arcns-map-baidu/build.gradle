@@ -1,0 +1,12 @@
+apply from: rootProject.file("library_config.gradle")
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation deps.kotlin.stdlib
+    testImplementation deps.test.junit
+    androidTestImplementation deps.test.androidx_junit
+    androidTestImplementation deps.test.androidx_espresso
+    implementation deps.androidx.appcompat
+    implementation deps.androidx.ktx
+    implementation project(path: ':arcns-core')
+}

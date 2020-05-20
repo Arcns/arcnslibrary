@@ -17,6 +17,10 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
+        ndk {
+            //设置支持的SO库架构（开发者可以根据需要，选择一个或多个平台的so）
+            abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
     }
 
     buildTypes {
@@ -29,6 +33,12 @@ android {
     dataBinding {
         // 启用databinding，与kotlin一起使用时，必须引入：apply plugin: 'kotlin-kapt'
         enabled = true
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDir 'libs'
+        }
     }
 
     compileOptions{

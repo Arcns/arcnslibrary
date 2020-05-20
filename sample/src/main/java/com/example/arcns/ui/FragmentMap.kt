@@ -1,6 +1,5 @@
 package com.example.arcns.ui
 
-import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,29 +8,24 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.amap.api.maps.*
 import com.amap.api.maps.model.*
-import com.amap.api.maps.model.animation.TranslateAnimation
 import com.amap.api.services.core.LatLonPoint
 import com.amap.api.services.core.PoiItem
 import com.amap.api.services.poisearch.PoiResult
 import com.amap.api.services.poisearch.PoiSearch
-import com.arcns.core.APP
+import com.arcns.core.map.IMapViewManager
 import com.arcns.core.util.*
 import com.arcns.map.gaode.GaoDeMapViewManager
 import com.arcns.map.gaode.asGaoDe
 import com.example.arcns.NavMainDirections
-import com.example.arcns.R
 import com.example.arcns.databinding.FragmentMapBinding
 import com.example.arcns.databinding.LayoutInfoWindowBinding
 import com.example.arcns.viewmodel.*
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
 import kotlinx.android.synthetic.main.fragment_map.*
-import java.net.URL
-import kotlin.math.sqrt
 
 /**
  *

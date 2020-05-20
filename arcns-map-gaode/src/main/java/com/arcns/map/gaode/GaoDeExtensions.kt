@@ -4,13 +4,14 @@ import com.amap.api.maps.MapView
 import com.amap.api.maps.model.LatLng
 import com.amap.api.maps.model.Marker
 import com.amap.api.maps.model.animation.TranslateAnimation
-import com.arcns.core.util.IMapViewManager
-import com.arcns.core.util.MapPosition
+import com.arcns.core.map.IMapViewManager
+import com.arcns.core.map.MapLatLngType
+import com.arcns.core.map.MapPosition
 import com.arcns.core.util.dp
 
 
 /**
- * 跳动动画
+ * 为高德地图中的点添加跳动动画
  */
 fun Marker.startBeatingAnimation(mapView: MapView) {
     //根据屏幕距离计算需要移动的目标点
@@ -34,15 +35,24 @@ fun Marker.startBeatingAnimation(mapView: MapView) {
     startAnimation()
 }
 
+/**
+ * 把通用地图管理器转为高德地图管理器，通常用于使用高低地图管理器特有的功能
+ */
 val IMapViewManager.asGaoDe: GaoDeMapViewManager? get() = this as? GaoDeMapViewManager
 
+/**
+ * 把高德坐标转换为通用坐标
+ */
 val LatLng.toMapPosition: MapPosition
-    get() = com.arcns.core.util.MapPosition(
+    get() = MapPosition(
         latitude = latitude,
         longitude = longitude,
-        type = com.arcns.core.util.MapLatLngType.GCJ02
+        type = MapLatLngType.GCJ02
     )
 
+/**
+ * 把通用坐标转换位高德坐标
+ */
 val MapPosition.toGaoDe: LatLng
     get() = toGCJ02.let {
         LatLng(

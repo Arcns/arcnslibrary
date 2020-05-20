@@ -3,6 +3,8 @@ package com.example.arcns.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.amap.api.maps.model.MarkerOptions
+import com.arcns.core.map.MapPositionGroup
+import com.arcns.core.map.MapViewManagerViewModel
 import com.arcns.core.util.*
 import com.example.arcns.data.network.NetworkDataSource
 

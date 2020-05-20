@@ -12,12 +12,11 @@ import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.MapView
 import com.amap.api.maps.model.*
 import com.arcns.core.APP
-import com.arcns.core.util.*
-import com.arcns.map.gaode.R
+import com.arcns.core.map.*
 import java.net.URL
 
 /**
- * 高德地图视图管理器
+ * 高德地图管理器
  */
 class GaoDeMapViewManager(
     lifecycleOwner: LifecycleOwner,
