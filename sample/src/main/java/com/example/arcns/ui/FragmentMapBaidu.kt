@@ -29,7 +29,7 @@ class FragmentMapBaidu : Fragment() {
     private var binding by autoCleared<FragmentMapBaiduBinding>()
     private val viewModel by viewModels<ViewModelMap>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
-    private lateinit var mapViewManager: MapViewManager<*,*,*,*,*,*>
+    private lateinit var mapViewManager: BaiduMapViewManager
 
     override fun onCreateView(
         inflater: LayoutInflater,

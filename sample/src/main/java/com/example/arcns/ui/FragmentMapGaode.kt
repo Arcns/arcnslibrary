@@ -16,10 +16,8 @@ import com.amap.api.services.core.LatLonPoint
 import com.amap.api.services.core.PoiItem
 import com.amap.api.services.poisearch.PoiResult
 import com.amap.api.services.poisearch.PoiSearch
-import com.arcns.core.map.MapViewManager
 import com.arcns.core.util.*
 import com.arcns.map.gaode.GaodeMapViewManager
-import com.arcns.map.gaode.asGaode
 import com.example.arcns.NavMainDirections
 import com.example.arcns.databinding.FragmentMapGaodeBinding
 import com.example.arcns.databinding.LayoutInfoWindowBinding
@@ -34,7 +32,7 @@ class FragmentMapGaode : Fragment() {
     private var binding by autoCleared<FragmentMapGaodeBinding>()
     private val viewModel by viewModels<ViewModelMap>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
-    private lateinit var mapViewManager: MapViewManager<*,*,*,*,*,*>
+    private lateinit var mapViewManager: GaodeMapViewManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,16 +75,16 @@ class FragmentMapGaode : Fragment() {
                     ),
                     initialSelection = mapTypeSelectionIndex
                 ) { dialog, index, text ->
-                    mapViewManager.asGaode?.clearGoogleTileOverlay()
+                    mapViewManager.clearGoogleTileOverlay()
                     mapTypeSelectionIndex = index
                     when (index) {
                         0 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NORMAL
                         1 -> binding.mapView.map.mapType = AMap.MAP_TYPE_SATELLITE
                         2 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NIGHT
                         3 -> binding.mapView.map.mapType = AMap.MAP_TYPE_NAVI
-                        4 -> mapViewManager.asGaode?.setGoogleTileOverlay("m")
-                        5 -> mapViewManager.asGaode?.setGoogleTileOverlay("p")
-                        6 -> mapViewManager.asGaode?.setGoogleTileOverlay("y")
+                        4 -> mapViewManager.setGoogleTileOverlay("m")
+                        5 -> mapViewManager.setGoogleTileOverlay("p")
+                        6 -> mapViewManager.setGoogleTileOverlay("y")
                     }
 
                 }
@@ -94,6 +92,7 @@ class FragmentMapGaode : Fragment() {
         }
         btnToggleTraffic.setOnClickListener {
             mapView.map.isTrafficEnabled = !binding.mapView.map.isTrafficEnabled
+            mapViewManager.refresh()
         }
         btnDownload.setOnClickListener {
 //            startActivity(Intent(context, OfflineMapActivity::class.java))

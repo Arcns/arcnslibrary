@@ -97,7 +97,7 @@ class BaiduMapViewManager(
     ) {
         // 定位跟随态
         var firstType = MyLocationConfiguration.LocationMode.FOLLOWING
-        var followUpType: MyLocationConfiguration.LocationMode? = firstType
+        var followUpType: MyLocationConfiguration.LocationMode?
         if (isLocateMyLocationOnlyWhenFirst) {
             // 定位一次，且将视角移动到地图中心点
             followUpType = null
@@ -107,13 +107,13 @@ class BaiduMapViewManager(
                     MyLocationConfiguration.LocationMode.NORMAL // 普通态，连续定位但不移动地图位置
                 else firstType
         }
-        locateMyLocation(firstType, followUpType, isFirstFlagFromViewModel, applyCustomMyLocation)
+        locateMyLocationByType(firstType, followUpType, isFirstFlagFromViewModel, applyCustomMyLocation)
     }
 
     /**
      * 定位到我的位置
      */
-    fun locateMyLocation(
+    fun locateMyLocationByType(
         firstType: MyLocationConfiguration.LocationMode = MyLocationConfiguration.LocationMode.FOLLOWING, //第一次定位类型
         followUpType: MyLocationConfiguration.LocationMode? = MyLocationConfiguration.LocationMode.NORMAL,//后续定位类型
         isFirstFlagFromViewModel: Boolean = true, // 是否首次加载的标志从viewmodel进行获取，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
@@ -232,7 +232,7 @@ class BaiduMapViewManager(
                 .apply {
                     zIndex(ZINDEX_CENTER_FIXED_MARKER.toInt())
                     icon(R.drawable.purple_pin.newBaiduIcon(height = 88.dp))
-                    centerFixedMarkerApplyCustomOptions?.invoke(this)
+                    centerFixedMarkerApplyCustomOptions?.invoke(null,this)
                 }) as Marker?
         //设置Marker在屏幕上,不跟随地图移动
         centerFixedMarker?.setFixedScreenPosition(Point(screenPosition.x, screenPosition.y))
@@ -246,7 +246,7 @@ class BaiduMapViewManager(
     }
 
     /**
-     * 重置地图数据
+     * 重置地图缓存数据
      */
     override fun mapViewInvalidate() = mapView.invalidate()
 
@@ -284,7 +284,8 @@ class BaiduMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYLINE.toInt())
                         // 应用自定义样式
-                        mapPositionGroup.applyCustomOptions?.invoke(this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup,this)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup,this)
 //                        .color(R.color.colorAccent.color).width(4f).zIndex(900f)
                         addNewID()
                     }
@@ -317,7 +318,8 @@ class BaiduMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYGON.toInt())
                         // 应用自定义样式
-                        mapPositionGroup.applyCustomOptions?.invoke(this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup,this)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup,this)
                         addNewID()
                     }
 //                    .fillColor(
@@ -334,24 +336,6 @@ class BaiduMapViewManager(
         }
     }
 
-
-    /**
-     * 添加或更新点（注意，如果数据集合未包含该点的id，则会在添加后把id赋值给对象）
-     */
-    override fun addOrUpdateMarker(
-        mapPosition: MapPosition,
-        mapPositionGroup: MapPositionGroup?
-    ) {
-        if (markers.containsKey(mapPosition.id)) {
-            markers[mapPosition.id]?.position = mapPosition.toBaidu
-        } else {
-            mapPosition.id =
-                addMarker(
-                    position = mapPosition,
-                    applyCustomOptions = mapPositionGroup?.applyCustomOptions
-                )
-        }
-    }
 
     /**
      * 添加中心点（固定）的坐标到坐标组
@@ -375,44 +359,24 @@ class BaiduMapViewManager(
             MarkerOptions().position(position.toBaidu).apply {
                 zIndex(ZINDEX_MARKER.toInt())
                 icon(R.drawable.icon_gcoding.newBaiduIcon(height = 38.dp))
-                applyCustomOptions?.invoke(this)
+                globalApplyCustomOptions?.invoke(mapPositionGroup,this)
+                (applyCustomOptions ?: mapPositionGroup?.applyCustomOptions)?.invoke(mapPositionGroup,this)
             }
         ) as Marker
-        mapPositionGroup?.addMapPosition(marker.position.toMapPosition.apply {
-            id = marker.id
-        })
+        position.id = marker.id
+        if (mapPositionGroup?.mapPositions?.contains(position) == false) {
+            // 避免重复添加
+            mapPositionGroup.addMapPosition(position)
+        }
         markers[marker.id] = marker
         return marker.id
     }
 
-    /**
-     * 删除最后一个点（同时更新数据到MapPositionGroup）
-     */
-    override fun removeLastMarker(mapPositionGroup: MapPositionGroup) {
-        mapPositionGroup.removeMapPosition()?.run {
-            removeMarker(id)
-        }
-    }
 
     /**
-     * 删除点（同时更新数据到MapPositionGroup）
+     * 删除点
      */
-    override fun removeMarker(id: String?, mapPositionGroup: MapPositionGroup?) {
-        mapPositionGroup?.removeMapPosition(id)
-        markers[id]?.remove()
-        mapView.invalidate()
-    }
-
-    /**
-     * 删除多个点（同时更新数据到MapPositionGroup）
-     */
-    override fun removeMarkers(mapPositionGroup: MapPositionGroup) {
-        mapPositionGroup.mapPositions.forEach {
-            markers[it.id]?.remove()
-        }
-        mapPositionGroup.clearMapPosition()
-        mapView.invalidate()
-    }
+    override fun removeMarker(marker: Marker) = marker.remove()
 
     /**
      * 计算长度

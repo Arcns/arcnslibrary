@@ -13,9 +13,10 @@ import com.amap.api.maps.MapView
 import com.amap.api.maps.model.*
 import com.arcns.core.APP
 import com.arcns.core.map.*
-import com.arcns.core.util.bitmap
 import com.arcns.core.util.dp
 import java.net.URL
+
+
 
 /**
  * 高德地图管理器
@@ -87,7 +88,7 @@ class GaodeMapViewManager(
     ) {
         // 连续定位、且将视角移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。（1秒1次定位）高德默认执行此种模式
         var firstType = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE
-        var followUpType = firstType
+        var followUpType: Int
         if (isLocateMyLocationOnlyWhenFirst) {
             // 定位一次，且将视角移动到地图中心点
             firstType = MyLocationStyle.LOCATION_TYPE_LOCATE
@@ -98,18 +99,13 @@ class GaodeMapViewManager(
                     MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER // 连续定位但不移动地图位置
                 else firstType
         }
-        locateMyLocation(
-            firstType,
-            followUpType,
-            isFirstFlagFromViewModel,
-            applyCustomMyLocationStyle
-        )
+        locateMyLocationByType(firstType,followUpType,isFirstFlagFromViewModel,applyCustomMyLocationStyle)
     }
 
     /**
      * 定位到我的位置
      */
-    fun locateMyLocation(
+    fun locateMyLocationByType(
         firstType: Int = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE, //第一次定位类型
         followUpType: Int = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER,//后续定位类型
         isFirstFlagFromViewModel: Boolean = true, // 是否首次加载的标志从viewmodel进行获取，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
@@ -185,7 +181,7 @@ class GaodeMapViewManager(
             MarkerOptions().anchor(0.5f, 0.5f).apply {
                 zIndex(ZINDEX_CENTER_FIXED_MARKER)
                 icon(R.drawable.purple_pin.newGaodeIcon(height = 88.dp))
-                centerFixedMarkerApplyCustomOptions?.invoke(this)
+                centerFixedMarkerApplyCustomOptions?.invoke(null, this)
             }
         )
         //设置Marker在屏幕上,不跟随地图移动
@@ -200,7 +196,7 @@ class GaodeMapViewManager(
     }
 
     /**
-     * 重置地图数据
+     * 重置地图缓存数据
      */
     override fun mapViewInvalidate() = mapView.invalidate()
 
@@ -233,7 +229,8 @@ class GaodeMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYLINE)
                         // 应用自定义样式
-                        mapPositionGroup.applyCustomOptions?.invoke(this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup, this)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup,this)
 //                        .color(R.color.colorAccent.color).width(4f).zIndex(900f)
                     }
             )
@@ -263,7 +260,8 @@ class GaodeMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYGON)
                         // 应用自定义样式
-                        mapPositionGroup.applyCustomOptions?.invoke(this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup,this)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup,this)
                     }
 //                    .fillColor(
 //                        R.color.tmchartblue.color
@@ -277,24 +275,6 @@ class GaodeMapViewManager(
         }
     }
 
-
-    /**
-     * 添加或更新点（注意，如果数据集合未包含该点的id，则会在添加后把id赋值给对象）
-     */
-    override fun addOrUpdateMarker(
-        mapPosition: MapPosition,
-        mapPositionGroup: MapPositionGroup?
-    ) {
-        if (markers.containsKey(mapPosition.id)) {
-            markers[mapPosition.id]?.position = mapPosition.toGaoDe
-        } else {
-            mapPosition.id =
-                addMarker(
-                    position = mapPosition,
-                    applyCustomOptions = mapPositionGroup?.applyCustomOptions
-                )
-        }
-    }
 
     /**
      * 添加中心点（固定）的坐标到坐标组
@@ -318,44 +298,26 @@ class GaodeMapViewManager(
             MarkerOptions().position(position.toGaoDe).apply {
                 zIndex(ZINDEX_MARKER)
                 icon(R.drawable.icon_gcoding.newGaodeIcon(height = 38.dp))
-                applyCustomOptions?.invoke(this)
+                globalApplyCustomOptions?.invoke(mapPositionGroup, this)
+                (applyCustomOptions ?: mapPositionGroup?.applyCustomOptions)?.invoke(
+                    mapPositionGroup,
+                    this
+                )
             }
         )
-        mapPositionGroup?.addMapPosition(marker.position.toMapPosition.apply {
-            id = marker.id
-        })
+        position.id = marker.id
+        if (mapPositionGroup?.mapPositions?.contains(position) == false) {
+            // 避免重复添加
+            mapPositionGroup.addMapPosition(position)
+        }
         markers[marker.id] = marker
         return marker.id
     }
 
     /**
-     * 删除最后一个点（同时更新数据到MapPositionGroup）
+     * 删除点
      */
-    override fun removeLastMarker(mapPositionGroup: MapPositionGroup) {
-        mapPositionGroup.removeMapPosition()?.run {
-            removeMarker(id)
-        }
-    }
-
-    /**
-     * 删除点（同时更新数据到MapPositionGroup）
-     */
-    override fun removeMarker(id: String?, mapPositionGroup: MapPositionGroup?) {
-        mapPositionGroup?.removeMapPosition(id)
-        markers[id]?.remove()
-        mapView.invalidate()
-    }
-
-    /**
-     * 删除多个点（同时更新数据到MapPositionGroup）
-     */
-    override fun removeMarkers(mapPositionGroup: MapPositionGroup) {
-        mapPositionGroup.mapPositions.forEach {
-            markers[it.id]?.remove()
-        }
-        mapPositionGroup.clearMapPosition()
-        mapView.invalidate()
-    }
+    override fun removeMarker(marker: Marker) = marker.remove()
 
 
     /**
@@ -401,7 +363,7 @@ class GaodeMapViewManager(
      */
     override fun calculateLineDistance(mapPositionGroup: MapPositionGroup): Double {
         var lastPosition: MapPosition? = null
-        var lineDistance: Double = 0.0
+        var lineDistance = 0.0
         mapPositionGroup.mapPositions.forEach {
             if (lastPosition != null) {
                 lineDistance += AMapUtils.calculateLineDistance(

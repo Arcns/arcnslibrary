@@ -26,17 +26,17 @@ class ViewModelMap : MapViewManagerViewModel() {
     // 测量
     var calculateLineValue = MutableLiveData<String>()
     var calculateLineMapPositionGroup = MapPositionGroup().apply {
-        applyCustomOptions = {
-            when (it) {
-                is MarkerOptions -> it.draggable(true)
+        applyCustomOptions = { group, options ->
+            when (options) {
+                is MarkerOptions -> options.draggable(true)
             }
         }
     }
     var calculateAreaValue = MutableLiveData<String>()
     var calculateAreaMapPositionGroup = MapPositionGroup().apply {
-        applyCustomOptions = {
-            when (it) {
-                is MarkerOptions -> it.draggable(true)
+        applyCustomOptions = { group, options ->
+            when (options) {
+                is MarkerOptions -> options.draggable(true)
             }
         }
     }

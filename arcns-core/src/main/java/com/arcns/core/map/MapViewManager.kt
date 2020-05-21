@@ -10,7 +10,7 @@ const val ZINDEX_POLYLINE = 9998f
 const val ZINDEX_POLYGON = 9997f
 
 /**
- * 地图管理器接口
+ * 地图管理器基类
  */
 abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng>(
     lifecycleOwner: LifecycleOwner,
@@ -36,6 +36,11 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         }
 
     /**
+     * 添加时样式配置格式化，如果如果使用自定义样式时，可以使用该变量，其中options为MarkerOptions或PolylineOptions或PolygonOptions等
+     */
+    var globalApplyCustomOptions: ApplyCustomOptions? = null
+
+    /**
      * 定位到我的位置
      */
     abstract fun locateMyLocation(
@@ -52,7 +57,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
 
 
     /**
-     * 重置地图数据
+     * 重置地图缓存数据
      */
     abstract fun mapViewInvalidate()
 
@@ -184,10 +189,16 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     /**
      * 添加或更新点（注意，如果数据集合未包含该点的id，则会在添加后把id赋值给对象）
      */
-    abstract fun addOrUpdateMarker(
+    open fun addOrUpdateMarker(
         mapPosition: MapPosition,
         mapPositionGroup: MapPositionGroup? = null
-    )
+    ) {
+        if (markers.containsKey(mapPosition.id)) {
+            setMarkerPosition(markers[mapPosition.id] ?: return, mapPosition)
+        } else {
+            addMarker(mapPosition, mapPositionGroup)
+        }
+    }
 
 
     /**
@@ -209,19 +220,40 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     /**
      * 删除最后一个点（同时更新数据到MapPositionGroup）
      */
-    abstract fun removeLastMarker(mapPositionGroup: MapPositionGroup)
+    open fun removeLastMarker(mapPositionGroup: MapPositionGroup) {
+        mapPositionGroup.removeMapPosition()?.run {
+            removeMarker(id)
+        }
+    }
+
+    /**
+     * 删除点
+     */
+    abstract fun removeMarker(marker: Marker)
 
 
     /**
      * 删除点（同时更新数据到MapPositionGroup）
      */
-    abstract fun removeMarker(id: String?, mapPositionGroup: MapPositionGroup? = null)
+    open fun removeMarker(id: String?, mapPositionGroup: MapPositionGroup? = null) {
+        mapPositionGroup?.removeMapPosition(id)
+        markers[id]?.run {
+            removeMarker(this)
+            mapViewInvalidate()
+        }
+    }
 
 
     /**
      * 删除多个点（同时更新数据到MapPositionGroup）
      */
-    abstract fun removeMarkers(mapPositionGroup: MapPositionGroup)
+    open fun removeMarkers(mapPositionGroup: MapPositionGroup) {
+        mapPositionGroup.mapPositions.forEach {
+            removeMarker(markers[it.id] ?: return@forEach)
+        }
+        mapPositionGroup.clearMapPosition()
+        mapViewInvalidate()
+    }
 
 
     /**

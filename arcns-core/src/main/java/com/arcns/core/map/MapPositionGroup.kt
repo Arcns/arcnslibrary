@@ -3,7 +3,7 @@ package com.arcns.core.map
 import androidx.lifecycle.MutableLiveData
 
 
-typealias ApplyCustomOptions = ((options: Any) -> Unit)
+typealias ApplyCustomOptions = ((group: MapPositionGroup?, options: Any) -> Unit)
 
 /**
  * 通用地图坐标组
