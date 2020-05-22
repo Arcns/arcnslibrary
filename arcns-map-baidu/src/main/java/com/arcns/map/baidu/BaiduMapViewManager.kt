@@ -215,7 +215,7 @@ class BaiduMapViewManager(
             return
         }
         // 启用时，先判断是否为空，避免重复创建
-        if (centerFixedMarker != null) {
+        if (centerFixedMarker != null && !centerFixedMarker!!.isRemoved) {
             return
         }
         // 未加载完成时停止创建

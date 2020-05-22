@@ -89,6 +89,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         polylineMapPositionGroups?.forEach {
             removePolyline(it)
         }
+        updateCenterFixedMarker()
     }
 
 
@@ -110,6 +111,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         polylineMapPositionGroups?.forEach {
             addOrUpdatePolyline(it)
         }
+        updateCenterFixedMarker()
     }
 
     /**

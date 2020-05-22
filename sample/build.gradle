@@ -62,7 +62,7 @@ android {
 }
 
 dependencies {
-    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation deps.kotlin.stdlib
     testImplementation deps.test.junit
     androidTestImplementation deps.test.androidx_junit

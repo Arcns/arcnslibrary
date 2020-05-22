@@ -79,6 +79,8 @@ class FragmentMapBaidu : Fragment() {
         }
         btnToggleTraffic.setOnClickListener {
             mapView.map.isTrafficEnabled = !binding.mapView.map.isTrafficEnabled
+//            mapViewManager.refresh()
+            mapViewManager.centerFixedMarkerEnabled = !mapViewManager.centerFixedMarkerEnabled
         }
         btnDownload.setOnClickListener {
 //            startActivity(Intent(context, OfflineMapActivity::class.java))
