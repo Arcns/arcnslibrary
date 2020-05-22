@@ -2,7 +2,7 @@ apply from: rootProject.file("library_config.gradle")
 
 dependencies {
     compileOnly fileTree(dir: 'libs', include: ['*.jar'])
-    compileOnly files('src/main/assets')
+//    compileOnly files('src/main/assets')
     implementation deps.kotlin.stdlib
     testImplementation deps.test.junit
     androidTestImplementation deps.test.androidx_junit
