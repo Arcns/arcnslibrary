@@ -84,6 +84,7 @@ class BaiduMapViewManager(
                 mapView.onPause()
             }
         })
+
     }
 
     /**
@@ -336,16 +337,10 @@ class BaiduMapViewManager(
         }
     }
 
-
     /**
-     * 添加中心点（固定）的坐标到坐标组
+     * 返回中心点坐标
      */
-    override fun addCenterFixedMarker(mapPositionGroup: MapPositionGroup): String? {
-        return addMarker(
-            mapView.map.mapStatus.target?.toMapPosition ?: return null,
-            mapPositionGroup
-        )
-    }
+    override fun getCenterFixePosition():MapPosition? = mapView.map.mapStatus.target?.toMapPosition
 
     /**
      * 添加点（若mapPositionGroup不为空则同时更新数据到MapPositionGroup）

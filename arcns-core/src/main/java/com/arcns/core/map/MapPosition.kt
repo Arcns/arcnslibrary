@@ -13,7 +13,8 @@ data class MapPosition(
     var id: String? = null,
     var latitude: Double,
     var longitude: Double,
-    var type: MapLatLngType
+    var type: MapLatLngType,
+    var extraData: Any? = null
 ) {
 
     constructor(latitude: Double, longitude: Double, type: MapLatLngType) : this(

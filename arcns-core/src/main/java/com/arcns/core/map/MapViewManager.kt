@@ -204,9 +204,20 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
 
 
     /**
+     * 返回中心点坐标
+     */
+    abstract fun getCenterFixePosition(): MapPosition?
+
+
+    /**
      * 添加中心点（固定）的坐标到坐标组
      */
-    abstract fun addCenterFixedMarker(mapPositionGroup: MapPositionGroup): String?
+    open fun addCenterFixedMarker(mapPositionGroup: MapPositionGroup): String? {
+        return addMarker(
+            getCenterFixePosition() ?: return null,
+            mapPositionGroup
+        )
+    }
 
 
     /**
