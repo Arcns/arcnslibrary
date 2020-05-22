@@ -279,8 +279,27 @@ class GaodeMapViewManager(
     /**
      * 返回中心点坐标
      */
-    override fun getCenterFixePosition():MapPosition? = mapView.map.cameraPosition.target?.toMapPosition
+    override fun getCenterFixedPosition():MapPosition = mapView.map.cameraPosition.target.toMapPosition
 
+    /**
+     * 返回左上角坐标
+     */
+    override fun getLeftTopFixedPosition(): MapPosition = mapView.map.projection.visibleRegion.farLeft.toMapPosition
+
+    /**
+     * 返回左下角坐标
+     */
+    override fun getLeftBottomFixedPosition(): MapPosition = mapView.map.projection.visibleRegion.nearLeft.toMapPosition
+
+    /**
+     * 返回右上角坐标
+     */
+    override fun getRightTopFixedPosition(): MapPosition = mapView.map.projection.visibleRegion.farRight.toMapPosition
+
+    /**
+     * 返回右下角坐标
+     */
+    override fun getRightBottomFixedPosition(): MapPosition = mapView.map.projection.visibleRegion.nearRight.toMapPosition
 
     /**
      * 添加点（若mapPositionGroup不为空则同时更新数据到MapPositionGroup）

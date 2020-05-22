@@ -1,7 +1,5 @@
 package com.arcns.core.map
 
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 
 const val ZINDEX_CENTER_FIXED_MARKER = 10000f
@@ -206,18 +204,34 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     /**
      * 返回中心点坐标
      */
-    abstract fun getCenterFixePosition(): MapPosition?
+    abstract fun getCenterFixedPosition(): MapPosition
+
+    /**
+     * 返回左上角坐标
+     */
+    abstract fun getLeftTopFixedPosition(): MapPosition
+
+    /**
+     * 返回左下角坐标
+     */
+    abstract fun getLeftBottomFixedPosition(): MapPosition
+
+    /**
+     * 返回右上角坐标
+     */
+    abstract fun getRightTopFixedPosition(): MapPosition
+
+    /**
+     * 返回右下角坐标
+     */
+    abstract fun getRightBottomFixedPosition(): MapPosition
 
 
     /**
      * 添加中心点（固定）的坐标到坐标组
      */
-    open fun addCenterFixedMarker(mapPositionGroup: MapPositionGroup): String? {
-        return addMarker(
-            getCenterFixePosition() ?: return null,
-            mapPositionGroup
-        )
-    }
+    open fun addCenterFixedMarker(mapPositionGroup: MapPositionGroup): String? =
+        addMarker(getCenterFixedPosition(), mapPositionGroup)
 
 
     /**

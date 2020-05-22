@@ -1,15 +1,12 @@
 package com.arcns.map.baidu
 
 import android.graphics.Point
-import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
-import com.arcns.core.APP
 import com.arcns.core.map.*
-import com.arcns.core.util.bitmap
 import com.arcns.core.util.dp
 import com.baidu.location.BDAbstractLocationListener
 import com.baidu.location.BDLocation
@@ -19,8 +16,6 @@ import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
 import com.baidu.mapapi.utils.AreaUtil
 import com.baidu.mapapi.utils.DistanceUtil
-import java.util.*
-import kotlin.collections.HashMap
 
 /**
  * 百度地图管理器
@@ -108,7 +103,12 @@ class BaiduMapViewManager(
                     MyLocationConfiguration.LocationMode.NORMAL // 普通态，连续定位但不移动地图位置
                 else firstType
         }
-        locateMyLocationByType(firstType, followUpType, isFirstFlagFromViewModel, applyCustomMyLocation)
+        locateMyLocationByType(
+            firstType,
+            followUpType,
+            isFirstFlagFromViewModel,
+            applyCustomMyLocation
+        )
     }
 
     /**
@@ -233,7 +233,7 @@ class BaiduMapViewManager(
                 .apply {
                     zIndex(ZINDEX_CENTER_FIXED_MARKER.toInt())
                     icon(R.drawable.purple_pin.newBaiduIcon(height = 88.dp))
-                    centerFixedMarkerApplyCustomOptions?.invoke(null,this)
+                    centerFixedMarkerApplyCustomOptions?.invoke(null, this)
                 }) as Marker?
         //设置Marker在屏幕上,不跟随地图移动
         centerFixedMarker?.setFixedScreenPosition(Point(screenPosition.x, screenPosition.y))
@@ -285,8 +285,8 @@ class BaiduMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYLINE.toInt())
                         // 应用自定义样式
-                        globalApplyCustomOptions?.invoke(mapPositionGroup,this)
-                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup,this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup, this)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this)
 //                        .color(R.color.colorAccent.color).width(4f).zIndex(900f)
                         addNewID()
                     }
@@ -319,8 +319,8 @@ class BaiduMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYGON.toInt())
                         // 应用自定义样式
-                        globalApplyCustomOptions?.invoke(mapPositionGroup,this)
-                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup,this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup, this)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this)
                         addNewID()
                     }
 //                    .fillColor(
@@ -340,7 +340,37 @@ class BaiduMapViewManager(
     /**
      * 返回中心点坐标
      */
-    override fun getCenterFixePosition():MapPosition? = mapView.map.mapStatus.target?.toMapPosition
+    override fun getCenterFixedPosition(): MapPosition = mapView.map.mapStatus.target.toMapPosition
+
+    /**
+     * 返回左上角坐标
+     */
+    override fun getLeftTopFixedPosition(): MapPosition = MapPosition(
+        longitude = getLeftBottomFixedPosition().longitude,
+        latitude = getRightTopFixedPosition().latitude,
+        type = MapPositionType.BD09LL
+    )
+
+    /**
+     * 返回左下角坐标
+     */
+    override fun getLeftBottomFixedPosition(): MapPosition =
+        mapView.map.mapStatus.bound.southwest.toMapPosition
+
+    /**
+     * 返回右上角坐标
+     */
+    override fun getRightTopFixedPosition(): MapPosition =
+        mapView.map.mapStatus.bound.northeast.toMapPosition
+
+    /**
+     * 返回右下角坐标
+     */
+    override fun getRightBottomFixedPosition(): MapPosition = MapPosition(
+        longitude = getRightTopFixedPosition().longitude,
+        latitude = getLeftBottomFixedPosition().latitude,
+        type = MapPositionType.BD09LL
+    )
 
     /**
      * 添加点（若mapPositionGroup不为空则同时更新数据到MapPositionGroup）
@@ -354,8 +384,11 @@ class BaiduMapViewManager(
             MarkerOptions().position(position.toBaidu).apply {
                 zIndex(ZINDEX_MARKER.toInt())
                 icon(R.drawable.icon_gcoding.newBaiduIcon(height = 38.dp))
-                globalApplyCustomOptions?.invoke(mapPositionGroup,this)
-                (applyCustomOptions ?: mapPositionGroup?.applyCustomOptions)?.invoke(mapPositionGroup,this)
+                globalApplyCustomOptions?.invoke(mapPositionGroup, this)
+                (applyCustomOptions ?: mapPositionGroup?.applyCustomOptions)?.invoke(
+                    mapPositionGroup,
+                    this
+                )
             }
         ) as Marker
         position.id = marker.id

@@ -7,7 +7,7 @@ import com.amap.api.maps.model.Marker
 import com.amap.api.maps.model.animation.TranslateAnimation
 import com.arcns.core.APP
 import com.arcns.core.map.MapViewManager
-import com.arcns.core.map.MapLatLngType
+import com.arcns.core.map.MapPositionType
 import com.arcns.core.map.MapPosition
 import com.arcns.core.util.bitmap
 import com.arcns.core.util.dp
@@ -50,7 +50,7 @@ val LatLng.toMapPosition: MapPosition
     get() = MapPosition(
         latitude = latitude,
         longitude = longitude,
-        type = MapLatLngType.GCJ02
+        type = MapPositionType.GCJ02
     )
 
 /**

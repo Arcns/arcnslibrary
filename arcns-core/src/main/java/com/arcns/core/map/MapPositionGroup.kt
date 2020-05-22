@@ -71,7 +71,7 @@ class MapPositionGroup {
         id: String? = null,
         latitude: Double,
         longitude: Double,
-        type: MapLatLngType
+        type: MapPositionType
     ): MapPosition? =
         addMapPosition(MapPosition(latitude, longitude, type))
 

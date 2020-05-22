@@ -13,11 +13,11 @@ data class MapPosition(
     var id: String? = null,
     var latitude: Double,
     var longitude: Double,
-    var type: MapLatLngType,
+    var type: MapPositionType,
     var extraData: Any? = null
 ) {
 
-    constructor(latitude: Double, longitude: Double, type: MapLatLngType) : this(
+    constructor(latitude: Double, longitude: Double, type: MapPositionType) : this(
         id = null,
         latitude = latitude,
         longitude = longitude,
@@ -27,7 +27,7 @@ data class MapPosition(
     private val pi = 3.1415926535897932384626
     val toGCJ02: MapPosition
         get() {
-            if (type == MapLatLngType.GCJ02) {
+            if (type == MapPositionType.GCJ02) {
                 return this
             }
             val x = longitude - 0.0065
@@ -39,12 +39,12 @@ data class MapPosition(
             return MapPosition(
                 latitude = z * sin(theta),
                 longitude = z * cos(theta),
-                type = MapLatLngType.GCJ02
+                type = MapPositionType.GCJ02
             )
         }
     val toBD09LL: MapPosition
         get() {
-            if (type == MapLatLngType.BD09LL) {
+            if (type == MapPositionType.BD09LL) {
                 return this
             }
             val x = longitude
@@ -56,7 +56,7 @@ data class MapPosition(
             return MapPosition(
                 latitude = z * sin(theta) + 0.006,
                 longitude = z * cos(theta) + 0.0065,
-                type = MapLatLngType.BD09LL
+                type = MapPositionType.BD09LL
             )
         }
 }
@@ -64,7 +64,7 @@ data class MapPosition(
 /**
  * 通用坐标类型
  */
-enum class MapLatLngType {
+enum class MapPositionType {
     // BD09LL百度经纬度坐标
     BD09LL,
 

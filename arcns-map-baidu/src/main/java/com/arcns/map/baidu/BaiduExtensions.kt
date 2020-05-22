@@ -3,7 +3,7 @@ package com.arcns.map.baidu
 import android.os.Bundle
 import com.arcns.core.APP
 import com.arcns.core.map.MapViewManager
-import com.arcns.core.map.MapLatLngType
+import com.arcns.core.map.MapPositionType
 import com.arcns.core.map.MapPosition
 import com.arcns.core.util.bitmap
 import com.baidu.mapapi.map.*
@@ -23,7 +23,7 @@ val LatLng.toMapPosition: MapPosition
     get() = MapPosition(
         latitude = latitude,
         longitude = longitude,
-        type = MapLatLngType.BD09LL
+        type = MapPositionType.BD09LL
     )
 
 /**
