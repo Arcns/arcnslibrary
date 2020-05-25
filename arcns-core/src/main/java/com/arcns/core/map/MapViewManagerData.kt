@@ -1,8 +1,10 @@
 package com.arcns.core.map
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.arcns.core.map.MapPosition
+import com.arcns.core.util.Event
 
 /**
  * 通用地图管理器的数据，请在ViewModel中创建
@@ -13,6 +15,15 @@ class MapViewManagerData {
     val isfirstLoad: Boolean get() = _isfirstLoad.value ?: true
     fun onFirstLoadComplete() {
         _isfirstLoad.value = false
+    }
+
+    /**
+     * 自定义的更新回调
+     */
+    private var _eventOnUpdate = MutableLiveData<Event<Unit>>()
+    var eventOnUpdate: LiveData<Event<Unit>> = _eventOnUpdate
+    fun onUpdate() {
+        _eventOnUpdate.value = Event(Unit)
     }
 
     // 暂停时的地图场景位置

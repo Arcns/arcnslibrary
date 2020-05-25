@@ -41,15 +41,6 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      */
     var globalApplyCustomOptions: ApplyCustomOptions? = null
 
-    /**
-     * 自定义的更新回调
-     */
-    private var _eventOnUpdate = MutableLiveData<Event<Unit>>()
-    var eventOnUpdate: LiveData<Event<Unit>> = _eventOnUpdate
-    fun onUpdate() {
-        _eventOnUpdate.value = Event(Unit)
-    }
-
 
     /**
      * 定位到我的位置
