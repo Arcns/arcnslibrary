@@ -1,9 +1,6 @@
 package com.arcns.core.map
 
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import com.arcns.core.util.Event
 
 const val ZINDEX_CENTER_FIXED_MARKER = 10000f
 const val ZINDEX_MARKER = 9999f
@@ -25,6 +22,9 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     val markers = HashMap<String, Marker>()
     val polylines = HashMap<String, Polyline>()
     val polygons = HashMap<String, Polygon>()
+
+    // 坐标组和点关联器
+    val groupMarkers = HashMap<String, ArrayList<String>>()
 
     // 中心点（固定）
     var centerFixedMarker: Marker? = null
@@ -63,6 +63,36 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      */
     abstract fun mapViewInvalidate()
 
+    /**
+     * 关联点和坐标组
+     */
+    open fun associateMarkerToGroup(group: MapPositionGroup, markerID: String) {
+        groupMarkers[group.uniqueID] = (groupMarkers[group.uniqueID] ?: arrayListOf()).apply {
+            if (!this.contains(markerID)) {
+                this.add(markerID)
+            }
+        }
+    }
+
+    /**
+     *  删除和组不存在关联的点
+     */
+    open fun removeNoAssociateGroupMarkers(group: MapPositionGroup) {
+        val markerIDs = groupMarkers[group.uniqueID]
+        var noExitGroupMarkerIDs = ArrayList<String>()
+        markerIDs?.forEach {
+            if (!group.containMapPositionID(it)) {
+                noExitGroupMarkerIDs.add(it)
+                // 从地图中删除
+                if (markers.containsKey(it)) {
+                    removeMarker(it)
+                    markers.remove(it)
+                }
+            }
+        }
+        markerIDs?.removeAll(noExitGroupMarkerIDs)
+    }
+
 
     /**
      * 清空所有数据
@@ -71,6 +101,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         markers.clear()
         polygons.clear()
         polygons.clear()
+        groupMarkers.clear()
     }
 
 
@@ -99,12 +130,16 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      * 按传入的新数据进行刷新
      */
     open fun refresh(
+        isClearOther: Boolean = true, //是否在刷新的同时删除其他覆盖物
         markerMapPositionGroups: List<MapPositionGroup>? = null,
         polygonMapPositionGroups: List<MapPositionGroup>? = null,
         polylineMapPositionGroups: List<MapPositionGroup>? = null
     ) {
-        clear()
+        if (isClearOther) {
+            clear()
+        }
         markerMapPositionGroups?.forEach {
+            removeNoAssociateGroupMarkers(it)
             addOrUpdateMarkers(it)
         }
         polygonMapPositionGroups?.forEach {
@@ -253,6 +288,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      */
     open fun removeLastMarker(mapPositionGroup: MapPositionGroup) {
         mapPositionGroup.removeMapPosition()?.run {
+            groupMarkers[mapPositionGroup?.uniqueID]?.remove(id) //删除关联关系
             removeMarker(id)
         }
     }
@@ -268,6 +304,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      */
     open fun removeMarker(id: String?, mapPositionGroup: MapPositionGroup? = null) {
         mapPositionGroup?.removeMapPosition(id)
+        groupMarkers[mapPositionGroup?.uniqueID]?.remove(id) //删除关联关系
         markers[id]?.run {
             removeMarker(this)
             mapViewInvalidate()
@@ -279,6 +316,10 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      * 删除多个点（同时更新数据到MapPositionGroup）
      */
     open fun removeMarkers(mapPositionGroup: MapPositionGroup) {
+        // 删除关联关系
+        removeNoAssociateGroupMarkers(mapPositionGroup)
+        groupMarkers.remove(mapPositionGroup.uniqueID)
+        // 从地图中删除
         mapPositionGroup.mapPositions.forEach {
             removeMarker(markers[it.id] ?: return@forEach)
         }

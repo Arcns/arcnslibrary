@@ -17,7 +17,6 @@ import com.arcns.core.util.dp
 import java.net.URL
 
 
-
 /**
  * 高德地图管理器
  */
@@ -100,7 +99,12 @@ class GaodeMapViewManager(
                     MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER // 连续定位但不移动地图位置
                 else firstType
         }
-        locateMyLocationByType(firstType,followUpType,isFirstFlagFromViewModel,applyCustomMyLocationStyle)
+        locateMyLocationByType(
+            firstType,
+            followUpType,
+            isFirstFlagFromViewModel,
+            applyCustomMyLocationStyle
+        )
     }
 
     /**
@@ -231,7 +235,7 @@ class GaodeMapViewManager(
                         zIndex(ZINDEX_POLYLINE)
                         // 应用自定义样式
                         globalApplyCustomOptions?.invoke(mapPositionGroup, this)
-                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup,this)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this)
 //                        .color(R.color.colorAccent.color).width(4f).zIndex(900f)
                     }
             )
@@ -261,8 +265,8 @@ class GaodeMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYGON)
                         // 应用自定义样式
-                        globalApplyCustomOptions?.invoke(mapPositionGroup,this)
-                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup,this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup, this)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this)
                     }
 //                    .fillColor(
 //                        R.color.tmchartblue.color
@@ -279,27 +283,32 @@ class GaodeMapViewManager(
     /**
      * 返回中心点坐标
      */
-    override fun getCenterFixedPosition():MapPosition = mapView.map.cameraPosition.target.toMapPosition
+    override fun getCenterFixedPosition(): MapPosition =
+        mapView.map.cameraPosition.target.toMapPosition
 
     /**
      * 返回左上角坐标
      */
-    override fun getLeftTopFixedPosition(): MapPosition = mapView.map.projection.visibleRegion.farLeft.toMapPosition
+    override fun getLeftTopFixedPosition(): MapPosition =
+        mapView.map.projection.visibleRegion.farLeft.toMapPosition
 
     /**
      * 返回左下角坐标
      */
-    override fun getLeftBottomFixedPosition(): MapPosition = mapView.map.projection.visibleRegion.nearLeft.toMapPosition
+    override fun getLeftBottomFixedPosition(): MapPosition =
+        mapView.map.projection.visibleRegion.nearLeft.toMapPosition
 
     /**
      * 返回右上角坐标
      */
-    override fun getRightTopFixedPosition(): MapPosition = mapView.map.projection.visibleRegion.farRight.toMapPosition
+    override fun getRightTopFixedPosition(): MapPosition =
+        mapView.map.projection.visibleRegion.farRight.toMapPosition
 
     /**
      * 返回右下角坐标
      */
-    override fun getRightBottomFixedPosition(): MapPosition = mapView.map.projection.visibleRegion.nearRight.toMapPosition
+    override fun getRightBottomFixedPosition(): MapPosition =
+        mapView.map.projection.visibleRegion.nearRight.toMapPosition
 
     /**
      * 添加点（若mapPositionGroup不为空则同时更新数据到MapPositionGroup）
@@ -324,6 +333,10 @@ class GaodeMapViewManager(
         if (mapPositionGroup?.mapPositions?.contains(position) == false) {
             // 避免重复添加
             mapPositionGroup.addMapPosition(position)
+            // 创建和组的关联关系
+            if (mapPositionGroup != null) {
+                associateMarkerToGroup(mapPositionGroup, marker.id)
+            }
         }
         markers[marker.id] = marker
         return marker.id

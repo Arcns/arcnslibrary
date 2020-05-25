@@ -1,6 +1,8 @@
 package com.arcns.core.map
 
 import androidx.lifecycle.MutableLiveData
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 typealias ApplyCustomOptions = ((group: MapPositionGroup?, options: Any) -> Unit)
@@ -9,6 +11,8 @@ typealias ApplyCustomOptions = ((group: MapPositionGroup?, options: Any) -> Unit
  * 通用地图坐标组
  */
 class MapPositionGroup {
+    val uniqueID: String = UUID.randomUUID().toString()
+
     private var _groupID = MutableLiveData<String>()
     val groupID: String? get() = _groupID.value
 

@@ -20,10 +20,10 @@ class MapViewManagerData {
     /**
      * 自定义的更新回调
      */
-    private var _eventOnUpdate = MutableLiveData<Event<Unit>>()
-    var eventOnUpdate: LiveData<Event<Unit>> = _eventOnUpdate
-    fun onUpdate() {
-        _eventOnUpdate.value = Event(Unit)
+    private var _eventOnUpdate = MutableLiveData<Event<Any>>()
+    var eventOnUpdate: LiveData<Event<Any>> = _eventOnUpdate
+    fun onUpdate(data: Any? = null) {
+        _eventOnUpdate.value = Event(data ?: Any())
     }
 
     // 暂停时的地图场景位置

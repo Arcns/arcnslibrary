@@ -395,6 +395,10 @@ class BaiduMapViewManager(
         if (mapPositionGroup?.mapPositions?.contains(position) == false) {
             // 避免重复添加
             mapPositionGroup.addMapPosition(position)
+            // 创建和组的关联关系
+            if (mapPositionGroup != null) {
+                associateMarkerToGroup(mapPositionGroup, marker.id)
+            }
         }
         markers[marker.id] = marker
         return marker.id
