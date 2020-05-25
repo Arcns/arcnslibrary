@@ -144,13 +144,8 @@ class BaiduMapViewManager(
                     )
                 )
             }
-            return
         }
         viewManagerData.onFirstLoadComplete()
-        if (initType == followUpType) {
-            // 第一次定位类型与后续定位类型一致
-            return
-        }
         locationClient = LocationClient(mapView.context).apply {
             locOption = LocationClientOption().apply {
                 openGps = true
