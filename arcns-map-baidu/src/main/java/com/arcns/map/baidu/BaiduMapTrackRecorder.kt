@@ -12,7 +12,10 @@ import com.baidu.location.LocationClientOption
 /**
  * 百度地图轨迹记录器
  */
-class BaiduMapTrackRecorder(context: Context) : MapTrackRecorder(context) {
+class BaiduMapTrackRecorder(
+    context: Context,
+    applyCustomLocationClientOption: ((LocationClientOption) -> Void)? = null
+) : MapTrackRecorder(context) {
 
     val locationClient = LocationClient(context).apply {
         // 定位配置
@@ -21,6 +24,7 @@ class BaiduMapTrackRecorder(context: Context) : MapTrackRecorder(context) {
             coorType = "bd09ll"
             scanSpan = 1000
             setIsNeedAddress(true)
+            applyCustomLocationClientOption?.invoke(this)
         }
     }
     private var locationListener: BDAbstractLocationListener? = null
@@ -34,14 +38,14 @@ class BaiduMapTrackRecorder(context: Context) : MapTrackRecorder(context) {
 
             override fun onReceiveLocation(location: BDLocation?) {
                 location?.run {
-                    onPerSecondCallback(
-                        MapPosition(
-                            latitude = latitude,
-                            longitude = longitude,
-                            type = MapPositionType.GCJ02,
-                            extraData = this
-                        )
+                    val position = MapPosition(
+                        latitude = latitude,
+                        longitude = longitude,
+                        type = MapPositionType.GCJ02,
+                        extraData = this
                     )
+                    onPerSecondCallback(position)
+                    onLocationChanged?.invoke(position)
                 }
             }
         })

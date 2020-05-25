@@ -14,8 +14,13 @@ abstract class MapTrackRecorder(
 ) {
     // 定时器总计时
     private var totalTimer: Long = 0
+
     // 定时器数据记录器
     val dataList = ArrayList<MapTrackRecorderData>()
+
+    // 自定义定位回调
+    val onLocationChanged: ((MapPosition) -> Unit)? = null
+
     // 生命周期感知
     private var lifecycleObserver: LifecycleObserver? = null
     var lifecycleOwner: LifecycleOwner? = null
@@ -28,6 +33,7 @@ abstract class MapTrackRecorder(
                 init {
                     lifecycleObserver = this
                 }
+
                 @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
                 fun onDestroy() {
                     lifecycleOwner?.lifecycle?.removeObserver(this)
@@ -56,7 +62,7 @@ abstract class MapTrackRecorder(
      */
     open fun onPerSecondCallback(position: MapPosition) {
         dataList.forEach {
-            if (totalTimer % it.millisecondTimer == 0L) {
+            if (totalTimer % it.millisecondTimer == 0L && it.enabled) {
                 it.trackData.addMapPosition(position)
             }
         }
