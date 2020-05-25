@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import com.arcns.core.map.MapPosition
 
 /**
- * 通用地图管理器ViewModel
+ * 通用地图管理器的数据，请在ViewModel中创建
  */
-open class MapViewManagerViewModel : ViewModel() {
+class MapViewManagerData {
     // 是否首次加载（用于兼容Navigation）
     private var _isfirstLoad = MutableLiveData<Boolean>()
     val isfirstLoad: Boolean get() = _isfirstLoad.value ?: true

@@ -2,14 +2,15 @@ package com.example.arcns.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.amap.api.maps.model.MarkerOptions
 import com.arcns.core.map.MapPositionGroup
-import com.arcns.core.map.MapViewManagerViewModel
+import com.arcns.core.map.MapViewManagerData
 import com.arcns.core.util.*
 import com.example.arcns.data.network.NetworkDataSource
 
 
-class ViewModelMap : MapViewManagerViewModel() {
+class ViewModelMap : ViewModel() {
 
 
     // 网络接口
@@ -22,6 +23,9 @@ class ViewModelMap : MapViewManagerViewModel() {
     // 弹出提示
     private var _toast = MutableLiveData<Event<String>>()
     var toast: LiveData<Event<String>> = _toast
+
+    // 通用地图管理器的数据
+    var mapViewManagerData = MapViewManagerData()
 
     // 测量
     var calculateLineValue = MutableLiveData<String>()

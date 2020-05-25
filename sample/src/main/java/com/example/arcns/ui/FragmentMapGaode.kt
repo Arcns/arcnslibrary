@@ -155,7 +155,7 @@ class FragmentMapGaode : Fragment() {
             isCompassEnabled = true
             isScaleControlsEnabled = true
         }
-        mapViewManager = GaodeMapViewManager(this, mapView, viewModel)
+        mapViewManager = GaodeMapViewManager(this, mapView, viewModel.mapViewManagerData)
         mapViewManager.centerFixedMarkerEnabled = true
         // 定位到我的位置
         mapViewManager.locateMyLocation()

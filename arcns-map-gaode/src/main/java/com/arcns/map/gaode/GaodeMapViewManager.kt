@@ -24,17 +24,17 @@ import java.net.URL
 class GaodeMapViewManager(
     lifecycleOwner: LifecycleOwner,
     mapView: MapView,
-    viewModel: MapViewManagerViewModel
+    viewManagerData: MapViewManagerData
 ) : MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng>(
     lifecycleOwner,
     mapView,
-    viewModel
+    viewManagerData
 ) {
 
-    constructor(fragment: Fragment, mapView: MapView, viewModel: MapViewManagerViewModel) : this(
+    constructor(fragment: Fragment, mapView: MapView, viewManagerData: MapViewManagerData) : this(
         fragment.viewLifecycleOwner,
         mapView,
-        viewModel
+        viewManagerData
     )
 
     // 当前谷歌图层
@@ -66,7 +66,7 @@ class GaodeMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             fun onPause() {
-                viewModel.savePauseCameraPosition(
+                viewManagerData.savePauseCameraPosition(
                     mapView.map.cameraPosition.target.toMapPosition,
                     mapView.map.cameraPosition.zoom,
                     mapView.map.cameraPosition.tilt,
@@ -113,22 +113,22 @@ class GaodeMapViewManager(
         applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)? = null
     ) {
         val initType =
-            if (isFirstFlagFromViewModel && !viewModel.isfirstLoad) followUpType else firstType
+            if (isFirstFlagFromViewModel && !viewManagerData.isfirstLoad) followUpType else firstType
         mapView.map.myLocationStyle = MyLocationStyle().let {
             (applyCustomMyLocationStyle?.invoke(it) ?: it).myLocationType(initType)
         }
         mapView.map.isMyLocationEnabled = true
-        if (isFirstFlagFromViewModel && !viewModel.isfirstLoad) {
+        if (isFirstFlagFromViewModel && !viewManagerData.isfirstLoad) {
             // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
-            viewModel.cameraPositionTarget?.run {
+            viewManagerData.cameraPositionTarget?.run {
                 // 返回到暂停时保存的状态
                 mapView.map.moveCamera(
                     CameraUpdateFactory.newCameraPosition(
                         CameraPosition(
                             this.toGaoDe,
-                            viewModel.cameraPositionZoom!!,
-                            viewModel.cameraPositionTilt!!,
-                            viewModel.cameraPositionBearing!!
+                            viewManagerData.cameraPositionZoom!!,
+                            viewManagerData.cameraPositionTilt!!,
+                            viewManagerData.cameraPositionBearing!!
                         )
                     )
                 )
@@ -136,7 +136,7 @@ class GaodeMapViewManager(
 
             return
         }
-        viewModel.onFirstLoadComplete()
+        viewManagerData.onFirstLoadComplete()
         if (initType == followUpType) {
             // 第一次定位类型与后续定位类型一致
             return

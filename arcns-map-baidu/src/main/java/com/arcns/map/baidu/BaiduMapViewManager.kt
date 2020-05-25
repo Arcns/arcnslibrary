@@ -23,15 +23,15 @@ import com.baidu.mapapi.utils.DistanceUtil
 class BaiduMapViewManager(
     lifecycleOwner: LifecycleOwner,
     mapView: MapView,
-    viewModel: MapViewManagerViewModel
+    viewManagerData: MapViewManagerData
 ) : MapViewManager<MapView, MyLocationConfiguration, Marker, Polyline, Polygon, LatLng>(
-    lifecycleOwner, mapView, viewModel
+    lifecycleOwner, mapView, viewManagerData
 ) {
 
-    constructor(fragment: Fragment, mapView: MapView, viewModel: MapViewManagerViewModel) : this(
+    constructor(fragment: Fragment, mapView: MapView, viewManagerData: MapViewManagerData) : this(
         fragment.viewLifecycleOwner,
         mapView,
-        viewModel
+        viewManagerData
     )
 
     // 定位
@@ -70,7 +70,7 @@ class BaiduMapViewManager(
                 if (locationClient?.isStarted == true) {
                     locationClient?.stop()
                 }
-                viewModel.savePauseCameraPosition(
+                viewManagerData.savePauseCameraPosition(
                     mapView.map.mapStatus.target.toMapPosition,
                     mapView.map.mapStatus.zoom,
                     mapView.map.mapStatus.overlook,
@@ -124,29 +124,29 @@ class BaiduMapViewManager(
     ) {
         this.onReceiveLocation = onReceiveLocation
         val initType =
-            if (isFirstFlagFromViewModel && !viewModel.isfirstLoad) followUpType else firstType
+            if (isFirstFlagFromViewModel && !viewManagerData.isfirstLoad) followUpType else firstType
         mapView.map.setMyLocationConfiguration(MyLocationConfiguration(initType, true, null).let {
             applyCustomMyLocation?.invoke(it) ?: it
         })
         mapView.map.isMyLocationEnabled = true
-        if (isFirstFlagFromViewModel && !viewModel.isfirstLoad) {
+        if (isFirstFlagFromViewModel && !viewManagerData.isfirstLoad) {
             // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
-            viewModel.cameraPositionTarget?.run {
+            viewManagerData.cameraPositionTarget?.run {
                 // 返回到暂停时保存的状态
                 mapView.map.setMapStatus(
                     MapStatusUpdateFactory.newMapStatus(
                         MapStatus.Builder()
                             .target(this.toBaidu)
-                            .zoom(viewModel.cameraPositionZoom!!)
-                            .overlook(viewModel.cameraPositionTilt!!)
-                            .rotate(viewModel.cameraPositionBearing!!)
+                            .zoom(viewManagerData.cameraPositionZoom!!)
+                            .overlook(viewManagerData.cameraPositionTilt!!)
+                            .rotate(viewManagerData.cameraPositionBearing!!)
                             .build()
                     )
                 )
             }
             return
         }
-        viewModel.onFirstLoadComplete()
+        viewManagerData.onFirstLoadComplete()
         if (initType == followUpType) {
             // 第一次定位类型与后续定位类型一致
             return

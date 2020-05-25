@@ -142,7 +142,7 @@ class FragmentMapBaidu : Fragment() {
         mapView.showScaleControl(true)//比例尺
         mapView.showZoomControls(false)//缩放按钮
 
-        mapViewManager = BaiduMapViewManager(this, mapView, viewModel)
+        mapViewManager = BaiduMapViewManager(this, mapView, viewModel.mapViewManagerData)
         mapViewManager.centerFixedMarkerEnabled = true
         // 定位到我的位置
         mapViewManager.locateMyLocation()

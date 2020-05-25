@@ -13,7 +13,7 @@ const val ZINDEX_POLYGON = 9997f
 abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng>(
     lifecycleOwner: LifecycleOwner,
     val mapView: MapView,
-    val viewModel: MapViewManagerViewModel
+    val viewManagerData: MapViewManagerData
 ) {
     // 是否加载完成
     var isMapLoaded = false
