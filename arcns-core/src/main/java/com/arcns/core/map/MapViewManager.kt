@@ -130,7 +130,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      * 按传入的新数据进行刷新
      */
     open fun refresh(
-        isClearOther: Boolean = true, //是否在刷新的同时删除其他覆盖物
+        isClearOther: Boolean = false, //是否在刷新的同时删除其他覆盖物
         markerMapPositionGroups: List<MapPositionGroup>? = null,
         polygonMapPositionGroups: List<MapPositionGroup>? = null,
         polylineMapPositionGroups: List<MapPositionGroup>? = null
