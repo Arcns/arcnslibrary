@@ -1,6 +1,9 @@
 package com.arcns.core.map
 
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.arcns.core.util.Event
 
 const val ZINDEX_CENTER_FIXED_MARKER = 10000f
 const val ZINDEX_MARKER = 9999f
@@ -37,6 +40,16 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      * 添加时样式配置格式化，如果如果使用自定义样式时，可以使用该变量，其中options为MarkerOptions或PolylineOptions或PolygonOptions等
      */
     var globalApplyCustomOptions: ApplyCustomOptions? = null
+
+    /**
+     * 自定义的更新回调
+     */
+    private var _eventOnUpdate = MutableLiveData<Event<Unit>>()
+    var eventOnUpdate: LiveData<Event<Unit>> = _eventOnUpdate
+    fun onUpdate() {
+        _eventOnUpdate.value = Event(Unit)
+    }
+
 
     /**
      * 定位到我的位置
