@@ -41,6 +41,10 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      */
     var globalApplyCustomOptions: ApplyCustomOptions? = null
 
+    /**
+     * 停止监听定位
+     */
+    abstract fun stopLocateMyLocation()
 
     /**
      * 定位到我的位置

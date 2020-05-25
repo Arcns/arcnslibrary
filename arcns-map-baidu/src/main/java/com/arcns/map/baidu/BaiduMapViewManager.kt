@@ -28,6 +28,8 @@ class BaiduMapViewManager(
     lifecycleOwner, mapView, viewManagerData
 ) {
 
+    private var locationListener: BDAbstractLocationListener? = null
+
     constructor(fragment: Fragment, mapView: MapView, viewManagerData: MapViewManagerData) : this(
         fragment.viewLifecycleOwner,
         mapView,
@@ -54,6 +56,7 @@ class BaiduMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroy() {
+                stopLocateMyLocation()
                 mapView.onDestroy()
             }
 
@@ -80,6 +83,17 @@ class BaiduMapViewManager(
             }
         })
 
+    }
+
+
+    /**
+     * 停止监听定位
+     */
+    override fun stopLocateMyLocation(){
+        if (locationListener != null) {
+            locationClient?.unRegisterLocationListener(locationListener)
+            locationListener = null
+        }
     }
 
     /**
@@ -155,6 +169,10 @@ class BaiduMapViewManager(
                 applyCustomLocationClientOption?.invoke(this)
             }
             registerLocationListener(object : BDAbstractLocationListener() {
+                init {
+                    locationListener = this
+                }
+
                 override fun onReceiveLocation(location: BDLocation?) {
                     // 设置后续定位类型（如果和第一次定位类型不一致的话）
                     if (mapView.map.locationConfiguration.locationMode != followUpType) {

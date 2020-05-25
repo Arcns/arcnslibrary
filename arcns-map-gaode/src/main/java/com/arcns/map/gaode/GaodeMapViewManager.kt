@@ -30,6 +30,8 @@ class GaodeMapViewManager(
     viewManagerData
 ) {
 
+    private var locationListener: AMap.OnMyLocationChangeListener? = null
+
     constructor(fragment: Fragment, mapView: MapView, viewManagerData: MapViewManagerData) : this(
         fragment.viewLifecycleOwner,
         mapView,
@@ -55,7 +57,9 @@ class GaodeMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroy() {
+                stopLocateMyLocation()
                 mapView.onDestroy()
+
             }
 
             @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -75,6 +79,16 @@ class GaodeMapViewManager(
             }
         })
 
+    }
+
+    /**
+     * 停止监听定位
+     */
+    override fun stopLocateMyLocation(){
+        if (locationListener != null) {
+            mapView.map.removeOnMyLocationChangeListener(locationListener)
+            locationListener = null
+        }
     }
 
     /**
@@ -146,6 +160,10 @@ class GaodeMapViewManager(
             return
         }
         mapView.map.addOnMyLocationChangeListener(object : AMap.OnMyLocationChangeListener {
+            init {
+                locationListener = this
+            }
+
             override fun onMyLocationChange(location: Location?) {
                 // 设置后续定位类型（如果和第一次定位类型不一致的话）
                 if (mapView.map.myLocationStyle.myLocationType != followUpType) {
@@ -154,7 +172,6 @@ class GaodeMapViewManager(
                         myLocationType(followUpType)
                     }
                 }
-                mapView.map.removeOnMyLocationChangeListener(this)
             }
         })
     }
