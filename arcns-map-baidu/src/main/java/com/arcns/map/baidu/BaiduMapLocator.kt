@@ -14,8 +14,9 @@ import com.baidu.location.LocationClientOption
  */
 class BaiduMapLocator(
     context: Context,
-    applyCustomLocationClientOption: ((LocationClientOption) -> Void)? = null
-) : MapLocator(context) {
+    applyCustomLocationClientOption: ((LocationClientOption) -> Void)? = null,
+    isOnlyForegroundLocator:Boolean = false
+) : MapLocator(context,isOnlyForegroundLocator) {
 
     val locationClient = LocationClient(context).apply {
         // 定位配置
@@ -51,11 +52,17 @@ class BaiduMapLocator(
     }
 
     /**
+     * 定位器是否开启
+     */
+    override fun isStarted():Boolean = locationClient.isStarted
+
+    /**
      * 停止
      */
     override fun stop() {
         super.stop()
-        locationClient.stop()
+        if (locationClient.isStarted)
+            locationClient.stop()
     }
 
     /**

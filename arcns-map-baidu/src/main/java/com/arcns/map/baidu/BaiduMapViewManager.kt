@@ -28,8 +28,6 @@ class BaiduMapViewManager(
     lifecycleOwner, mapView, viewManagerData
 ) {
 
-    private var locationListener: BDAbstractLocationListener? = null
-
     constructor(fragment: Fragment, mapView: MapView, viewManagerData: MapViewManagerData) : this(
         fragment.viewLifecycleOwner,
         mapView,
@@ -37,7 +35,7 @@ class BaiduMapViewManager(
     )
 
     // 定位
-    private var locationClient: LocationClient? = null
+    private var baiduMapLocator: BaiduMapLocator? = null
 
     // 接收定位回调
     var onReceiveLocation: ((location: BDLocation?) -> Void)? = null
@@ -56,23 +54,16 @@ class BaiduMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroy() {
-                stopLocateMyLocation()
                 mapView.onDestroy()
             }
 
             @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
             fun onResume() {
-                if (locationClient?.isStarted == false) {
-                    locationClient?.start()
-                }
                 mapView.onResume()
             }
 
             @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             fun onPause() {
-                if (locationClient?.isStarted == true) {
-                    locationClient?.stop()
-                }
                 viewManagerData.savePauseCameraPosition(
                     mapView.map.mapStatus.target.toMapPosition,
                     mapView.map.mapStatus.zoom,
@@ -89,11 +80,8 @@ class BaiduMapViewManager(
     /**
      * 停止监听定位
      */
-    override fun stopLocateMyLocation(){
-        if (locationListener != null) {
-            locationClient?.unRegisterLocationListener(locationListener)
-            locationListener = null
-        }
+    override fun stopLocateMyLocation() {
+        baiduMapLocator?.stop()
     }
 
     /**
@@ -160,20 +148,11 @@ class BaiduMapViewManager(
             }
         }
         viewManagerData.onFirstLoadComplete()
-        locationClient = LocationClient(mapView.context).apply {
-            locOption = LocationClientOption().apply {
-                openGps = true
-                coorType = "bd09ll"
-                scanSpan = 1000
-                setIsNeedAddress(true)
-                applyCustomLocationClientOption?.invoke(this)
-            }
-            registerLocationListener(object : BDAbstractLocationListener() {
-                init {
-                    locationListener = this
-                }
-
-                override fun onReceiveLocation(location: BDLocation?) {
+        baiduMapLocator =
+            BaiduMapLocator(mapView.context, applyCustomLocationClientOption, true).apply {
+                lifecycleOwner = this@BaiduMapViewManager.lifecycleOwner
+                onLocationChanged = {
+                    var location = it.extraData as? BDLocation
                     // 设置后续定位类型（如果和第一次定位类型不一致的话）
                     if (mapView.map.locationConfiguration.locationMode != followUpType) {
                         // 把获取到的当前位置设置到地图上
@@ -195,9 +174,9 @@ class BaiduMapViewManager(
                     // 回调
                     this@BaiduMapViewManager.onReceiveLocation?.invoke(location)
                 }
-            })
-            start()
-        }
+                start()
+            }
+
     }
 
     /**

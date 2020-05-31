@@ -8,7 +8,7 @@ import kotlin.collections.ArrayList
 typealias ApplyCustomOptions = ((group: MapPositionGroup?, options: Any) -> Unit)
 
 /**
- * 通用地图坐标组
+ * 通用地图坐标组（请在ViewModel中创建）
  */
 class MapPositionGroup {
     val uniqueID: String = UUID.randomUUID().toString()

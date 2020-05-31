@@ -14,8 +14,9 @@ import com.arcns.core.map.MapLocator
  */
 class GaodeMapLocator(
     context: Context,
-    applyCustomLocationClientOption: ((AMapLocationClientOption) -> Void)? = null
-) : MapLocator(context) {
+    applyCustomLocationClientOption: ((AMapLocationClientOption) -> Void)? = null,
+    isOnlyForegroundLocator:Boolean = false
+) : MapLocator(context,isOnlyForegroundLocator) {
 
     val locationClient = AMapLocationClient(context).apply {
         // 定位配置
@@ -48,6 +49,11 @@ class GaodeMapLocator(
             }
         })
     }
+
+    /**
+     * 定位器是否开启
+     */
+    override fun isStarted():Boolean = locationClient.isStarted
 
     /**
      * 停止

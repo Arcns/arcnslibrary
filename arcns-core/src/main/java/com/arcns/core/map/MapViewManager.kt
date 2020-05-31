@@ -11,7 +11,7 @@ const val ZINDEX_POLYGON = 9997f
  * 地图管理器基类
  */
 abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng>(
-    lifecycleOwner: LifecycleOwner,
+    val lifecycleOwner: LifecycleOwner,
     val mapView: MapView,
     val viewManagerData: MapViewManagerData
 ) {

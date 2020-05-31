@@ -10,16 +10,20 @@ import androidx.lifecycle.OnLifecycleEvent
  * 通用地图定位器
  */
 abstract class MapLocator(
-    context: Context
+    context: Context,
+    var isOnlyForegroundLocator:Boolean // 是否为前台定位器，若是则处于后台时定位器将自动关闭
 ) {
-    // 定时器总计时
+    // 定位器总计时
     private var totalTimer: Long = 0
+
+    // 暂停时定位器是否开启
+    private var isStartedWhenOnPause = false
 
     // 轨迹记录器
     val trackRecorders = ArrayList<MapTrackRecorder>()
 
     // 自定义定位回调
-    val onLocationChanged: ((MapPosition) -> Unit)? = null
+    var onLocationChanged: ((MapPosition) -> Unit)? = null
 
     // 生命周期感知
     private var lifecycleObserver: LifecycleObserver? = null
@@ -34,10 +38,25 @@ abstract class MapLocator(
                     lifecycleObserver = this
                 }
 
+                @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+                fun onResume() {
+                    if (isOnlyForegroundLocator && isStartedWhenOnPause) {
+                        start()
+                    }
+                }
+
+                @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+                fun onPause() {
+                    if (isOnlyForegroundLocator) {
+                        isStartedWhenOnPause = isStarted()
+                        stop()
+                    }
+                }
+
                 @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
                 fun onDestroy() {
-                    lifecycleOwner?.lifecycle?.removeObserver(this)
                     this@MapLocator.onDestroy()
+                    lifecycleOwner?.lifecycle?.removeObserver(this)
                 }
             })
         }
@@ -69,6 +88,11 @@ abstract class MapLocator(
         }
         totalTimer++
     }
+
+    /**
+     * 定位器是否开启
+     */
+    abstract fun isStarted():Boolean
 
     /**
      * 停止
