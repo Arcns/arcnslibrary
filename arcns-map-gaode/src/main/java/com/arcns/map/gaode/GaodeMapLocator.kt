@@ -1,42 +1,41 @@
-package com.arcns.map.baidu
+package com.arcns.map.gaode
 
 import android.content.Context
+import com.amap.api.location.AMapLocation
+import com.amap.api.location.AMapLocationClient
+import com.amap.api.location.AMapLocationClientOption
+import com.amap.api.location.AMapLocationListener
 import com.arcns.core.map.MapPosition
 import com.arcns.core.map.MapPositionType
-import com.arcns.core.map.MapTrackRecorder
-import com.baidu.location.BDAbstractLocationListener
-import com.baidu.location.BDLocation
-import com.baidu.location.LocationClient
-import com.baidu.location.LocationClientOption
+import com.arcns.core.map.MapLocator
 
 /**
- * 百度地图轨迹记录器
+ * 高德地图定位器
  */
-class BaiduMapTrackRecorder(
+class GaodeMapLocator(
     context: Context,
-    applyCustomLocationClientOption: ((LocationClientOption) -> Void)? = null
-) : MapTrackRecorder(context) {
+    applyCustomLocationClientOption: ((AMapLocationClientOption) -> Void)? = null
+) : MapLocator(context) {
 
-    val locationClient = LocationClient(context).apply {
+    val locationClient = AMapLocationClient(context).apply {
         // 定位配置
-        locOption = LocationClientOption().apply {
-            openGps = true
-            coorType = "bd09ll"
-            scanSpan = 1000
-            setIsNeedAddress(true)
+        setLocationOption(AMapLocationClientOption().apply {
+            locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
+            interval = 1000
+            isNeedAddress = true
             applyCustomLocationClientOption?.invoke(this)
-        }
+        })
     }
-    private var locationListener: BDAbstractLocationListener? = null
+    private var locationListener: AMapLocationListener? = null
 
     init {
         // 定位监听
-        locationClient.registerLocationListener(object : BDAbstractLocationListener() {
+        locationClient.setLocationListener(object : AMapLocationListener {
             init {
                 locationListener = this
             }
 
-            override fun onReceiveLocation(location: BDLocation?) {
+            override fun onLocationChanged(location: AMapLocation?) {
                 location?.run {
                     val position = MapPosition(
                         latitude = latitude,
@@ -45,7 +44,6 @@ class BaiduMapTrackRecorder(
                         extraData = this
                     )
                     onPerSecondCallback(position)
-                    onLocationChanged?.invoke(position)
                 }
             }
         })
@@ -56,7 +54,7 @@ class BaiduMapTrackRecorder(
      */
     override fun stop() {
         super.stop()
-        locationClient.stop()
+        locationClient.stopLocation()
     }
 
     /**
@@ -64,7 +62,7 @@ class BaiduMapTrackRecorder(
      */
     override fun start() {
         if (!locationClient.isStarted)
-            locationClient.start()
+            locationClient.startLocation()
     }
 
 
@@ -77,5 +75,6 @@ class BaiduMapTrackRecorder(
             locationListener = null
         }
         stop()
+        locationClient.onDestroy()
     }
 }
