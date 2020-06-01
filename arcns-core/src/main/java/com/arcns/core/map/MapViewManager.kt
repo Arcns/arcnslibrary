@@ -10,7 +10,7 @@ const val ZINDEX_POLYGON = 9997f
 /**
  * 地图管理器基类
  */
-abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng>(
+abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng, MoveCameraData>(
     val lifecycleOwner: LifecycleOwner,
     val mapView: MapView,
     val viewManagerData: MapViewManagerData
@@ -54,6 +54,14 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         isMoveCameraOnlyWhenFirst: Boolean = true, //仅切换到我的位置一次
         isFirstFlagFromViewModel: Boolean = true, // 是否首次加载从viewmodel进行获取
         applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)? = null// 自定义我的位置的配置和样式
+    )
+
+    /**
+     * 移动地图到指定位置
+     */
+    abstract fun moveCamera(
+        mapPosition: MapPosition? = null,
+        moveCameraData: MoveCameraData? = null
     )
 
     /**

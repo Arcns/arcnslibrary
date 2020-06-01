@@ -6,10 +6,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
-import com.amap.api.maps.AMap
-import com.amap.api.maps.AMapUtils
-import com.amap.api.maps.CameraUpdateFactory
-import com.amap.api.maps.MapView
+import com.amap.api.maps.*
 import com.amap.api.maps.model.*
 import com.arcns.core.APP
 import com.arcns.core.map.*
@@ -24,7 +21,7 @@ class GaodeMapViewManager(
     lifecycleOwner: LifecycleOwner,
     mapView: MapView,
     viewManagerData: MapViewManagerData
-) : MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng>(
+) : MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng,CameraUpdate>(
     lifecycleOwner,
     mapView,
     viewManagerData
@@ -140,8 +137,8 @@ class GaodeMapViewManager(
             // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
             viewManagerData.cameraPositionTarget?.run {
                 // 返回到暂停时保存的状态
-                mapView.map.moveCamera(
-                    CameraUpdateFactory.newCameraPosition(
+                moveCamera(
+                    moveCameraData = CameraUpdateFactory.newCameraPosition(
                         CameraPosition(
                             this.toGaoDe,
                             viewManagerData.cameraPositionZoom!!,
@@ -174,6 +171,20 @@ class GaodeMapViewManager(
                 }
             }
         })
+    }
+
+    /**
+     * 移动地图到指定位置
+     */
+    override fun moveCamera(
+        mapPosition: MapPosition?,
+        moveCameraData: CameraUpdate?
+    ) {
+        if (moveCameraData!=null){
+            mapView.map.moveCamera(moveCameraData)
+        }else if (mapPosition!=null){
+            mapView.map.moveCamera(CameraUpdateFactory.newLatLng(mapPosition.toGaoDe))
+        }
     }
 
     /**

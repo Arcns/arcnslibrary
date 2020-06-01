@@ -41,7 +41,7 @@ fun Marker.startBeatingAnimation(mapView: MapView) {
 /**
  * 把通用地图管理器转为高德地图管理器，通常用于使用高低地图管理器特有的功能
  */
-val MapViewManager<*,*,*,*,*,*>.asGaode: GaodeMapViewManager? get() = this as? GaodeMapViewManager
+val MapViewManager<*,*,*,*,*,*,*>.asGaode: GaodeMapViewManager? get() = this as? GaodeMapViewManager
 
 /**
  * 把高德坐标转换为通用坐标
