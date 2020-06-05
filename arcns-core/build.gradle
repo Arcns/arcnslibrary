@@ -11,22 +11,20 @@ dependencies {
 
     // 相对布局
     implementation deps.androidx.constraint_layout
-    // Navigation Kotlin
+    // Navigation Kotlin (仅编译，若项目需要使用到，需要在项目中自行引用)
     // 开启navigation需要配置三个地方：module.gradle页面顶部apply、module.gradle页面dependencies、project.gradle页面的classpath
     compileOnly deps.androidx.nav_fragment_ktx
     compileOnly deps.androidx.nav_ui_ktx
-    // material
-    implementation 'com.google.android.material:material:1.1.0'
     // ViewModel and LiveData
     implementation deps.androidx.lifecycle_viewmodel
     implementation deps.androidx.lifecycle_livedata
     // viewpager2
     implementation deps.androidx.viewpager2
-    // 弹出框
-    implementation deps.afollestad.md_core
-    implementation deps.afollestad.md_lifecycle
-    implementation deps.afollestad.md_datetime
-    implementation deps.afollestad.md_bottomsheets
+    // 弹出框(仅编译，若项目需要使用到，需要在项目中自行引用)
+    compileOnly deps.afollestad.md_core
+    compileOnly deps.afollestad.md_lifecycle
+    compileOnly deps.afollestad.md_datetime
+    compileOnly deps.afollestad.md_bottomsheets
     // 图片加载库
     implementation deps.glide
     annotationProcessor deps.glide_compiler
