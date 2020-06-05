@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.textfield.TextInputLayout
-import java.lang.ref.WeakReference
 
 
 // 设置TextView Drawable的大小
