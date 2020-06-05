@@ -39,6 +39,6 @@ dependencies {
     implementation deps.compressor
     // 波浪动画
     implementation deps.wave_line_view
-    // 录音和播放
-    implementation deps.gsy_record_wave
+    // 录音和播放(仅编译，若项目需要使用到，需要在项目中自行引用)
+    compileOnly deps.gsy_record_wave
 }
