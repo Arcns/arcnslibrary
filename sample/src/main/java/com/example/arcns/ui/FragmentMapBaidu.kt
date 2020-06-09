@@ -198,6 +198,20 @@ class FragmentMapBaidu : Fragment() {
             }
 
         })
+
+
+        viewModelActivityMain.mapTrackRecorder.eventTrackDataUpdate.observe(
+            viewLifecycleOwner,
+            EventObserver {
+                mapViewManager.refresh(
+                    markerMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData),
+                    polylineMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData)
+                )
+            })
+        mapViewManager.refresh(
+            markerMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData),
+            polylineMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData)
+        )
     }
 
 //    var poiSearch: PoiSearch? = null

@@ -57,7 +57,7 @@ class FragmentMapGaode : Fragment() {
     var mapTypeSelectionIndex = 0
 
     private fun setupResult() {
-        viewModel.toast.observe(this, EventObserver {
+        viewModel.toast.observe(viewLifecycleOwner, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
         btnUpdMapType.setOnClickListener {
@@ -219,6 +219,19 @@ class FragmentMapGaode : Fragment() {
             }
 
         })
+
+        viewModelActivityMain.mapTrackRecorder.eventTrackDataUpdate.observe(
+            viewLifecycleOwner,
+            EventObserver {
+                mapViewManager.refresh(
+                    markerMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData),
+                    polylineMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData)
+                )
+            })
+        mapViewManager.refresh(
+            markerMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData),
+            polylineMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData)
+        )
     }
 
     var poiSearch: PoiSearch? = null

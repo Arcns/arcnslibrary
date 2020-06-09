@@ -201,9 +201,9 @@ class BaiduMapViewManager(
         mapPosition: MapPosition?,
         moveCameraData: MapStatusUpdate?
     ) {
-        if (moveCameraData!=null){
+        if (moveCameraData != null) {
             mapView.map.setMapStatus(moveCameraData)
-        }else if (mapPosition!=null){
+        } else if (mapPosition != null) {
             mapView.map.setMapStatus(MapStatusUpdateFactory.newLatLng(mapPosition.toBaidu))
         }
     }
@@ -285,7 +285,7 @@ class BaiduMapViewManager(
             removePolyline(mapPositionGroup, false)
             return
         }
-        if (mapPositionGroup.groupID.isNullOrBlank()) {
+        if (mapPositionGroup.groupID.isNullOrBlank() || !polylines.containsKey(mapPositionGroup.groupID!!)) {
             val polyline = mapView.map.addOverlay(
                 PolylineOptions().points(mapPositionGroup.mapPositions.map { it.toBaidu })
                     .apply {
@@ -319,7 +319,7 @@ class BaiduMapViewManager(
         }
         // 大于等于3个时画多边形
         removePolyline(mapPositionGroup, false)
-        if (mapPositionGroup.groupID.isNullOrBlank()) {
+        if (mapPositionGroup.groupID.isNullOrBlank() || !polygons.containsKey(mapPositionGroup.groupID!!)) {
             val polygon = mapView.map.addOverlay(
                 PolygonOptions().points(mapPositionGroup.mapPositions.map { it.toBaidu })
                     .apply {
@@ -419,26 +419,12 @@ class BaiduMapViewManager(
     /**
      * 计算长度
      */
-    override fun calculateLineDistance(mapPositionGroup: MapPositionGroup): Double {
-        var lastPosition: MapPosition? = null
-        var lineDistance = 0.0
-        mapPositionGroup.mapPositions.forEach {
-            if (lastPosition != null) {
-                lineDistance += DistanceUtil.getDistance(
-                    lastPosition?.toBaidu,
-                    it.toBaidu
-                )
-            }
-            lastPosition = it
-        }
-        return lineDistance
-    }
+    override fun calculateLineDistance(mapPositionGroup: MapPositionGroup): Double =
+        calculateBaiduLineDistance(mapPositionGroup)
 
     /**
      * 计算面积
      */
     override fun calculateArea(mapPositionGroup: MapPositionGroup): Double =
-        AreaUtil.calculateArea(mapPositionGroup.mapPositions.map {
-            it.toBaidu
-        })
+        calculateBaiduArea(mapPositionGroup)
 }

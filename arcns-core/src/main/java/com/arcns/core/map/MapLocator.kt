@@ -11,10 +11,10 @@ import androidx.lifecycle.OnLifecycleEvent
  */
 abstract class MapLocator(
     context: Context,
-    var isOnlyForegroundLocator:Boolean // 是否为前台定位器，若是则处于后台时定位器将自动关闭
+    var isOnlyForegroundLocator: Boolean // 是否为前台定位器，若是则处于后台时定位器将自动关闭
 ) {
     // 定位器总计时
-    private var totalTimer: Long = 0
+    private var locatorTotalTime: Long = 0
 
     // 暂停时定位器是否开启
     private var isStartedWhenOnPause = false
@@ -61,6 +61,10 @@ abstract class MapLocator(
             })
         }
 
+    /**
+     * 返回定时器间隔
+     */
+    abstract fun getLocatorInterval(): Long
 
     /**
      * 添加轨迹记录器
@@ -77,28 +81,26 @@ abstract class MapLocator(
     }
 
     /**
-     * 每秒回调器
+     * 地图定时回调器
      */
-    open fun onPerSecondCallback(position: MapPosition) {
+    open fun onLocatorLocationCallback(position: MapPosition) {
         onLocationChanged?.invoke(position)
         trackRecorders.forEach {
-            if (totalTimer % it.millisecondTimer == 0L && it.enabled) {
-                it.trackData.addMapPosition(position)
-            }
+            it.addTrackPositionOnRecorderInterval(position, locatorTotalTime, getLocatorInterval())
         }
-        totalTimer++
+        locatorTotalTime += getLocatorInterval()
     }
 
     /**
      * 定位器是否开启
      */
-    abstract fun isStarted():Boolean
+    abstract fun isStarted(): Boolean
 
     /**
      * 停止
      */
     open fun stop() {
-        totalTimer = 0
+        locatorTotalTime = 0
     }
 
     /**

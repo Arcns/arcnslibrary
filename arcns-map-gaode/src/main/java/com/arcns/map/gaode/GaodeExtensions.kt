@@ -1,5 +1,6 @@
 package com.arcns.map.gaode
 
+import com.amap.api.maps.AMapUtils
 import com.amap.api.maps.MapView
 import com.amap.api.maps.model.BitmapDescriptorFactory
 import com.amap.api.maps.model.LatLng
@@ -9,6 +10,7 @@ import com.arcns.core.APP
 import com.arcns.core.map.MapViewManager
 import com.arcns.core.map.MapPositionType
 import com.arcns.core.map.MapPosition
+import com.arcns.core.map.MapPositionGroup
 import com.arcns.core.util.bitmap
 import com.arcns.core.util.dp
 
@@ -75,3 +77,29 @@ fun Int.newGaodeIcon(width: Int? = null, height: Int? = null) =
             newHeight = height
         )
     )
+
+/**
+ * 计算高德长度
+ */
+fun calculateGaodeLineDistance(mapPositionGroup: MapPositionGroup): Double {
+    var lastPosition: MapPosition? = null
+    var lineDistance = 0.0
+    mapPositionGroup.mapPositions.forEach {
+        if (lastPosition != null) {
+            lineDistance += AMapUtils.calculateLineDistance(
+                lastPosition?.toGaoDe,
+                it.toGaoDe
+            );
+        }
+        lastPosition = it
+    }
+    return lineDistance
+}
+
+/**
+ * 计算高德面积
+ */
+fun calculateGaodeArea(mapPositionGroup: MapPositionGroup): Double =
+    AMapUtils.calculateArea(mapPositionGroup.mapPositions.map {
+        it.toGaoDe
+    }).toDouble()

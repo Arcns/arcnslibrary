@@ -5,9 +5,12 @@ import com.arcns.core.APP
 import com.arcns.core.map.MapViewManager
 import com.arcns.core.map.MapPositionType
 import com.arcns.core.map.MapPosition
+import com.arcns.core.map.MapPositionGroup
 import com.arcns.core.util.bitmap
 import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
+import com.baidu.mapapi.utils.AreaUtil
+import com.baidu.mapapi.utils.DistanceUtil
 import java.util.*
 
 
@@ -77,3 +80,29 @@ fun Int.newBaiduIcon(width: Int? = null, height: Int? = null) =
             newHeight = height
         )
     )
+
+/**
+ * 计算百度长度
+ */
+fun calculateBaiduLineDistance(mapPositionGroup: MapPositionGroup): Double {
+    var lastPosition: MapPosition? = null
+    var lineDistance = 0.0
+    mapPositionGroup.mapPositions.forEach {
+        if (lastPosition != null) {
+            lineDistance += DistanceUtil.getDistance(
+                lastPosition?.toBaidu,
+                it.toBaidu
+            )
+        }
+        lastPosition = it
+    }
+    return lineDistance
+}
+
+/**
+ * 计算百度面积
+ */
+fun calculateBaiduArea(mapPositionGroup: MapPositionGroup): Double =
+    AreaUtil.calculateArea(mapPositionGroup.mapPositions.map {
+        it.toBaidu
+    })

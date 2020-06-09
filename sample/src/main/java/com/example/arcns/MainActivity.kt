@@ -20,6 +20,7 @@ import com.arcns.core.util.DownloadService
 import com.arcns.core.util.DownloadTask
 import com.arcns.core.util.EventObserver
 import com.arcns.core.util.showDialog
+import com.arcns.map.gaode.GaodeMapLocator
 import com.example.arcns.databinding.ActivityMainBinding
 import com.example.arcns.event.EventMainActivity
 import com.example.arcns.event.EventMainActivityType
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val viewModel: ViewModelActivityMain by viewModels()
     private lateinit var navController: NavController
+
     // 蓝牙开关广播接受者
     private val bluetoothIntentFilter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
     private val bluetoothBroadcastReceiver = object : BroadcastReceiver() {
@@ -61,6 +63,12 @@ class MainActivity : AppCompatActivity() {
         setupActionBar()
         setupResult()
         setupBluetoothBroadcastReceiver()
+
+
+        var mapLocator = GaodeMapLocator(this)
+        mapLocator.lifecycleOwner = this
+        mapLocator.addTrackRecorder(viewModel.mapTrackRecorder)
+        mapLocator.start()
     }
 
     private fun setupBluetoothBroadcastReceiver() =

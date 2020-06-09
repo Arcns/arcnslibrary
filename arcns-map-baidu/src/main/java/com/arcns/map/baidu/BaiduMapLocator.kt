@@ -4,6 +4,7 @@ import android.content.Context
 import com.arcns.core.map.MapPosition
 import com.arcns.core.map.MapPositionType
 import com.arcns.core.map.MapLocator
+import com.arcns.core.map.MapPositionGroup
 import com.baidu.location.BDAbstractLocationListener
 import com.baidu.location.BDLocation
 import com.baidu.location.LocationClient
@@ -15,17 +16,18 @@ import com.baidu.location.LocationClientOption
 class BaiduMapLocator(
     context: Context,
     applyCustomLocationClientOption: ((LocationClientOption) -> Void)? = null,
-    isOnlyForegroundLocator:Boolean = false
-) : MapLocator(context,isOnlyForegroundLocator) {
+    isOnlyForegroundLocator: Boolean = false
+) : MapLocator(context, isOnlyForegroundLocator) {
 
     val locationClient = LocationClient(context).apply {
         // 定位配置
         locOption = LocationClientOption().apply {
             openGps = true
             coorType = "bd09ll"
-            scanSpan = 1000
+            scanSpan = locatorInterval
             setIsNeedAddress(true)
             applyCustomLocationClientOption?.invoke(this)
+            locatorInterval = scanSpan
         }
     }
     private var locationListener: BDAbstractLocationListener? = null
@@ -45,16 +47,23 @@ class BaiduMapLocator(
                         type = MapPositionType.GCJ02,
                         extraData = this
                     )
-                    onPerSecondCallback(position)
+                    onLocatorLocationCallback(position)
                 }
             }
         })
     }
 
+
+    /**
+     * 返回定时器间隔
+     */
+    private var locatorInterval: Int = 1000
+    override fun getLocatorInterval(): Long = locatorInterval.toLong()
+
     /**
      * 定位器是否开启
      */
-    override fun isStarted():Boolean = locationClient.isStarted
+    override fun isStarted(): Boolean = locationClient.isStarted
 
     /**
      * 停止

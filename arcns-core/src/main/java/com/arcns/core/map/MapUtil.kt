@@ -3,11 +3,13 @@ package com.arcns.core.map
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.net.Uri
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItems
 import com.arcns.core.R
 import com.arcns.core.util.showDialog
+import kotlin.math.abs
 
 
 // 百度地图
@@ -146,4 +148,38 @@ fun Context.openBrowserMapNavigation(position: MapPosition, title: String?, cont
     intent.setAction("android.intent.action.VIEW");
     intent.setData(Uri.parse("http://api.map.baidu.com/marker?location=${gcLatLng.latitude},${gcLatLng.longitude}&title=$title&content=$content&output=html"));
     startActivity(intent);
+}
+
+/**
+ * 转换为自适应单位（输入单位为米）
+ */
+fun Double.adaptiveMapUnit(units: List<String> = listOf("m", "km"), decimalScale: Int = 2) =
+    adaptiveMapUnitValue(decimalScale).toString() + adaptiveMapUnitName(units)
+
+/**
+ * 转换为自适应单位后的值（输入单位为米）
+ */
+fun Double.adaptiveMapUnitValue(decimalScale: Int = 2) =
+    if (abs(this) >= 1000) String.format("%." + decimalScale + "f", this / 1000)
+        .toDouble() else this
+
+/**
+ * 转换为自适应单位后的单位名（输入单位为米）
+ */
+fun Double.adaptiveMapUnitName(units: List<String> = listOf("m", "km")) =
+    if (abs(this) >= 1000) units[1] else units[0]
+
+/**
+ * 计算两点之间的距离（单位为米）
+ */
+fun MapPosition.distanceBetween(mapPosition: MapPosition): Float {
+    val results = FloatArray(1)
+    Location.distanceBetween(
+        latitude,
+        longitude,
+        mapPosition.latitude,
+        mapPosition.longitude,
+        results
+    )
+    return results[0]
 }

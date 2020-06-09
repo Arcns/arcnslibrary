@@ -21,7 +21,7 @@ class GaodeMapViewManager(
     lifecycleOwner: LifecycleOwner,
     mapView: MapView,
     viewManagerData: MapViewManagerData
-) : MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng,CameraUpdate>(
+) : MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng, CameraUpdate>(
     lifecycleOwner,
     mapView,
     viewManagerData
@@ -81,7 +81,7 @@ class GaodeMapViewManager(
     /**
      * 停止监听定位
      */
-    override fun stopLocateMyLocation(){
+    override fun stopLocateMyLocation() {
         if (locationListener != null) {
             mapView.map.removeOnMyLocationChangeListener(locationListener)
             locationListener = null
@@ -180,9 +180,9 @@ class GaodeMapViewManager(
         mapPosition: MapPosition?,
         moveCameraData: CameraUpdate?
     ) {
-        if (moveCameraData!=null){
+        if (moveCameraData != null) {
             mapView.map.moveCamera(moveCameraData)
-        }else if (mapPosition!=null){
+        } else if (mapPosition != null) {
             mapView.map.moveCamera(CameraUpdateFactory.newLatLng(mapPosition.toGaoDe))
         }
     }
@@ -256,7 +256,7 @@ class GaodeMapViewManager(
      * 添加或刷新线
      */
     override fun addOrUpdatePolyline(mapPositionGroup: MapPositionGroup) {
-        if (mapPositionGroup.groupID.isNullOrBlank()) {
+        if (mapPositionGroup.groupID.isNullOrBlank() || !polylines.containsKey(mapPositionGroup.groupID!!)) {
             val polyline = mapView.map.addPolyline(
                 PolylineOptions().addAll(mapPositionGroup.mapPositions.map { it.toGaoDe })
                     .apply {
@@ -287,7 +287,7 @@ class GaodeMapViewManager(
         }
         // 大于等于3个时画多边形
         removePolyline(mapPositionGroup, false)
-        if (mapPositionGroup.groupID.isNullOrBlank()) {
+        if (mapPositionGroup.groupID.isNullOrBlank() || !polygons.containsKey(mapPositionGroup.groupID!!)) {
             val polygon = mapView.map.addPolygon(
                 PolygonOptions().addAll(mapPositionGroup.mapPositions.map { it.toGaoDe })
                     .apply {
@@ -417,28 +417,14 @@ class GaodeMapViewManager(
     /**
      * 计算长度
      */
-    override fun calculateLineDistance(mapPositionGroup: MapPositionGroup): Double {
-        var lastPosition: MapPosition? = null
-        var lineDistance = 0.0
-        mapPositionGroup.mapPositions.forEach {
-            if (lastPosition != null) {
-                lineDistance += AMapUtils.calculateLineDistance(
-                    lastPosition?.toGaoDe,
-                    it.toGaoDe
-                );
-            }
-            lastPosition = it
-        }
-        return lineDistance
-    }
+    override fun calculateLineDistance(mapPositionGroup: MapPositionGroup): Double =
+        calculateGaodeLineDistance(mapPositionGroup)
 
     /**
      * 计算面积
      */
     override fun calculateArea(mapPositionGroup: MapPositionGroup): Double =
-        AMapUtils.calculateArea(mapPositionGroup.mapPositions.map {
-            it.toGaoDe
-        }).toDouble()
+        calculateArea(mapPositionGroup)
 
 
 }
