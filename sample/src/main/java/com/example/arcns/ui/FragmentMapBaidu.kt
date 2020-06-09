@@ -55,7 +55,7 @@ class FragmentMapBaidu : Fragment() {
     var mapTypeSelectionIndex = 0
 
     private fun setupResult() {
-        viewModel.toast.observe(this, EventObserver {
+        viewModel.toast.observe(viewLifecycleOwner, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
         btnUpdMapType.setOnClickListener {
@@ -131,6 +131,15 @@ class FragmentMapBaidu : Fragment() {
                 mapViewManager.calculateLineDistance(mapPositionGroup = viewModel.calculateLineMapPositionGroup)
                     .toString()
         }
+        viewModelActivityMain.mapTrackRecorder.eventTrackDataUpdate.observe(
+            viewLifecycleOwner,
+            EventObserver {
+                mapViewManager.refresh(
+                    isClearOther = false,
+                    markerMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData),
+                    polylineMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData)
+                )
+            })
     }
 
     private fun setupMap() {

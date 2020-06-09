@@ -1,5 +1,6 @@
 package com.arcns.core.map
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import java.util.*
 import kotlin.collections.ArrayList
@@ -18,6 +19,7 @@ class MapPositionGroup {
 
     private var _mapPositions =
         MutableLiveData<ArrayList<MapPosition>>().apply { value = ArrayList() }
+    val mapPositionsLiveData: LiveData<ArrayList<MapPosition>> = _mapPositions
     val mapPositions: ArrayList<MapPosition> get() = _mapPositions.value ?: arrayListOf()
 
     /**

@@ -1,13 +1,11 @@
 package com.example.arcns
 
 import android.bluetooth.BluetoothAdapter
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -16,10 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import com.arcns.core.util.DownloadService
-import com.arcns.core.util.DownloadTask
-import com.arcns.core.util.EventObserver
-import com.arcns.core.util.showDialog
+import com.arcns.core.util.*
 import com.arcns.map.gaode.GaodeMapLocator
 import com.example.arcns.databinding.ActivityMainBinding
 import com.example.arcns.event.EventMainActivity
@@ -65,10 +60,20 @@ class MainActivity : AppCompatActivity() {
         setupBluetoothBroadcastReceiver()
 
 
-        var mapLocator = GaodeMapLocator(this)
-        mapLocator.lifecycleOwner = this
-        mapLocator.addTrackRecorder(viewModel.mapTrackRecorder)
-        mapLocator.start()
+        MapLocatorService.setDefaultOptions(
+            notificationOptions = NotificationOptions(
+                notificationSmallIcon = R.mipmap.ic_launcher
+            ),
+            createMapLocator = {
+                GaodeMapLocator(it)
+            }
+        )
+        MapLocatorService.startService(this, object : MapLocatorServiceConnection() {
+            override fun onServiceConnected(binder: MapLocatorServiceBinder) {
+                binder.mapLocator?.addTrackRecorder(viewModel.mapTrackRecorder)
+            }
+        })
+
     }
 
     private fun setupBluetoothBroadcastReceiver() =

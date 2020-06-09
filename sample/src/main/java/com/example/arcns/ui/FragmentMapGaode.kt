@@ -144,6 +144,14 @@ class FragmentMapGaode : Fragment() {
                 mapViewManager.calculateLineDistance(mapPositionGroup = viewModel.calculateLineMapPositionGroup)
                     .toString()
         }
+        viewModelActivityMain.mapTrackRecorder.eventTrackDataUpdate.observe(
+            viewLifecycleOwner,
+            EventObserver {
+                mapViewManager.refresh(
+                    isClearOther = false,
+                    polylineMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData)
+                )
+            })
     }
 
     private fun setupMap(savedInstanceState: Bundle?) {

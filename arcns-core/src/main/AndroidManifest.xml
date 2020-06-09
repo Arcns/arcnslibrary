@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.arcns.core" >
+    package="com.arcns.core">
+
     <application>
-        <service android:name="com.arcns.core.util.DownloadService"/>
+        <service android:name=".util.DownloadService" />
+        <service android:name=".util.MapLocatorService" />
     </application>
 </manifest>

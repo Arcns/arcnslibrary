@@ -13,7 +13,9 @@ class ViewModelActivityMain : ViewModel() {
     /**
      * 轨迹记录器
      */
-    var mapTrackRecorder = MapTrackRecorder()
+    var mapTrackRecorder = MapTrackRecorder().apply {
+        recorderInterval = 1000
+    }
 
     /**
      * 蓝牙状态
