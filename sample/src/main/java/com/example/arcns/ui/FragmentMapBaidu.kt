@@ -131,15 +131,6 @@ class FragmentMapBaidu : Fragment() {
                 mapViewManager.calculateLineDistance(mapPositionGroup = viewModel.calculateLineMapPositionGroup)
                     .toString()
         }
-        viewModelActivityMain.mapTrackRecorder.eventTrackDataUpdate.observe(
-            viewLifecycleOwner,
-            EventObserver {
-                mapViewManager.refresh(
-                    isClearOther = false,
-                    markerMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData),
-                    polylineMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData)
-                )
-            })
     }
 
     private fun setupMap() {
