@@ -112,6 +112,16 @@ class ShareDataGetValueProxy<T : Any>(private val key: Any, val valueKClass: KCl
  */
 inline fun <reified T : Any> getShareData(key: Any = T::class): T? = ShareDataPool.instance.get(key)
 
+
+/**
+ * 从共享池获取一次性数据（获取后删除）
+ */
+inline fun <reified T : Any> getDisposableShareData(key: Any = T::class): T? {
+    var data: T? = ShareDataPool.instance.get(key)
+    removeShareData(key)
+    return data
+}
+
 /**
  * 添加数据到共享池（KEY为Value::class）
  */
