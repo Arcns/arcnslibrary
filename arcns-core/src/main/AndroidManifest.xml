@@ -3,6 +3,15 @@
 
     <application>
         <service android:name=".util.DownloadService" />
-        <service android:name=".util.MapLocatorService" />
+        <service android:name=".map.MapLocatorService" />
+        <receiver
+            android:name=".map.WakeAppReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.arcns.core.WakeAppReceiver" />
+            </intent-filter>
+        </receiver>
     </application>
+    <uses-permission android:name="android.permission.REORDER_TASKS"/>
 </manifest>

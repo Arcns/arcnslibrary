@@ -1,4 +1,4 @@
-package com.arcns.core.util
+package com.arcns.core.map
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -14,7 +14,10 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.arcns.core.R
-import com.arcns.core.map.MapLocator
+import com.arcns.core.app.WakeAppReceiver
+import com.arcns.core.util.addShareData
+import com.arcns.core.util.getDisposableShareData
+import com.arcns.core.util.string
 
 
 /**
@@ -29,23 +32,32 @@ class MapLocatorService : Service() {
     private var foregroundServiceWakeLock: PowerManager.WakeLock? = null
 
     // 通讯
-    private var foregroundServiceBinder = MapLocatorServiceBinder(this)
+    private var foregroundServiceBinder =
+        MapLocatorServiceBinder(this)
+
     override fun onBind(intent: Intent?): IBinder? = foregroundServiceBinder
 
     //
     override fun onCreate() {
         super.onCreate()
         // 通知栏配置
-        getDisposableShareData<NotificationOptions>(KEY_NOTIFICATION_OPTIONS)?.run {
+        getDisposableShareData<NotificationOptions>(
+            KEY_NOTIFICATION_OPTIONS
+        )?.run {
             startForeground(this)
         }
         // 定位器
-        getDisposableShareData<CreateMapLocator>(KEY_CREATE_MAP_LOCATOR)?.run {
+        getDisposableShareData<CreateMapLocator>(
+            KEY_CREATE_MAP_LOCATOR
+        )?.run {
             mapLocator = this.invoke(this@MapLocatorService)
             mapLocator?.start()
         }
         // 保持CPU唤醒状态
-        if (getDisposableShareData<Boolean>(KEY_IS_ACQUIRE_WAKELOCK) == true) {
+        if (getDisposableShareData<Boolean>(
+                KEY_IS_ACQUIRE_WAKELOCK
+            ) == true
+        ) {
             acquireWakeLock()
         }
     }
@@ -103,15 +115,14 @@ class MapLocatorService : Service() {
                     options.notificationSmallIcon?.run {
                         setSmallIcon(this)
                     }
-                    val contentIntent = PendingIntent.getActivity(
-                        this@MapLocatorService,
-                        0,
-                        packageManager.getLaunchIntentForPackage(packageName)?.apply {
-                            flags = Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                        },
-                        PendingIntent.FLAG_UPDATE_CURRENT
+                    setContentIntent(
+                        PendingIntent.getBroadcast(
+                            this@MapLocatorService,
+                            0,
+                            WakeAppReceiver.newIntent(this@MapLocatorService),
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
                     )
-                    setContentIntent(contentIntent)
                     options.setNotificationCompatBuilder?.invoke(this)
                 }.build()
         )
@@ -153,12 +164,21 @@ class MapLocatorService : Service() {
             isAcquireWakeLock: Boolean = defaultIsAcquireWakeLock
         ) {
             if (createMapLocator != null) {
-                addShareData(KEY_CREATE_MAP_LOCATOR, createMapLocator)
+                addShareData(
+                    KEY_CREATE_MAP_LOCATOR,
+                    createMapLocator
+                )
             }
             if (notificationOptions != null) {
-                addShareData(KEY_NOTIFICATION_OPTIONS, notificationOptions)
+                addShareData(
+                    KEY_NOTIFICATION_OPTIONS,
+                    notificationOptions
+                )
             }
-            addShareData(KEY_IS_ACQUIRE_WAKELOCK, isAcquireWakeLock)
+            addShareData(
+                KEY_IS_ACQUIRE_WAKELOCK,
+                isAcquireWakeLock
+            )
             // 开启服务
             var intent = Intent(context, MapLocatorService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -190,7 +210,10 @@ abstract class MapLocatorServiceConnection : ServiceConnection {
     }
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-        onServiceConnected(service as? MapLocatorServiceBinder ?: return)
+        onServiceConnected(
+            service as? MapLocatorServiceBinder
+                ?: return
+        )
     }
 
     abstract fun onServiceConnected(binder: MapLocatorServiceBinder)

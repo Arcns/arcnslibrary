@@ -5,7 +5,6 @@ import android.content.*
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -14,6 +13,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
+import com.arcns.core.map.MapLocatorService
+import com.arcns.core.map.MapLocatorServiceBinder
+import com.arcns.core.map.MapLocatorServiceConnection
+import com.arcns.core.map.NotificationOptions
 import com.arcns.core.util.*
 import com.arcns.map.gaode.GaodeMapLocator
 import com.example.arcns.databinding.ActivityMainBinding

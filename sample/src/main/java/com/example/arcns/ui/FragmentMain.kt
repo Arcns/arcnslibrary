@@ -1,10 +1,12 @@
 package com.example.arcns.ui
 
 import android.os.Bundle
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -58,6 +60,10 @@ class FragmentMain : Fragment() {
 //            requireActivity().finish()
             requireActivity().moveTaskToBack(true)
         }
+
+//        Handler().postDelayed({
+//            activity?.finish()
+//        },2000)
     }
 
     private fun setupResult() {
