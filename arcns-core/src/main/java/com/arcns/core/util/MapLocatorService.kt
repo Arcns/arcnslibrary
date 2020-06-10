@@ -2,6 +2,7 @@ package com.arcns.core.util
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.ComponentName
 import android.content.Context
@@ -14,6 +15,7 @@ import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.arcns.core.R
 import com.arcns.core.map.MapLocator
+
 
 /**
  * 定位器服务
@@ -101,6 +103,15 @@ class MapLocatorService : Service() {
                     options.notificationSmallIcon?.run {
                         setSmallIcon(this)
                     }
+                    val contentIntent = PendingIntent.getActivity(
+                        this@MapLocatorService,
+                        0,
+                        packageManager.getLaunchIntentForPackage(packageName)?.apply {
+                            flags = Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                        },
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                    )
+                    setContentIntent(contentIntent)
                     options.setNotificationCompatBuilder?.invoke(this)
                 }.build()
         )
