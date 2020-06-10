@@ -3,12 +3,16 @@ package com.arcns.core.map
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
+import com.arcns.core.app.ForegroundService
+import com.arcns.core.app.ForegroundServiceConnection
+import com.arcns.core.app.ForegroundServiceOptions
 
 /**
  * 通用地图定位器
@@ -118,3 +122,25 @@ abstract class MapLocator(
     abstract fun onDestroy()
 }
 
+/**
+ * 设置地图定位器前台服务默认设置
+ */
+fun setMapLocatorServiceDefaultOptions(options: ForegroundServiceOptions<MapLocator>) =
+    ForegroundService.setDefaultOptions(MapLocator::class, options.apply {
+        if (onDestroyServiceContent == null) {
+            onDestroyServiceContent = {
+                it?.onDestroy()
+            }
+        }
+    })
+
+/**
+ * 开启地图定位器前台服务
+ */
+fun startMapLocatorService(
+    context: Context?,
+    serviceConnection: ForegroundServiceConnection<MapLocator>? = null,
+    options: ForegroundServiceOptions<MapLocator>? = ForegroundService.getDefaultOptions(
+        MapLocator::class
+    )
+) = ForegroundService.startService(context, serviceConnection, options)

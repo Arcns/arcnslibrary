@@ -6,10 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 
-
+/**
+ * 唤醒APP广播
+ */
 class WakeAppReceiver : BroadcastReceiver() {
     companion object {
-        const val ACTION = "com.arcns.core.WakeAppReceiver"
+        const val ACTION = "com.arcns.core.app.WakeAppReceiver"
         const val KEY_WAKE_APP_PACKAGE_NAME = "KEY_WAKE_APP_PACKAGE_NAME"
         fun newIntent(context: Context, packageName: String = context.packageName): Intent = Intent(
             // 明确Receiver，否则在安卓10及以上无法接收到广播
@@ -25,6 +27,9 @@ class WakeAppReceiver : BroadcastReceiver() {
     }
 }
 
+/**
+ * 唤醒APP
+ */
 fun Context.wakeApp(packageName: String): Boolean {
     val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
     if (this.packageName.equals(packageName, true)) {

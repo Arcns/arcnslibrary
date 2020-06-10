@@ -3,13 +3,13 @@
 
     <application>
         <service android:name=".util.DownloadService" />
-        <service android:name=".map.MapLocatorService" />
+        <service android:name=".app.ForegroundService" />
         <receiver
-            android:name=".map.WakeAppReceiver"
+            android:name=".app.WakeAppReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.arcns.core.WakeAppReceiver" />
+                <action android:name="com.arcns.core.app.WakeAppReceiver" />
             </intent-filter>
         </receiver>
     </application>

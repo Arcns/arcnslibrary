@@ -13,10 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import com.arcns.core.map.MapLocatorService
-import com.arcns.core.map.MapLocatorServiceBinder
-import com.arcns.core.map.MapLocatorServiceConnection
-import com.arcns.core.map.NotificationOptions
+import com.arcns.core.app.*
+import com.arcns.core.map.*
 import com.arcns.core.util.*
 import com.arcns.map.gaode.GaodeMapLocator
 import com.example.arcns.databinding.ActivityMainBinding
@@ -63,19 +61,29 @@ class MainActivity : AppCompatActivity() {
         setupBluetoothBroadcastReceiver()
 
 
-        MapLocatorService.setDefaultOptions(
-            notificationOptions = NotificationOptions(
-                notificationSmallIcon = R.mipmap.ic_launcher
-            ),
-            createMapLocator = {
-                GaodeMapLocator(it)
+        setMapLocatorServiceDefaultOptions(
+            ForegroundServiceOptions(
+                onCreateServiceContent = {
+                    GaodeMapLocator(it)
+                },
+                notificationOptions = NotificationOptions(
+                    channelName = "定位器服务运行通知",
+                    smallIcon = R.mipmap.ic_launcher
+                )
+            )
+        )
+        startMapLocatorService(
+            this,
+            object : ForegroundServiceConnection<MapLocator>() {
+                override fun onServiceConnected(
+                    binder: ForegroundServiceBinder<MapLocator>,
+                    serviceContent: MapLocator?
+                ) {
+                    serviceContent?.addTrackRecorder(viewModel.mapTrackRecorder)
+                    serviceContent?.start()
+                }
             }
         )
-        MapLocatorService.startService(this, object : MapLocatorServiceConnection() {
-            override fun onServiceConnected(binder: MapLocatorServiceBinder) {
-                binder.mapLocator?.addTrackRecorder(viewModel.mapTrackRecorder)
-            }
-        })
 
     }
 
