@@ -845,7 +845,7 @@ fun Fragment.setActionBar(
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true
 ) {
-    if (toolbar.layoutParams.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+    if (toolbar.layoutParams.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
         // 设置系统状态栏
         if (isPaddingStatusBarHeight) {
             toolbar.setPaddingStatusBarHeight(true, false)
@@ -855,7 +855,7 @@ fun Fragment.setActionBar(
             height = context.getActionBarHeight() + toolbar.paddingTop + toolbar.paddingBottom
         }
     } else {
-        // 非自适应高度时，不再重新设置高度；同时在设置系统状态栏，自动扩展高度
+        // 非自适应高度时，不再重新设置高度；但设置系统状态栏自动扩展高度
         if (isPaddingStatusBarHeight) {
             toolbar.setPaddingStatusBarHeight(true, true)
         }
