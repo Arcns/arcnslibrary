@@ -10,9 +10,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
+import com.arcns.core.R
 import com.arcns.core.app.ForegroundService
 import com.arcns.core.app.ForegroundServiceConnection
 import com.arcns.core.app.ForegroundServiceOptions
+import com.arcns.core.util.string
 
 /**
  * 通用地图定位器
@@ -131,6 +133,10 @@ fun setMapLocatorServiceDefaultOptions(options: ForegroundServiceOptions<MapLoca
             onDestroyServiceContent = {
                 it?.onDestroy()
             }
+        }
+        if (notificationOptions != null && notificationOptions?.channelName.equals(R.string.text_notification_default_channel_name.string)) {
+            notificationOptions?.channelName =
+                R.string.text_map_locator_service_notification_channel_name.string
         }
     })
 

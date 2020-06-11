@@ -18,7 +18,7 @@ import java.util.*
 data class NotificationOptions(
     var isEnable: Boolean = true,
     var channelId: String = UUID.randomUUID().toString(),
-    var channelName: String,
+    var channelName: String = R.string.text_notification_default_channel_name.string,
     var notificationID: Int = ((Int.MAX_VALUE / 2)..Int.MAX_VALUE).random(),
     var contentTitle: String = R.string.text_notification_default_content_title.string,
     var contentText: String = R.string.text_notification_default_content_text.string,
@@ -32,7 +32,8 @@ data class NotificationOptions(
 /**
  * 创建通知
  */
-fun Context.createNotification(options: NotificationOptions): Notification {
+fun Context.createNotification(options: NotificationOptions): Notification? {
+    if (!options.isEnable) return null
     var channelId = options.channelId
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         //在Android O之上需要发起通知时需要先创建渠道

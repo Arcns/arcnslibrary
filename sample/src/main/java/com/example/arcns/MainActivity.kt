@@ -61,13 +61,13 @@ class MainActivity : AppCompatActivity() {
         setupBluetoothBroadcastReceiver()
 
 
+        // 定位器服务
         setMapLocatorServiceDefaultOptions(
             ForegroundServiceOptions(
                 onCreateServiceContent = {
                     GaodeMapLocator(it)
                 },
                 notificationOptions = NotificationOptions(
-                    channelName = "定位器服务运行通知",
                     smallIcon = R.mipmap.ic_launcher
                 )
             )

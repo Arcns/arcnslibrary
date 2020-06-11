@@ -40,7 +40,7 @@ class ForegroundService<T> : Service() {
         )?.apply {
             // 通知栏配置
             notificationOptions?.run {
-                startForeground(notificationID, createNotification(this))
+                startForeground(notificationID, createNotification(this) ?: return@run)
             }
             // 服务内容
             serviceContent = onCreateServiceContent(this@ForegroundService)
