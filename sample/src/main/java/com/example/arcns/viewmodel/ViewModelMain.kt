@@ -21,15 +21,19 @@ class ViewModelMain : ViewModel() {
 
     // 网络接口
     var networkDataSource: NetworkDataSource = NetworkDataSource()
+
     // 正在加载或保存
     private var _loadIng = MutableLiveData<Boolean>()
     var loadIng: LiveData<Boolean> = _loadIng
+
     // 当前状态
     private var _state = MutableLiveData<String>()
     var state: LiveData<String> = _state
+
     // 弹出提示
     private var _toast = MutableLiveData<Event<String>>()
     var toast: LiveData<Event<String>> = _toast
+
     // 打开蓝牙和权限
     private var _eventOpenBluetoothAndPermission = MutableLiveData<Event<Boolean>>()
     var eventOpenBluetoothAndPermission: LiveData<Event<Boolean>> = _eventOpenBluetoothAndPermission
@@ -39,15 +43,16 @@ class ViewModelMain : ViewModel() {
     }
 
     private fun setupBluetooth() {
-        BleManager.getInstance().init(APP.INSTANCE);
-        BleManager.getInstance()
-            .enableLog(true)
-            .setReConnectCount(1, 5000)
-            .setOperateTimeout(5000)
+        BleManager.getInstance().apply {
+            init(APP.INSTANCE)
+            enableLog(true)
+            setReConnectCount(1, 5000)
+            operateTimeout = 5000
+        }
         startBluetooth()
     }
 
-    fun startBluetooth(){
+    fun startBluetooth() {
         // 设备不支持蓝牙功能
         if (!BleManager.getInstance().isSupportBle) {
             _state.value = "当前设备不支持蓝牙功能，无法使用本应用功能"
@@ -56,17 +61,17 @@ class ViewModelMain : ViewModel() {
         }
         // 打开蓝牙和权限
         val isBlueEnable = BleManager.getInstance().isBlueEnable
-        if (!isBlueEnable){
+        if (!isBlueEnable) {
             _state.value = "当前手机蓝牙处于关闭状态，请开启蓝牙"
-        }else{
+        } else {
             _state.value = "请授予【位置】权限，用于搜索附近的蓝牙设备"
         }
         _eventOpenBluetoothAndPermission.value = Event(isBlueEnable)
     }
 
     // 打开蓝牙
-    fun enableBluetooth(){
-        if (BleManager.getInstance().isBlueEnable){
+    fun enableBluetooth() {
+        if (BleManager.getInstance().isBlueEnable) {
             scanBluetoothDevice()
             return
         }
@@ -75,30 +80,34 @@ class ViewModelMain : ViewModel() {
     }
 
     // 扫描蓝牙设备
-    fun scanBluetoothDevice(){
+    fun scanBluetoothDevice() {
         _state.value = "蓝牙已开启，正在搜索附近的设备.."
         // 开始扫描
-        val bleScanRuleConfig = BleScanRuleConfig.Builder()
+        BleManager.getInstance().initScanRule(
+            BleScanRuleConfig.Builder()
 //            .setServiceUuids(serviceUuids) // 只扫描指定的服务的设备，可选
 //            .setDeviceName(true, names) // 只扫描指定广播名的设备，可选
 //            .setDeviceMac(mac) // 只扫描指定mac的设备，可选
 //            .setAutoConnect(false) // 连接时的autoConnect参数，可选，默认false
 //            .setScanTimeOut(10000) // 扫描超时时间，可选，默认10秒
-            .build()
-        BleManager.getInstance().initScanRule(bleScanRuleConfig)
+                .build()
+        )
         BleManager.getInstance().scan(object : BleScanCallback() {
             override fun onScanStarted(success: Boolean) {
                 // 返回本次扫描动作是否开启成功
-                if (!success){
+                if (!success) {
                     _state.value = "扫描失败，请尝试重新连接"
                 }
             }
+
             override fun onLeScan(bleDevice: BleDevice) {
                 // 扫描过程中所有被扫描到的结果回调，同一个设备可能会出现多次
             }
+
             override fun onScanning(bleDevice: BleDevice) {
                 // 返回扫描过程中的所有过滤后的结果回调，同一个设备只会出现一次
             }
+
             override fun onScanFinished(scanResultList: List<BleDevice>) {
                 // 扫描结束，返回本次扫描时段内所有被扫描且过滤后的设备集合
 
@@ -107,16 +116,18 @@ class ViewModelMain : ViewModel() {
     }
 
     // 连接蓝牙设备
-    fun connectBluetoothDevice(bleDevice: BleDevice){
+    fun connectBluetoothDevice(bleDevice: BleDevice) {
         _state.value = "正在连接设备.."
         BleManager.getInstance().connect(bleDevice, object : BleGattCallback() {
             override fun onStartConnect() {
                 // 开始进行连接
             }
+
             override fun onConnectFail(bleDevice: BleDevice?, exception: BleException?) {
                 // 连接失败
                 _state.value = "连接失败，请尝试重新连接"
             }
+
             override fun onDisConnected(
                 isActiveDisConnected: Boolean,
                 bleDevice: BleDevice,
@@ -126,6 +137,7 @@ class ViewModelMain : ViewModel() {
                 // 连接断开
                 _state.value = "连接断开，请尝试重新连接"
             }
+
             override fun onConnectSuccess(
                 bleDevice: BleDevice,
                 bluetoothGatt: BluetoothGatt,
@@ -147,7 +159,7 @@ class ViewModelMain : ViewModel() {
         })
     }
 
-    fun sendCommandToBluetoothDevice(){
+    fun sendCommandToBluetoothDevice() {
 //        BleManager.getInstance().write(
 //            bleDevice,
 //            uuid_service,

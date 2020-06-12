@@ -49,7 +49,7 @@ fun Fragment.handleAlwaysDeniedPermission(deniedPermissions: List<String>, denie
             positiveButton(text = "去设置") {
                 // 拒绝不再询问后跳转设置应用详情页面
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                val uri = Uri.fromParts("package", context?.packageName, null)
+                val uri = Uri.fromParts("package", context.packageName, null)
                 intent.data = uri
                 startActivity(intent)
             }
