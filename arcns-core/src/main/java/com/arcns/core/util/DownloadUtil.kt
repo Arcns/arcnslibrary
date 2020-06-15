@@ -64,12 +64,10 @@ class DownloadUtil(var context: Context) {
                 KEY_CACHED_DOWNLOAD_IDS,
                 null
             )
-        var ids: HashMap<String, Long>? = Gson().tryFromJson(value)
+        var ids: HashMap<String, Double>? = Gson().tryFromJson(value)
         ids?.forEach {
-            LOG(it.key + "--" + it.value)
-            if (checkDownloadTaskHasExistsByID(it.value)) {
-                LOG("存在")
-                cachedDownloadIDs[it.key] = it.value
+            if (checkDownloadTaskHasExistsByID(it.value.toLong())) {
+                cachedDownloadIDs[it.key] = it.value.toLong()
             }
         }
         saveCachedDownloadIDs()
