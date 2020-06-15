@@ -135,6 +135,12 @@ val Int.dimenOrNull: Float?
 
 // string序列化为对象
 inline fun <reified T> Gson.fromJson(json: String) = fromJson(json, T::class.java)
+inline fun <reified T> Gson.tryFromJson(json: String?): T? = try {
+    if (json.isNullOrBlank()) null
+    else fromJson(json, T::class.java)
+} catch (e: java.lang.Exception) {
+    null
+}
 
 // string转换为html
 val String.html: Spanned

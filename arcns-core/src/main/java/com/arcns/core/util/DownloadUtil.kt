@@ -1,19 +1,16 @@
 package com.arcns.core.util
 
 import android.app.DownloadManager
-import android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-import android.app.NotificationManager
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.IBinder
 import android.widget.Toast
+import androidx.core.content.edit
 import com.arcns.core.APP
+import com.google.gson.Gson
 import org.greenrobot.eventbus.EventBus
 import java.io.Serializable
 
@@ -49,11 +46,71 @@ class DownloadUtil(var context: Context) {
     private var downloadManager =
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
-    fun getDownloadTaskStatus(downloadUrl: String): Int? {
-        var existingDownloadId = downloadTasks[downloadUrl]?.downloadId
-            ?: return null
+    // 缓存的下载任务ID列表（url,id）
+    private val DB_CACHED_DOWNLOAD_IDS = "DB_CACHED_DOWNLOAD_IDS"
+    private val KEY_CACHED_DOWNLOAD_IDS = "KEY_CACHED_DOWNLOAD_IDS"
+    private var cachedDownloadIDs = HashMap<String, Long>()
+
+    init {
+        initCachedDownloadIDs()
+    }
+
+    /**
+     * 获取缓存的下载任务ID列表
+     */
+    private fun initCachedDownloadIDs() {
+        var value = APP.CONTEXT.getSharedPreferences(DB_CACHED_DOWNLOAD_IDS, Context.MODE_PRIVATE)
+            .getString(
+                KEY_CACHED_DOWNLOAD_IDS,
+                null
+            )
+        var ids: HashMap<String, Long>? = Gson().tryFromJson(value)
+        ids?.forEach {
+            if (checkDownloadTaskHasExistsByID(it.value)) {
+                cachedDownloadIDs[it.key] = it.value
+            }
+        }
+        saveCachedDownloadIDs()
+    }
+
+    /**
+     * 缓存下载任务ID列表
+     */
+    private fun saveCachedDownloadIDs() =
+        APP.CONTEXT.getSharedPreferences(
+            DB_CACHED_DOWNLOAD_IDS,
+            Context.MODE_PRIVATE
+        ).edit {
+            putString(KEY_CACHED_DOWNLOAD_IDS, Gson().toJson(cachedDownloadIDs))
+        }
+
+    /**
+     * 添加任务ID到缓存列表
+     */
+    private fun addCachedDownloadID(downloadTask: DownloadTask) {
+        cachedDownloadIDs[downloadTask.downloadUrl] = downloadTask.downloadId ?: return
+        saveCachedDownloadIDs()
+    }
+
+    /**
+     * 获取任务ID
+     */
+    fun getDownloadTaskID(downloadUrl: String): Long? = downloadTasks[downloadUrl]?.downloadId
+        ?: cachedDownloadIDs[downloadUrl] ?: null
+
+    /**
+     * 通过url获取下载任务状态
+     */
+    fun getDownloadTaskStatusByUrl(downloadUrl: String): Int? {
+        return getDownloadTaskStatusByID(getDownloadTaskID(downloadUrl) ?: return null)
+    }
+
+    /**
+     * 通过id获取下载任务状态
+     */
+    fun getDownloadTaskStatusByID(id: Long): Int? {
         var cursor = downloadManager.query(DownloadManager.Query().apply {
-            setFilterById(existingDownloadId)
+            setFilterById(id)
         })
         if (cursor.moveToFirst()) {
             val state =
@@ -62,6 +119,24 @@ class DownloadUtil(var context: Context) {
             return state
         }
         return null
+    }
+
+    /**
+     * 通过url检查下载任务是否存在
+     */
+    fun checkDownloadTaskHasExistsByUrl(downloadUrl: String): Boolean {
+        return checkDownloadTaskHasExistsByID(getDownloadTaskID(downloadUrl) ?: return false)
+    }
+
+    /**
+     * 通过id检查下载任务是否存在
+     */
+    fun checkDownloadTaskHasExistsByID(id: Long): Boolean {
+        var state = getDownloadTaskStatusByID(id)
+        when (state) {
+            DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING -> return true
+        }
+        return false
     }
 
     /**
@@ -78,18 +153,21 @@ class DownloadUtil(var context: Context) {
 
 
         // 防止重复提交下载任务
-        var existing = run checkAllowDuplicate@{
-            if (!downloadTask.isAllowDuplicate) {
-                var state = getDownloadTaskStatus(downloadTask.downloadUrl)
-                when (state) {
-                    DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING -> return@checkAllowDuplicate true
-                }
-            }
-            return@checkAllowDuplicate false
-        }
-        if (existing) {
+        if (!downloadTask.isAllowDuplicate && checkDownloadTaskHasExistsByUrl(downloadTask.downloadUrl)) {
             return
         }
+//        var existing = run checkAllowDuplicate@{
+//            if (!downloadTask.isAllowDuplicate) {
+//                var state = getDownloadTaskStatusByUrl(downloadTask.downloadUrl)
+//                when (state) {
+//                    DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING -> return@checkAllowDuplicate true
+//                }
+//            }
+//            return@checkAllowDuplicate false
+//        }
+//        if (existing) {
+//            return
+//        }
 
         // 添加到下载任务列表
         downloadTasks[downloadTask.downloadUrl] = downloadTask
