@@ -199,6 +199,7 @@ class DownloadUtil(var context: Context) {
         request.setDescription(downloadTask.downloadDescription)
         // 启动下载任务
         downloadTask.downloadId = downloadManager.enqueue(request)
+        addCachedDownloadID(downloadTask)
         //注册广播接收者，监听下载状态
         context.registerReceiver(
             downloadCompleteReceiver,
