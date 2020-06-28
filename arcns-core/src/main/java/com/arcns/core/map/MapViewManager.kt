@@ -37,6 +37,11 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         }
 
     /**
+     * 地图加载完成后的回调
+     */
+    var onMapLoaded: (() -> Unit)? = null
+
+    /**
      * 添加时样式配置格式化，如果如果使用自定义样式时，可以使用该变量，其中options为MarkerOptions或PolylineOptions或PolygonOptions等
      */
     var globalApplyCustomOptions: ApplyCustomOptions? = null

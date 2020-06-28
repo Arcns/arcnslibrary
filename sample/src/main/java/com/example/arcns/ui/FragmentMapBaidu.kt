@@ -11,7 +11,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.arcns.core.APP
-import com.arcns.core.map.MapViewManager
 import com.arcns.core.util.*
 import com.arcns.map.baidu.BaiduMapViewManager
 import com.baidu.mapapi.SDKInitializer

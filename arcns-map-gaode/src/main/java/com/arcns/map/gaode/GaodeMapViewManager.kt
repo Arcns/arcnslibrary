@@ -43,6 +43,8 @@ class GaodeMapViewManager(
         mapView.map.addOnMapLoadedListener(object : AMap.OnMapLoadedListener {
             override fun onMapLoaded() {
                 isMapLoaded = true
+                // 通知回调
+                onMapLoaded?.invoke()
                 // 更新中心点（固定）
                 updateCenterFixedMarker()
                 mapView.map.removeOnMapLoadedListener(this)

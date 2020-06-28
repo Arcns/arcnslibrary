@@ -9,7 +9,7 @@ import kotlin.math.sqrt
 /**
  * 通用坐标
  */
-data class MapPosition(
+open class MapPosition(
     var id: String? = null,
     var latitude: Double,
     var longitude: Double,

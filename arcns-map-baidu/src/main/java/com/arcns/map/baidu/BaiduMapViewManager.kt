@@ -45,6 +45,8 @@ class BaiduMapViewManager(
         // 加载完成回调
         mapView.map.setOnMapLoadedCallback {
             isMapLoaded = true
+            // 通知回调
+            onMapLoaded?.invoke()
             // 更新中心点（固定）
             updateCenterFixedMarker()
         }

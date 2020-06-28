@@ -14,8 +14,14 @@ import com.amap.api.maps.*
 import com.amap.api.maps.model.*
 import com.amap.api.services.core.LatLonPoint
 import com.amap.api.services.core.PoiItem
+import com.amap.api.services.district.DistrictSearch
+import com.amap.api.services.district.DistrictSearchQuery
 import com.amap.api.services.poisearch.PoiResult
 import com.amap.api.services.poisearch.PoiSearch
+import com.arcns.core.APP
+import com.arcns.core.map.MapPosition
+import com.arcns.core.map.MapPositionGroup
+import com.arcns.core.map.MapPositionType
 import com.arcns.core.util.*
 import com.arcns.map.gaode.GaodeMapViewManager
 import com.example.arcns.NavMainDirections
@@ -157,6 +163,10 @@ class FragmentMapGaode : Fragment() {
         }
         mapViewManager = GaodeMapViewManager(this, mapView, viewModel.mapViewManagerData)
         mapViewManager.centerFixedMarkerEnabled = true
+        // 加载完成回调
+        mapViewManager.onMapLoaded = {
+            searchDistrict()
+        }
         // 定位到我的位置
         mapViewManager.locateMyLocation()
         // 绘制点点击
@@ -233,6 +243,77 @@ class FragmentMapGaode : Fragment() {
             polylineMapPositionGroups = listOf(viewModelActivityMain.mapTrackRecorder.trackData)
         )
     }
+
+
+    var districtSearch: DistrictSearch? = null
+    private fun searchDistrict() {
+        var query = DistrictSearchQuery().apply {
+            keywords = "汕头市"
+            isShowBoundary = true
+            isShowChild = true
+            isShowBusinessArea = true
+            pageSize = 10
+            pageNum = 0
+        }
+        if (districtSearch == null) {
+            districtSearch = DistrictSearch(APP.INSTANCE)
+            /**
+             * districtBoundary()
+             * 以字符串数组形式返回行政区划边界值。
+             * 字符串拆分规则： 经纬度，经度和纬度之间用","分隔，坐标点之间用";"分隔。
+             * 例如：116.076498,40.115153;116.076603,40.115071;116.076333,40.115257;116.076498,40.115153。
+             * 字符串数组由来： 如果行政区包括的是群岛，则坐标点是各个岛屿的边界，各个岛屿之间的经纬度使用"|"分隔。
+             * 一个字符串数组可包含多个封闭区域，一个字符串表示一个封闭区域
+             */
+            districtSearch?.setOnDistrictSearchListener {
+                if (it.aMapException.errorCode != 1000) return@setOnDistrictSearchListener
+                var districtMapPositions = ArrayList<ArrayList<MapPosition>>()
+                it.district?.forEach {
+                    it.districtBoundary()?.forEach {
+                        var mapPositions = ArrayList<MapPosition>()
+                        it.split(";").forEach {
+                            val latLng = it.split(",")
+                            if (latLng.size == 2) {
+                                mapPositions.add(MapPosition(
+                                    latitude = latLng[1].toDoubleOrNull() ?: return@forEach,
+                                    longitude = latLng[0].toDoubleOrNull() ?: return@forEach,
+                                    type = MapPositionType.GCJ02
+                                ))
+                            }
+                        }
+                        districtMapPositions.add(mapPositions)
+                        mapViewManager.addOrUpdatePolyline(MapPositionGroup().apply {
+                            setMapPositions(mapPositions)
+                        })
+                    }
+                    it.subDistrict?.forEach {subItem->
+                        subItem.districtBoundary()?.forEach {boundary->
+                            var mapPositions = ArrayList<MapPosition>()
+                            boundary.split(";").forEach {latlngToString->
+                                val latLng = latlngToString.split(",")
+                                if (latLng.size == 2) {
+                                    mapPositions.add(MapPosition(
+                                        latitude = latLng[1].toDoubleOrNull() ?: return@forEach,
+                                        longitude = latLng[0].toDoubleOrNull() ?: return@forEach,
+                                        type = MapPositionType.GCJ02
+                                    ))
+                                }
+                            }
+                            districtMapPositions.add(mapPositions)
+                            mapViewManager.addOrUpdatePolyline(MapPositionGroup().apply {
+                                setMapPositions(mapPositions)
+                            })
+                        }
+                    }
+                }
+
+            }
+        }
+        districtSearch?.query = query
+        districtSearch?.searchDistrictAsyn()
+
+    }
+
 
     var poiSearch: PoiSearch? = null
     private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
