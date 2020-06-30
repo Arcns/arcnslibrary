@@ -11,15 +11,29 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.arcns.core.APP
-import com.arcns.core.util.*
+import com.arcns.core.util.EventObserver
+import com.arcns.core.util.autoCleared
+import com.arcns.core.util.setActionBarAsToolbar
+import com.arcns.core.util.showDialog
 import com.arcns.map.baidu.BaiduMapViewManager
 import com.baidu.mapapi.SDKInitializer
-import com.baidu.mapapi.map.*
+import com.baidu.mapapi.map.BaiduMap
+import com.baidu.mapapi.map.InfoWindow
+import com.baidu.mapapi.map.MapStatus
+import com.baidu.mapapi.map.Marker
+import com.baidu.mapapi.model.LatLng
+import com.baidu.mapapi.search.core.RouteNode.location
+import com.baidu.mapapi.search.core.SearchResult
+import com.baidu.mapapi.search.geocode.*
+import com.baidu.mapapi.search.poi.*
 import com.example.arcns.NavMainDirections
 import com.example.arcns.databinding.FragmentMapBaiduBinding
 import com.example.arcns.databinding.LayoutInfoWindowBinding
-import com.example.arcns.viewmodel.*
+import com.example.arcns.viewmodel.ViewModelActivityMain
+import com.example.arcns.viewmodel.ViewModelMap
 import kotlinx.android.synthetic.main.fragment_map_baidu.*
+import java.util.*
+
 
 /**
  *
@@ -193,7 +207,25 @@ class FragmentMapBaidu : Fragment() {
             }
 
             override fun onMapStatusChangeFinish(status: MapStatus?) {
-//                searchPOI(status?.target ?: return)
+                if (status?.target == null) return
+                var geoCoder = GeoCoder.newInstance()
+                geoCoder.setOnGetGeoCodeResultListener(object : OnGetGeoCoderResultListener {
+                    override fun onGetGeoCodeResult(result: GeoCodeResult?) {
+                    }
+
+                    override fun onGetReverseGeoCodeResult(result: ReverseGeoCodeResult?) {
+                        if (result == null
+                            || result.error != SearchResult.ERRORNO.NO_ERROR
+                        ) {
+                            // 没有检测到结果
+                            return;
+                        }
+                        var kk = result
+                    }
+
+                })
+                geoCoder.reverseGeoCode(ReverseGeoCodeOption().location(status.target).pageSize(10))
+
             }
 
         })
@@ -213,41 +245,33 @@ class FragmentMapBaidu : Fragment() {
         )
     }
 
-//    var poiSearch: PoiSearch? = null
-//    private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
-//        var query = PoiSearch.Query("黑龙江", "", "")//keyWord，type，cityCode
-//        query.pageSize = 10;
-//        query.pageNum = 0
-//        if (poiSearch == null) {
-//            poiSearch = PoiSearch.newInstance();
-//        } else {
-//            poiSearch?.query = query
-//        }
-//        if (isContainsBound) {
-//            //设置周边搜索的中心点以及半径
-//            poiSearch?.bound = PoiSearch.SearchBound(
-//                LatLonPoint(
-//                    position.latitude,
-//                    position.longitude
-//                ), Int.MAX_VALUE
-//            )
-//        } else {
-//            poiSearch?.bound = null
-//        }
-//        poiSearch?.setOnPoiSearchListener(object : PoiSearch.OnPoiSearchListener {
-//            override fun onPoiItemSearched(item: PoiItem?, rCode: Int) {
-//            }
-//
-//            override fun onPoiSearched(result: PoiResult?, rCode: Int) {
-//                if (result?.pois?.size ?: 0 == 0 && isContainsBound) {
-//                    searchPOI(position, false)
-//                } else {
-//                    Toast.makeText(context, "count:" + result?.pois?.size, Toast.LENGTH_LONG).show()
-//                }
-//            }
-//        });
-//        poiSearch?.searchPOIAsyn();
-//    }
+    var poiSearch: PoiSearch? = null
+    private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
+        if (poiSearch == null) {
+            poiSearch = PoiSearch.newInstance()
+            poiSearch?.setOnGetPoiSearchResultListener(object : OnGetPoiSearchResultListener {
+                override fun onGetPoiIndoorResult(p0: PoiIndoorResult?) {
+                }
+
+                override fun onGetPoiResult(p0: PoiResult?) {
+                }
+
+                override fun onGetPoiDetailResult(p0: PoiDetailResult?) {
+                }
+
+                override fun onGetPoiDetailResult(p0: PoiDetailSearchResult?) {
+                }
+
+            })
+        }
+        poiSearch?.searchInCity(
+            PoiCitySearchOption()
+                .city("北京") //必填
+                .keyword("广场") //必填
+                .pageNum(10)
+                .cityLimit(false)
+        )
+    }
 }
 
 
