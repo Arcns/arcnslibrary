@@ -896,7 +896,7 @@ fun Fragment.setActionBar(
         }
         toolbar.setNavigationContentDescription(androidx.navigation.ui.R.string.nav_app_bar_navigate_up_description)
         toolbar.setNavigationOnClickListener {
-            findNavController().navigateUp()
+            activity?.onBackPressed()
         }
     } else {
         toolbar.navigationIcon = null
