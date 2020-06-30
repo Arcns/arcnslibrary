@@ -1,5 +1,6 @@
 package com.example.arcns.ui
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,22 +9,23 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.arcns.core.APP
-import com.arcns.core.util.EventObserver
-import com.arcns.core.util.autoCleared
-import com.arcns.core.util.setActionBarAsToolbar
-import com.arcns.core.util.showDialog
+import com.arcns.core.map.MapPositionGroup
+import com.arcns.core.util.*
+import com.arcns.core.util.file.FileUtil
 import com.arcns.map.baidu.BaiduMapViewManager
+import com.arcns.map.baidu.toMapPosition
 import com.baidu.mapapi.SDKInitializer
 import com.baidu.mapapi.map.BaiduMap
 import com.baidu.mapapi.map.InfoWindow
 import com.baidu.mapapi.map.MapStatus
 import com.baidu.mapapi.map.Marker
-import com.baidu.mapapi.model.LatLng
-import com.baidu.mapapi.search.core.RouteNode.location
 import com.baidu.mapapi.search.core.SearchResult
+import com.baidu.mapapi.search.district.DistrictSearch
+import com.baidu.mapapi.search.district.DistrictSearchOption
 import com.baidu.mapapi.search.geocode.*
 import com.baidu.mapapi.search.poi.*
 import com.example.arcns.NavMainDirections
@@ -32,7 +34,9 @@ import com.example.arcns.databinding.LayoutInfoWindowBinding
 import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelMap
 import kotlinx.android.synthetic.main.fragment_map_baidu.*
-import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.async
 
 
 /**
@@ -216,11 +220,14 @@ class FragmentMapBaidu : Fragment() {
                     override fun onGetReverseGeoCodeResult(result: ReverseGeoCodeResult?) {
                         if (result == null
                             || result.error != SearchResult.ERRORNO.NO_ERROR
+                            || result.addressDetail.city.isNullOrBlank()
                         ) {
                             // 没有检测到结果
                             return;
                         }
-                        var kk = result
+                        result.addressDetail.direction
+                        searchPOI(result.addressDetail.city)
+                        searchDistrict(result.addressDetail.city)
                     }
 
                 })
@@ -246,32 +253,74 @@ class FragmentMapBaidu : Fragment() {
     }
 
     var poiSearch: PoiSearch? = null
-    private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
+    private fun searchPOI(city: String) {
         if (poiSearch == null) {
             poiSearch = PoiSearch.newInstance()
             poiSearch?.setOnGetPoiSearchResultListener(object : OnGetPoiSearchResultListener {
-                override fun onGetPoiIndoorResult(p0: PoiIndoorResult?) {
+                override fun onGetPoiIndoorResult(result: PoiIndoorResult?) {
                 }
 
-                override fun onGetPoiResult(p0: PoiResult?) {
+                override fun onGetPoiResult(result: PoiResult?) {
+                    if (result == null
+                        || result.error == SearchResult.ERRORNO.RESULT_NOT_FOUND
+                    ) {// 没有找到检索结果
+                        return
+                    }
+                    Toast.makeText(
+                        context,
+                        "count:" + result?.allPoi.size + "  " + result!!.allPoi[0]!!.city!!,
+                        Toast.LENGTH_LONG
+                    ).show()
+
                 }
 
-                override fun onGetPoiDetailResult(p0: PoiDetailResult?) {
+                override fun onGetPoiDetailResult(result: PoiDetailResult?) {
                 }
 
-                override fun onGetPoiDetailResult(p0: PoiDetailSearchResult?) {
+                override fun onGetPoiDetailResult(result: PoiDetailSearchResult?) {
                 }
 
             })
         }
         poiSearch?.searchInCity(
             PoiCitySearchOption()
-                .city("北京") //必填
-                .keyword("广场") //必填
+                .city(city) //必填
+                .keyword("饭店") //必填
                 .pageNum(10)
                 .cityLimit(false)
         )
     }
-}
 
+
+    var districtSearch: DistrictSearch? = null
+    private fun searchDistrict(city: String) {
+        if (districtSearch == null) {
+            districtSearch = DistrictSearch.newInstance()
+            districtSearch?.setOnDistrictSearchListener { districtResult ->
+                if (districtResult == null || districtResult?.error != SearchResult.ERRORNO.NO_ERROR ) {
+                    return@setOnDistrictSearchListener
+                }
+                viewModel.viewModelScope.async(Dispatchers.IO) {
+                    //获取边界坐标点，并展示
+                    viewModel.districtMapPositions.clear()
+                    districtResult.getPolylines()?.forEach {
+                        viewModel.districtMapPositions.add(MapPositionGroup().apply {
+                            setMapPositions(it.map { it.toMapPosition }.toArrayList())
+                        })
+                    }
+                    mapViewManager.refreshPolylines(
+                        isClearOther = true,
+                        refreshTag = "districtResult",
+                        polylineMapPositionGroups = viewModel.districtMapPositions
+                    )
+                }
+            }
+        }
+
+        districtSearch?.searchDistrict(
+            DistrictSearchOption()
+                .cityName(city)
+        )
+    }
+}
 
