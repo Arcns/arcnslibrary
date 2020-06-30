@@ -285,7 +285,7 @@ class FragmentMapGaode : Fragment() {
     }
 
     private suspend fun setDistrictMapPositions(it: DistrictResult) {
-        Thread {
+        viewModel.viewModelScope.async(Dispatchers.IO) {
             viewModel.districtMapPositions.clear()
             it.district?.forEach {
                 it.districtBoundary()?.forEach {
@@ -335,7 +335,7 @@ class FragmentMapGaode : Fragment() {
                 refreshTag = "districtMapPositions",
                 polylineMapPositionGroups = viewModel.districtMapPositions
             )
-        }.start()
+        }.await()
     }
 
 
