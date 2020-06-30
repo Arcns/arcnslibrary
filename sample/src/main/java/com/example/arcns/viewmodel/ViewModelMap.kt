@@ -44,4 +44,7 @@ class ViewModelMap : ViewModel() {
             }
         }
     }
+
+    // 行政区域坐标组列表
+    var districtMapPositions = ArrayList<MapPositionGroup>()
 }

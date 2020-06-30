@@ -26,6 +26,9 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     // 坐标组和点关联器
     val groupMarkers = HashMap<String, ArrayList<String>>()
 
+    // 标志和坐标组关联器
+    val tagGroups = HashMap<String, ArrayList<String>>()
+
     // 中心点（固定）
     var centerFixedMarker: Marker? = null
         protected set
@@ -92,7 +95,37 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     }
 
     /**
-     *  删除和组不存在关联的点
+     * 关联标志和坐标组
+     */
+    open fun associateGroupsToTag(tag: String, groupsId: String) {
+        tagGroups[tag] = (tagGroups[tag] ?: arrayListOf()).apply {
+            if (!this.contains(groupsId)) this.add(groupsId)
+        }
+    }
+
+    /**
+     * 取消关联标志和坐标组
+     */
+    open fun unAssociateGroupsToTag(tag: String? = null, groupsId: String? = null) {
+        if (tag == null && groupsId == null) {
+            // tag 和 groupsId 都为空时，清空关联
+            tagGroups.clear()
+        } else if (tag == null && groupsId != null) {
+            // 根据groupsId删除关联
+            tagGroups.forEach {
+                it.value.remove(groupsId)
+            }
+        } else if (tag != null && groupsId == null) {
+            // 根据Tag删除关联
+            tagGroups.remove(tag)
+        } else {
+            // 根据tag 和 groupsId 删除关联
+            tagGroups[tag]?.remove(groupsId)
+        }
+    }
+
+    /**
+     *  删除和组不存在关联的点（适用于数据刷新后，自动清理已不能存在的点）
      */
     open fun removeNoAssociateGroupMarkers(group: MapPositionGroup) {
         val markerIDs = groupMarkers[group.uniqueID]
@@ -103,7 +136,6 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
                 // 从地图中删除
                 if (markers.containsKey(it)) {
                     removeMarker(it)
-                    markers.remove(it)
                 }
             }
         }
@@ -114,7 +146,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     /**
      * 清空所有数据
      */
-    open fun clear() {
+    open fun clearAll() {
         markers.clear()
         polygons.clear()
         polygons.clear()
@@ -142,31 +174,188 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         updateCenterFixedMarker()
     }
 
+    /**
+     * 按传入的Tag进行清空
+     */
+    open fun clear(clearTag: String) {
+        var clearIDs = ArrayList<String>()
+        // 查找要删除的组
+        groupMarkers.forEach {
+            if (tagGroups[clearTag]?.contains(it.key) != true) {
+                // 只查找相同Tag的组
+                return@forEach
+            }
+            clearIDs.add(it.key)
+        }
+        polygons.forEach {
+            if (tagGroups[clearTag]?.contains(it.key) != true) {
+                // 只查找相同Tag的组
+                return@forEach
+            }
+            clearIDs.add(it.key)
+        }
+        polylines.forEach {
+            if (tagGroups[clearTag]?.contains(it.key) != true) {
+                // 只查找相同Tag的组
+                return@forEach
+            }
+            clearIDs.add(it.key)
+        }
+        // 删除
+        clearIDs.forEach {
+            // 删除点（组）
+            groupMarkers[it]?.forEach {
+                removeMarker(it) // 从地图中删除
+            }
+            groupMarkers.remove(it) // 从关系链中删除
+            // 删除面
+            polygons[it]?.run { removePolygon(this) }
+            polygons.remove(it)
+            // 删除线
+            polylines[it]?.run { removePolyline(this) }
+            polylines.remove(it)
+        }
+        tagGroups.remove(clearTag)
+    }
 
     /**
      * 按传入的新数据进行刷新
      */
     open fun refresh(
-        isClearOther: Boolean = false, //是否在刷新的同时删除其他覆盖物
+        isClearOther: Boolean = false, //是否在刷新的同时删除其他不存在的覆盖物
+        refreshTag: String? = null,// 限制只刷新相同Tag的组，为空时不限制
         markerMapPositionGroups: List<MapPositionGroup>? = null,
         polygonMapPositionGroups: List<MapPositionGroup>? = null,
         polylineMapPositionGroups: List<MapPositionGroup>? = null
     ) {
+        if (refreshTag == null) {
+            if (isClearOther) {
+                clearAll()
+            }
+            refreshMarkers(markerMapPositionGroups = markerMapPositionGroups)
+            refreshPolygons(polygonMapPositionGroups = polygonMapPositionGroups)
+            refreshPolylines(polylineMapPositionGroups = polylineMapPositionGroups)
+            updateCenterFixedMarker()
+        } else {
+            refreshMarkers(isClearOther, refreshTag, markerMapPositionGroups)
+            refreshPolygons(isClearOther, refreshTag, polygonMapPositionGroups)
+            refreshPolylines(isClearOther, refreshTag, polylineMapPositionGroups)
+        }
+    }
+
+    /**
+     * 刷新点
+     */
+    open fun refreshMarkers(
+        isClearOther: Boolean = false, //是否在刷新的同时删除其他不存在的点
+        refreshTag: String? = null,// 限制只刷新相同Tag的组，为空时不限制
+        markerMapPositionGroups: List<MapPositionGroup>? = null
+    ) {
         if (isClearOther) {
-            clear()
+            var groupIDs = markerMapPositionGroups?.map { it.groupID } ?: arrayListOf()
+            var noExitGroupIDs = ArrayList<String>()
+            // 查找已经不存在的点（组）
+            groupMarkers.forEach {
+                if (refreshTag != null && tagGroups[refreshTag]?.contains(it.key) != true) {
+                    // 只查找相同Tag的组
+                    return@forEach
+                }
+                if (!groupIDs.contains(it.key)) {
+                    noExitGroupIDs.add(it.key)
+                }
+            }
+            // 删除已经不存在的点（组）
+            noExitGroupIDs.forEach {
+                groupMarkers[it]?.forEach {
+                    removeMarker(it) // 从地图中删除
+                }
+                groupMarkers.remove(it) // 从关系链中删除
+                tagGroups[refreshTag]?.remove(it)
+            }
         }
         markerMapPositionGroups?.forEach {
             removeNoAssociateGroupMarkers(it)
             addOrUpdateMarkers(it)
+            if (refreshTag != null && it.groupID != null) {
+                associateGroupsToTag(refreshTag, it.groupID!!)
+            }
         }
-        polygonMapPositionGroups?.forEach {
-            addOrUpdatePolygons(it)
+    }
+
+
+    /**
+     * 刷新线
+     */
+    open fun refreshPolylines(
+        isClearOther: Boolean = false, //是否在刷新的同时删除不存在的线
+        refreshTag: String? = null,// 限制只刷新相同Tag的组，为空时不限制
+        polylineMapPositionGroups: List<MapPositionGroup>? = null
+    ) {
+        if (isClearOther) {
+            var groupIDs = polylineMapPositionGroups?.map { it.groupID } ?: arrayListOf()
+            var noExitGroupIDs = ArrayList<String>()
+            // 查找已经不存在的线
+            polylines.forEach {
+                if (refreshTag != null && tagGroups[refreshTag]?.contains(it.key) != true) {
+                    // 只查找相同Tag的组
+                    return@forEach
+                }
+                if (!groupIDs.contains(it.key)) {
+                    noExitGroupIDs.add(it.key)
+                }
+            }
+            // 删除已经不存在的线
+            noExitGroupIDs.forEach {
+                polylines[it]?.run { removePolyline(this) }
+                polylines.remove(it)
+                tagGroups[refreshTag]?.remove(it)
+            }
         }
         polylineMapPositionGroups?.forEach {
             addOrUpdatePolyline(it)
+            if (refreshTag != null && it.groupID != null) {
+                associateGroupsToTag(refreshTag, it.groupID!!)
+            }
         }
-        updateCenterFixedMarker()
     }
+
+
+    /**
+     * 刷新面
+     */
+    open fun refreshPolygons(
+        isClearOther: Boolean = false, //是否在刷新的同时删除不存在的面
+        refreshTag: String? = null,// 限制只刷新相同Tag的组，为空时不限制
+        polygonMapPositionGroups: List<MapPositionGroup>? = null
+    ) {
+        if (isClearOther) {
+            var groupIDs = polygonMapPositionGroups?.map { it.groupID } ?: arrayListOf()
+            var noExitGroupIDs = ArrayList<String>()
+            // 查找已经不存在的面
+            polygons.forEach {
+                if (refreshTag != null && tagGroups[refreshTag]?.contains(it.key) != true) {
+                    // 只查找相同Tag的组
+                    return@forEach
+                }
+                if (!groupIDs.contains(it.key)) {
+                    noExitGroupIDs.add(it.key)
+                }
+            }
+            // 删除已经不存在的面
+            noExitGroupIDs.forEach {
+                polygons[it]?.run { removePolygon(this) }
+                polygons.remove(it)
+                tagGroups[refreshTag]?.remove(it)
+            }
+        }
+        polygonMapPositionGroups?.forEach {
+            addOrUpdatePolygons(it)
+            if (refreshTag != null && it.groupID != null) {
+                associateGroupsToTag(refreshTag, it.groupID!!)
+            }
+        }
+    }
+
 
     /**
      * 设置点坐标
@@ -184,7 +373,6 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     open fun removePolyline(mapPositionGroup: MapPositionGroup, isRemoveMarkers: Boolean = true) {
         polylines[mapPositionGroup.groupID]?.run {
             removePolyline(this)
-            polylines.remove(mapPositionGroup.groupID)
             mapPositionGroup.clearGroupID()
         }
         if (isRemoveMarkers) {
@@ -209,7 +397,6 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         // 状态为多边形时
         polygons[mapPositionGroup.groupID]?.run {
             removePolygon(this)
-            polygons.remove(mapPositionGroup.groupID)
             mapPositionGroup.clearGroupID()
         }
         if (isRemoveMarkers) {

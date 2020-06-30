@@ -8,14 +8,10 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
 import com.arcns.core.map.*
 import com.arcns.core.util.dp
-import com.baidu.location.BDAbstractLocationListener
 import com.baidu.location.BDLocation
-import com.baidu.location.LocationClient
 import com.baidu.location.LocationClientOption
 import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
-import com.baidu.mapapi.utils.AreaUtil
-import com.baidu.mapapi.utils.DistanceUtil
 
 /**
  * 百度地图管理器
@@ -263,20 +259,26 @@ class BaiduMapViewManager(
     /**
      * 清空所有数据
      */
-    override fun clear() {
+    override fun clearAll() {
         mapView.map.clear()
-        super.clear()
+        super.clearAll()
     }
 
     /**
      * 删除线
      */
-    override fun removePolyline(polyline: Polyline) = polyline.remove()
+    override fun removePolyline(polyline: Polyline) {
+        polyline.remove()
+        polylines.remove(polyline.id)
+    }
 
     /**
      * 删除多边形
      */
-    override fun removePolygon(polygon: Polygon) = polygon.remove()
+    override fun removePolygon(polygon: Polygon) {
+        polygon.remove()
+        polygons.remove(polygon.id)
+    }
 
 
     /**
@@ -400,13 +402,13 @@ class BaiduMapViewManager(
             }
         ) as Marker
         position.id = marker.id
+        // 避免重复添加
         if (mapPositionGroup?.mapPositions?.contains(position) == false) {
-            // 避免重复添加
             mapPositionGroup.addMapPosition(position)
-            // 创建和组的关联关系
-            if (mapPositionGroup != null) {
-                associateMarkerToGroup(mapPositionGroup, marker.id)
-            }
+        }
+        // 创建和组的关联关系
+        if (mapPositionGroup != null) {
+            associateMarkerToGroup(mapPositionGroup, marker.id)
         }
         markers[marker.id] = marker
         return marker.id
@@ -416,7 +418,10 @@ class BaiduMapViewManager(
     /**
      * 删除点
      */
-    override fun removeMarker(marker: Marker) = marker.remove()
+    override fun removeMarker(marker: Marker) {
+        marker.remove()
+        markers.remove(marker.id)
+    }
 
     /**
      * 计算长度

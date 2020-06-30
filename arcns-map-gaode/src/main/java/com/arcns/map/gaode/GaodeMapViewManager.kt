@@ -238,20 +238,26 @@ class GaodeMapViewManager(
     /**
      * 清空所有数据
      */
-    override fun clear() {
+    override fun clearAll() {
         mapView.map.clear()
-        super.clear()
+        super.clearAll()
     }
 
     /**
      * 删除线
      */
-    override fun removePolyline(polyline: Polyline) = polyline.remove()
+    override fun removePolyline(polyline: Polyline) {
+        polyline.remove()
+        polylines.remove(polyline.id)
+    }
 
     /**
      * 删除多边形
      */
-    override fun removePolygon(polygon: Polygon) = polygon.remove()
+    override fun removePolygon(polygon: Polygon) {
+        polygon.remove()
+        polygons.remove(polygon.id)
+    }
 
 
     /**
@@ -375,7 +381,10 @@ class GaodeMapViewManager(
     /**
      * 删除点
      */
-    override fun removeMarker(marker: Marker) = marker.remove()
+    override fun removeMarker(marker: Marker){
+        marker.remove()
+        markers.remove(marker.id)
+    }
 
 
     /**
@@ -426,7 +435,7 @@ class GaodeMapViewManager(
      * 计算面积
      */
     override fun calculateArea(mapPositionGroup: MapPositionGroup): Double =
-        calculateArea(mapPositionGroup)
+        calculateGaodeArea(mapPositionGroup)
 
 
 }

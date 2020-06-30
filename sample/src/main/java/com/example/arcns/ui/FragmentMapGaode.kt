@@ -165,7 +165,7 @@ class FragmentMapGaode : Fragment() {
         mapViewManager.centerFixedMarkerEnabled = true
         // 加载完成回调
         mapViewManager.onMapLoaded = {
-            searchDistrict()
+//            searchDistrict("汕头市")
         }
         // 定位到我的位置
         mapViewManager.locateMyLocation()
@@ -246,9 +246,9 @@ class FragmentMapGaode : Fragment() {
 
 
     var districtSearch: DistrictSearch? = null
-    private fun searchDistrict() {
+    private fun searchDistrict(district: String) {
         var query = DistrictSearchQuery().apply {
-            keywords = "汕头市"
+            keywords = district
             isShowBoundary = true
             isShowChild = true
             isShowBusinessArea = true
@@ -267,46 +267,54 @@ class FragmentMapGaode : Fragment() {
              */
             districtSearch?.setOnDistrictSearchListener {
                 if (it.aMapException.errorCode != 1000) return@setOnDistrictSearchListener
-                var districtMapPositions = ArrayList<ArrayList<MapPosition>>()
+                viewModel.districtMapPositions.clear()
                 it.district?.forEach {
                     it.districtBoundary()?.forEach {
                         var mapPositions = ArrayList<MapPosition>()
                         it.split(";").forEach {
                             val latLng = it.split(",")
                             if (latLng.size == 2) {
-                                mapPositions.add(MapPosition(
-                                    latitude = latLng[1].toDoubleOrNull() ?: return@forEach,
-                                    longitude = latLng[0].toDoubleOrNull() ?: return@forEach,
-                                    type = MapPositionType.GCJ02
-                                ))
-                            }
-                        }
-                        districtMapPositions.add(mapPositions)
-                        mapViewManager.addOrUpdatePolyline(MapPositionGroup().apply {
-                            setMapPositions(mapPositions)
-                        })
-                    }
-                    it.subDistrict?.forEach {subItem->
-                        subItem.districtBoundary()?.forEach {boundary->
-                            var mapPositions = ArrayList<MapPosition>()
-                            boundary.split(";").forEach {latlngToString->
-                                val latLng = latlngToString.split(",")
-                                if (latLng.size == 2) {
-                                    mapPositions.add(MapPosition(
+                                mapPositions.add(
+                                    MapPosition(
                                         latitude = latLng[1].toDoubleOrNull() ?: return@forEach,
                                         longitude = latLng[0].toDoubleOrNull() ?: return@forEach,
                                         type = MapPositionType.GCJ02
-                                    ))
+                                    )
+                                )
+                            }
+                        }
+                        viewModel.districtMapPositions.add((MapPositionGroup().apply {
+                            setMapPositions(mapPositions)
+                        }))
+                    }
+                    it.subDistrict?.forEach { subItem ->
+                        subItem.districtBoundary()?.forEach { boundary ->
+                            var mapPositions = ArrayList<MapPosition>()
+                            boundary.split(";").forEach { latlngToString ->
+                                val latLng = latlngToString.split(",")
+                                if (latLng.size == 2) {
+                                    mapPositions.add(
+                                        MapPosition(
+                                            latitude = latLng[1].toDoubleOrNull() ?: return@forEach,
+                                            longitude = latLng[0].toDoubleOrNull()
+                                                ?: return@forEach,
+                                            type = MapPositionType.GCJ02
+                                        )
+                                    )
                                 }
                             }
-                            districtMapPositions.add(mapPositions)
-                            mapViewManager.addOrUpdatePolyline(MapPositionGroup().apply {
+                            viewModel.districtMapPositions.add((MapPositionGroup().apply {
                                 setMapPositions(mapPositions)
-                            })
+                            }))
                         }
                     }
                 }
 
+                mapViewManager.refreshPolylines(
+                    isClearOther = true,
+                    refreshTag = "districtMapPositions",
+                    polylineMapPositionGroups = viewModel.districtMapPositions
+                )
             }
         }
         districtSearch?.query = query
@@ -317,7 +325,7 @@ class FragmentMapGaode : Fragment() {
 
     var poiSearch: PoiSearch? = null
     private fun searchPOI(position: LatLng, isContainsBound: Boolean = true) {
-        var query = PoiSearch.Query("黑龙江", "", "")//keyWord，type，cityCode
+        var query = PoiSearch.Query("广场", "", "")//keyWord，type，cityCode
         query.pageSize = 10;
         query.pageNum = 0
         if (poiSearch == null) {
@@ -344,7 +352,12 @@ class FragmentMapGaode : Fragment() {
                 if (result?.pois?.size ?: 0 == 0 && isContainsBound) {
                     searchPOI(position, false)
                 } else {
-                    Toast.makeText(context, "count:" + result?.pois?.size, Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        "count:" + result?.pois?.size + "  " + result!!.pois[0]!!.cityName!!,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    searchDistrict(result!!.pois[0]!!.cityName!!)
                 }
             }
         });
