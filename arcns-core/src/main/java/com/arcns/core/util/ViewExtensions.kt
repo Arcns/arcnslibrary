@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
+import android.os.Looper
 import android.text.Html
 import android.text.Spanned
 import android.util.Base64
@@ -35,6 +36,7 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.DialogBehavior
@@ -63,6 +65,26 @@ import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
+
+/***********************************公共**************************************/
+
+// 是否为主线程
+val isMainThread: Boolean get() = Looper.getMainLooper() == Looper.myLooper()
+
+// 快速设置value，自动做线程判断
+var <T> MutableLiveData<T>.fastValue: T?
+    get() = value
+    set(value) {
+        if (isMainThread) this.value = value
+        else postValue(value)
+    }
+
+// 数组转列表
+inline fun <reified T> Collection<T>.toArrayList(): ArrayList<T> {
+    return ArrayList<T>().apply {
+        addAll(this@toArrayList)
+    }
+}
 
 /***********************************格式转换**************************************/
 
@@ -1163,6 +1185,14 @@ val Int.isLightColorOfResource get() = ColorUtils.calculateLuminance(this.color)
  * 获取内容提供者令牌
  */
 val Context.fileProviderAuthority: String get() = "$packageName.fileprovider"
+
+/**
+ * 获取当前版本名
+ */
+val Context.versionName
+    get() = packageManager?.getPackageInfo(
+        APP.CONTEXT.packageName, 0
+    )?.versionName
 
 /**
  * 获取当前版本号

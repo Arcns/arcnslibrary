@@ -9,7 +9,7 @@ import com.arcns.core.util.Event
 /**
  * 通用地图管理器的数据，请在ViewModel中创建
  */
-class MapViewManagerData {
+class MapViewManagerData() {
     // 是否首次加载（用于兼容Navigation）
     private var _isfirstLoad = MutableLiveData<Boolean>()
     val isfirstLoad: Boolean get() = _isfirstLoad.value ?: true

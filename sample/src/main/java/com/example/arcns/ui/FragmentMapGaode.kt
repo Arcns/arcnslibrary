@@ -8,12 +8,14 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.amap.api.maps.*
 import com.amap.api.maps.model.*
 import com.amap.api.services.core.LatLonPoint
 import com.amap.api.services.core.PoiItem
+import com.amap.api.services.district.DistrictResult
 import com.amap.api.services.district.DistrictSearch
 import com.amap.api.services.district.DistrictSearchQuery
 import com.amap.api.services.poisearch.PoiResult
@@ -30,6 +32,11 @@ import com.example.arcns.databinding.LayoutInfoWindowBinding
 import com.example.arcns.viewmodel.*
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
 import kotlinx.android.synthetic.main.fragment_map_gaode.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import okhttp3.internal.wait
+import java.lang.Exception
 
 /**
  *
@@ -267,17 +274,51 @@ class FragmentMapGaode : Fragment() {
              */
             districtSearch?.setOnDistrictSearchListener {
                 if (it.aMapException.errorCode != 1000) return@setOnDistrictSearchListener
-                viewModel.districtMapPositions.clear()
-                it.district?.forEach {
-                    it.districtBoundary()?.forEach {
+                viewModel.viewModelScope.launch {
+                    setDistrictMapPositions(it)
+                }
+            }
+        }
+        districtSearch?.query = query
+        districtSearch?.searchDistrictAsyn()
+
+    }
+
+    private suspend fun setDistrictMapPositions(it: DistrictResult) {
+        Thread {
+            viewModel.districtMapPositions.clear()
+            it.district?.forEach {
+                it.districtBoundary()?.forEach {
+                    var mapPositions = ArrayList<MapPosition>()
+                    it.split(";").forEach {
+                        val latLng = it.split(",")
+                        if (latLng.size == 2) {
+                            mapPositions.add(
+                                MapPosition(
+                                    latitude = latLng[1].toDoubleOrNull() ?: return@forEach,
+                                    longitude = latLng[0].toDoubleOrNull()
+                                        ?: return@forEach,
+                                    type = MapPositionType.GCJ02
+                                )
+                            )
+                        }
+                    }
+                    viewModel.districtMapPositions.add((MapPositionGroup().apply {
+                        setMapPositions(mapPositions)
+                    }))
+                }
+                it.subDistrict?.forEach { subItem ->
+                    subItem.districtBoundary()?.forEach { boundary ->
                         var mapPositions = ArrayList<MapPosition>()
-                        it.split(";").forEach {
-                            val latLng = it.split(",")
+                        boundary.split(";").forEach { latlngToString ->
+                            val latLng = latlngToString.split(",")
                             if (latLng.size == 2) {
                                 mapPositions.add(
                                     MapPosition(
-                                        latitude = latLng[1].toDoubleOrNull() ?: return@forEach,
-                                        longitude = latLng[0].toDoubleOrNull() ?: return@forEach,
+                                        latitude = latLng[1].toDoubleOrNull()
+                                            ?: return@forEach,
+                                        longitude = latLng[0].toDoubleOrNull()
+                                            ?: return@forEach,
                                         type = MapPositionType.GCJ02
                                     )
                                 )
@@ -287,39 +328,14 @@ class FragmentMapGaode : Fragment() {
                             setMapPositions(mapPositions)
                         }))
                     }
-                    it.subDistrict?.forEach { subItem ->
-                        subItem.districtBoundary()?.forEach { boundary ->
-                            var mapPositions = ArrayList<MapPosition>()
-                            boundary.split(";").forEach { latlngToString ->
-                                val latLng = latlngToString.split(",")
-                                if (latLng.size == 2) {
-                                    mapPositions.add(
-                                        MapPosition(
-                                            latitude = latLng[1].toDoubleOrNull() ?: return@forEach,
-                                            longitude = latLng[0].toDoubleOrNull()
-                                                ?: return@forEach,
-                                            type = MapPositionType.GCJ02
-                                        )
-                                    )
-                                }
-                            }
-                            viewModel.districtMapPositions.add((MapPositionGroup().apply {
-                                setMapPositions(mapPositions)
-                            }))
-                        }
-                    }
                 }
-
-                mapViewManager.refreshPolylines(
-                    isClearOther = true,
-                    refreshTag = "districtMapPositions",
-                    polylineMapPositionGroups = viewModel.districtMapPositions
-                )
             }
-        }
-        districtSearch?.query = query
-        districtSearch?.searchDistrictAsyn()
-
+            mapViewManager.refreshPolylines(
+                isClearOther = true,
+                refreshTag = "districtMapPositions",
+                polylineMapPositionGroups = viewModel.districtMapPositions
+            )
+        }.start()
     }
 
 
@@ -357,6 +373,7 @@ class FragmentMapGaode : Fragment() {
                         "count:" + result?.pois?.size + "  " + result!!.pois[0]!!.cityName!!,
                         Toast.LENGTH_LONG
                     ).show()
+                    LOG("count:" + result?.pois?.size + "  " + result!!.pois[0]!!.cityName!!)
                     searchDistrict(result!!.pois[0]!!.cityName!!)
                 }
             }

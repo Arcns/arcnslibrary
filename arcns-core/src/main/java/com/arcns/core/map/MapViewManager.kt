@@ -1,6 +1,7 @@
 package com.arcns.core.map
 
 import androidx.lifecycle.LifecycleOwner
+import com.arcns.core.util.LOG
 
 const val ZINDEX_CENTER_FIXED_MARKER = 10000f
 const val ZINDEX_MARKER = 9999f
@@ -151,6 +152,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         polygons.clear()
         polygons.clear()
         groupMarkers.clear()
+        tagGroups.clear()
     }
 
 
@@ -306,7 +308,9 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
             }
             // 删除已经不存在的线
             noExitGroupIDs.forEach {
-                polylines[it]?.run { removePolyline(this) }
+                polylines[it]?.run {
+                    removePolyline(this)
+                }
                 polylines.remove(it)
                 tagGroups[refreshTag]?.remove(it)
             }

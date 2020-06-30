@@ -3,11 +3,13 @@ package com.example.arcns.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.amap.api.maps.model.MarkerOptions
 import com.arcns.core.map.MapPositionGroup
 import com.arcns.core.map.MapViewManagerData
 import com.arcns.core.util.*
 import com.example.arcns.data.network.NetworkDataSource
+import kotlinx.coroutines.launch
 
 
 class ViewModelMap : ViewModel() {
@@ -47,4 +49,11 @@ class ViewModelMap : ViewModel() {
 
     // 行政区域坐标组列表
     var districtMapPositions = ArrayList<MapPositionGroup>()
+
+
+    init {
+        viewModelScope.launch {
+
+        }
+    }
 }

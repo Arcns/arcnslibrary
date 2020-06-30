@@ -15,4 +15,7 @@ dependencies {
     implementation 'com.amap.api:location:4.9.0'
     //高德搜索
     implementation 'com.amap.api:search:7.3.0'
+    // ViewModel and LiveData
+    implementation deps.androidx.lifecycle_viewmodel
+    implementation deps.androidx.lifecycle_livedata
 }

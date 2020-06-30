@@ -6,12 +6,17 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
-import com.amap.api.maps.*
+import com.amap.api.maps.AMap
+import com.amap.api.maps.CameraUpdate
+import com.amap.api.maps.CameraUpdateFactory
+import com.amap.api.maps.MapView
 import com.amap.api.maps.model.*
 import com.arcns.core.APP
 import com.arcns.core.map.*
 import com.arcns.core.util.dp
 import java.net.URL
+import kotlin.collections.map
+import kotlin.collections.set
 
 
 /**

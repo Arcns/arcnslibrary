@@ -2,6 +2,8 @@ package com.arcns.core.map
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.arcns.core.util.fastValue
+import com.arcns.core.util.isMainThread
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -14,11 +16,11 @@ typealias ApplyCustomOptions = ((group: MapPositionGroup?, options: Any) -> Unit
 class MapPositionGroup {
     val uniqueID: String = UUID.randomUUID().toString()
 
-    private var _groupID = MutableLiveData<String>()
-    val groupID: String? get() = _groupID.value
+    var groupID: String? = null
+        private set
 
     private var _mapPositions =
-        MutableLiveData<ArrayList<MapPosition>>().apply { value = ArrayList() }
+        MutableLiveData<ArrayList<MapPosition>>().apply { fastValue = ArrayList() }
     val mapPositionsLiveData: LiveData<ArrayList<MapPosition>> = _mapPositions
     val mapPositions: ArrayList<MapPosition> get() = _mapPositions.value ?: arrayListOf()
 
@@ -47,22 +49,22 @@ class MapPositionGroup {
     /**
      * 设置地图组
      */
-    fun setGroupID(groupID: String) {
-        _groupID.value = groupID
+    fun setGroupID(value: String) {
+        groupID = value
     }
 
     /**
      * 清空地图组ID
      */
     fun clearGroupID() {
-        _groupID.value = null
+        groupID = null
     }
 
     /**
      * 设置地图点列表
      */
     fun setMapPositions(mapPositions: ArrayList<MapPosition>?) {
-        _mapPositions.value = mapPositions ?: arrayListOf()
+        _mapPositions.fastValue = mapPositions ?: arrayListOf()
     }
 
     /**
@@ -85,7 +87,7 @@ class MapPositionGroup {
      * 添加地图点
      */
     fun addMapPosition(position: MapPosition): MapPosition? {
-        _mapPositions.value =
+        _mapPositions.fastValue =
             _mapPositions.value?.apply {
                 if (!contains(position)) {
                     add(position)
@@ -96,7 +98,7 @@ class MapPositionGroup {
     }
 
     fun clearMapPosition() {
-        _mapPositions.value = arrayListOf()
+        _mapPositions.fastValue = arrayListOf()
     }
 
 
@@ -104,7 +106,7 @@ class MapPositionGroup {
      * 删除指定的地图点，注意如果不传入值，则默认会删除最后一个添加的地图点
      */
     fun removeMapPosition(position: MapPosition? = _mapPositions.value?.lastOrNull()): MapPosition? {
-        _mapPositions.value =
+        _mapPositions.fastValue =
             _mapPositions.value?.apply {
                 if (contains(position)) {
                     remove(position)
@@ -119,7 +121,7 @@ class MapPositionGroup {
      * 按id进行对地图点进行删除
      */
     fun removeMapPosition(id: String?): MapPosition? {
-        _mapPositions.value =
+        _mapPositions.fastValue =
             _mapPositions.value?.apply {
                 var removeItem: MapPosition? = null
                 run removeByID@{
