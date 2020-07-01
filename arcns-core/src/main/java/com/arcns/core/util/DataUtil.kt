@@ -9,15 +9,15 @@ import java.text.DecimalFormat
  * @param 要保留的小数点位数
  * @param 是否四舍五入
  */
-fun Double.KeepDecimalPlaces(decimalPlaces: Int, isRounding: Boolean = true): Double =
-    KeepDecimalPlacesToString(decimalPlaces, isRounding).toDouble()
+fun Double.keepDecimalPlaces(decimalPlaces: Int, isRounding: Boolean = true): Double =
+    keepDecimalPlacesToString(decimalPlaces, isRounding).toDouble()
 
 /**
  * 保留小数点
  * @param 要保留的小数点位数
  * @param 是否四舍五入
  */
-fun Double.KeepDecimalPlacesToString(decimalPlaces: Int, isRounding: Boolean = true): String {
+fun Double.keepDecimalPlacesToString(decimalPlaces: Int, isRounding: Boolean = true): String {
     // %.2f % 表示 小数点前任意位数 2 表示两位小数 格式后的结果为 f 表示浮点型
     // return String.format("%.${decimalPlaces}f", this).toDouble()
     return DecimalFormat().let {

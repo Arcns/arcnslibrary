@@ -60,8 +60,8 @@ class MainActivity : AppCompatActivity() {
         setupResult()
         setupBluetoothBroadcastReceiver()
 
-        LOG("test:" + (6.4555555).KeepDecimalPlaces(3))
-        LOG("test:" + (6.4555555).KeepDecimalPlaces(3, false))
+        LOG("test:" + (6.4555555).keepDecimalPlaces(3))
+        LOG("test:" + (6.4555555).keepDecimalPlaces(3, false))
         LOG("test:" + "xf".zeroPadding(4))
         LOG("test:" + "5xf".zeroPadding(4))
         LOG("test:" + "15xf".zeroPadding(4))

@@ -7,6 +7,7 @@ import com.arcns.core.map.MapPositionType
 import com.arcns.core.map.MapPosition
 import com.arcns.core.map.MapPositionGroup
 import com.arcns.core.util.bitmap
+import com.arcns.core.util.keepDecimalPlaces
 import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
 import com.baidu.mapapi.utils.AreaUtil
@@ -17,7 +18,7 @@ import java.util.*
 /**
  * 把通用地图管理器转为百度地图管理器，通常用于使用百度地图管理器特有的功能
  */
-val MapViewManager<*,*,*,*,*,*,*>.asGaoDe: BaiduMapViewManager? get() = this as? BaiduMapViewManager
+val MapViewManager<*, *, *, *, *, *, *>.asGaoDe: BaiduMapViewManager? get() = this as? BaiduMapViewManager
 
 /**
  * 把百度坐标转换为通用坐标
@@ -39,7 +40,6 @@ val MapPosition.toBaidu: LatLng
             it.longitude
         )
     }
-
 
 
 // 字符串id在扩展信息中的key
@@ -106,3 +106,18 @@ fun calculateBaiduArea(mapPositionGroup: MapPositionGroup): Double =
     AreaUtil.calculateArea(mapPositionGroup.mapPositions.map {
         it.toBaidu
     })
+
+
+/**
+ * 比较坐标是否一致
+ */
+fun equaltBaiduLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int? = null): Boolean {
+    return if (decimalPlaces == null)
+        latLng1.latitude == latLng2.latitude && latLng1.longitude == latLng2.longitude
+    else
+        latLng1.latitude.keepDecimalPlaces(decimalPlaces) == latLng2.latitude.keepDecimalPlaces(
+            decimalPlaces
+        ) && latLng1.longitude.keepDecimalPlaces(decimalPlaces) == latLng2.longitude.keepDecimalPlaces(
+            decimalPlaces
+        )
+}

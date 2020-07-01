@@ -548,4 +548,10 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      * 计算面积
      */
     abstract fun calculateArea(mapPositionGroup: MapPositionGroup): Double
+
+
+    /**
+     * 比较坐标是否一致
+     */
+    abstract fun equaltLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int? = null): Boolean
 }

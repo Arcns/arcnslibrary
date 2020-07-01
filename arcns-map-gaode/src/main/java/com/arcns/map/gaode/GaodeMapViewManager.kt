@@ -459,5 +459,9 @@ class GaodeMapViewManager(
     override fun calculateArea(mapPositionGroup: MapPositionGroup): Double =
         calculateGaodeArea(mapPositionGroup)
 
-
+    /**
+     * 比较坐标是否一致
+     */
+    override fun equaltLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int?): Boolean =
+        equaltGaodeLatLng(latLng1, latLng2, decimalPlaces)
 }

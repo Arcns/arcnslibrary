@@ -13,6 +13,7 @@ import com.arcns.core.map.MapPosition
 import com.arcns.core.map.MapPositionGroup
 import com.arcns.core.util.bitmap
 import com.arcns.core.util.dp
+import com.arcns.core.util.keepDecimalPlaces
 
 
 /**
@@ -103,3 +104,18 @@ fun calculateGaodeArea(mapPositionGroup: MapPositionGroup): Double =
     AMapUtils.calculateArea(mapPositionGroup.mapPositions.map {
         it.toGaoDe
     }).toDouble()
+
+
+/**
+ * 比较坐标是否一致
+ */
+fun equaltGaodeLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int? = null): Boolean {
+    return if (decimalPlaces == null)
+        latLng1.latitude == latLng2.latitude && latLng1.longitude == latLng2.longitude
+    else
+        latLng1.latitude.keepDecimalPlaces(decimalPlaces) == latLng2.latitude.keepDecimalPlaces(
+            decimalPlaces
+        ) && latLng1.longitude.keepDecimalPlaces(decimalPlaces) == latLng2.longitude.keepDecimalPlaces(
+            decimalPlaces
+        )
+}

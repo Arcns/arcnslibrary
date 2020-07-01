@@ -9,6 +9,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
 import com.arcns.core.map.*
 import com.arcns.core.util.dp
+import com.arcns.core.util.keepDecimalPlaces
 import com.baidu.location.BDLocation
 import com.baidu.location.LocationClientOption
 import com.baidu.mapapi.map.*
@@ -446,4 +447,10 @@ class BaiduMapViewManager(
      */
     override fun calculateArea(mapPositionGroup: MapPositionGroup): Double =
         calculateBaiduArea(mapPositionGroup)
+
+    /**
+     * 比较坐标是否一致
+     */
+    override fun equaltLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int?): Boolean =
+        equaltBaiduLatLng(latLng1, latLng2, decimalPlaces)
 }
