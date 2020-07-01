@@ -60,11 +60,14 @@ class MainActivity : AppCompatActivity() {
         setupResult()
         setupBluetoothBroadcastReceiver()
 
-        LOG("test:"+(6.4555555).KeepDecimalPlaces(3))
-        LOG("test:"+(6.4555555).KeepDecimalPlaces(3,false))
-        LOG("test:"+"xf".zeroPadding(4))
-        LOG("test:"+"5xf".zeroPadding(4))
-        LOG("test:"+"15xf".zeroPadding(4))
+        LOG("test:" + (6.4555555).KeepDecimalPlaces(3))
+        LOG("test:" + (6.4555555).KeepDecimalPlaces(3, false))
+        LOG("test:" + "xf".zeroPadding(4))
+        LOG("test:" + "5xf".zeroPadding(4))
+        LOG("test:" + "15xf".zeroPadding(4))
+        LOG("test:32ac - " + calculatedCRC16ToHex("0X35=ÿ,"))
+        LOG("test:2311 - " + calculatedCRC16ToHex("FFFF=msg_,"))
+        LOG("test:7657 - " + calculatedCRC16ToHex("TIME= 20200624173828,TEMP= 29.4,"))
 
 
         // 定位器服务
