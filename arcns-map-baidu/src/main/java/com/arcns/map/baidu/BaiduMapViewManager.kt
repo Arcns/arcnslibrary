@@ -1,6 +1,7 @@
 package com.arcns.map.baidu
 
 import android.graphics.Point
+import android.os.Handler
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -197,12 +198,23 @@ class BaiduMapViewManager(
      */
     override fun moveCamera(
         mapPosition: MapPosition?,
-        moveCameraData: MapStatusUpdate?
+        moveCameraData: MapStatusUpdate?,
+        moveCameraAnimationDuration: Long,
+        onCompletionCallback: (() -> Unit)?
     ) {
-        if (moveCameraData != null) {
-            mapView.map.setMapStatus(moveCameraData)
-        } else if (mapPosition != null) {
-            mapView.map.setMapStatus(MapStatusUpdateFactory.newLatLng(mapPosition.toBaidu))
+        val cameraData =
+            moveCameraData ?: mapPosition?.toBaidu?.let { MapStatusUpdateFactory.newLatLng(it) }
+            ?: return
+        if (moveCameraAnimationDuration <= 0) {
+            mapView.map.setMapStatus(cameraData)
+            onCompletionCallback?.invoke()
+        } else {
+            mapView.map.animateMapStatus(cameraData, moveCameraAnimationDuration.toInt())
+            if (onCompletionCallback != null)
+                Handler().postDelayed(
+                    { onCompletionCallback.invoke() },
+                    moveCameraAnimationDuration
+                )
         }
     }
 

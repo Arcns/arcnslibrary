@@ -70,7 +70,9 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      */
     abstract fun moveCamera(
         mapPosition: MapPosition? = null,
-        moveCameraData: MoveCameraData? = null
+        moveCameraData: MoveCameraData? = null,
+        moveCameraAnimationDuration: Long = 0,
+        onCompletionCallback: (() -> Unit)? = null
     )
 
     /**

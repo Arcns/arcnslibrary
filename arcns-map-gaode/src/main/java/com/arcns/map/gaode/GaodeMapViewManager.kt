@@ -185,12 +185,29 @@ class GaodeMapViewManager(
      */
     override fun moveCamera(
         mapPosition: MapPosition?,
-        moveCameraData: CameraUpdate?
+        moveCameraData: CameraUpdate?,
+        moveCameraAnimationDuration: Long,
+        onCompletionCallback: (() -> Unit)?
     ) {
-        if (moveCameraData != null) {
-            mapView.map.moveCamera(moveCameraData)
-        } else if (mapPosition != null) {
-            mapView.map.moveCamera(CameraUpdateFactory.newLatLng(mapPosition.toGaoDe))
+        val cameraData =
+            moveCameraData ?: mapPosition?.toGaoDe?.let { CameraUpdateFactory.newLatLng(it) }
+            ?: return
+        if (moveCameraAnimationDuration <= 0) {
+            mapView.map.moveCamera(cameraData)
+            onCompletionCallback?.invoke()
+        } else {
+            mapView.map.animateCamera(
+                cameraData,
+                moveCameraAnimationDuration,
+                object : AMap.CancelableCallback {
+                    override fun onFinish() {
+                        onCompletionCallback?.invoke()
+                    }
+
+                    override fun onCancel() {
+                        onCompletionCallback?.invoke()
+                    }
+                })
         }
     }
 
@@ -386,7 +403,7 @@ class GaodeMapViewManager(
     /**
      * 删除点
      */
-    override fun removeMarker(marker: Marker){
+    override fun removeMarker(marker: Marker) {
         marker.remove()
         markers.remove(marker.id)
     }
