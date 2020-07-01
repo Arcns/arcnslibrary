@@ -238,12 +238,14 @@ class GaodeMapViewManager(
         }
         // 开始创建
         val screenPosition =
-            mapView.map.projection.toScreenLocation(mapView.map.cameraPosition.target)
+            mapView.map.projection.toScreenLocation(getCamera().target)
         centerFixedMarker = mapView.map.addMarker(
             MarkerOptions().anchor(0.5f, 0.5f).apply {
                 zIndex(ZINDEX_CENTER_FIXED_MARKER)
                 icon(R.drawable.purple_pin.newGaodeIcon(height = 88.dp))
-                centerFixedMarkerApplyCustomOptions?.invoke(null, this)
+                centerFixedMarkerApplyCustomOptions?.invoke(
+                    null, this, getCamera().target.toMapPosition
+                )
             }
         )
         //设置Marker在屏幕上,不跟随地图移动
@@ -297,8 +299,8 @@ class GaodeMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYLINE)
                         // 应用自定义样式
-                        globalApplyCustomOptions?.invoke(mapPositionGroup, this)
-                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup, this, null)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this, null)
 //                        .color(R.color.colorAccent.color).width(4f).zIndex(900f)
                     }
             )
@@ -328,8 +330,8 @@ class GaodeMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYGON)
                         // 应用自定义样式
-                        globalApplyCustomOptions?.invoke(mapPositionGroup, this)
-                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup, this, null)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this, null)
                     }
 //                    .fillColor(
 //                        R.color.tmchartblue.color
@@ -385,10 +387,11 @@ class GaodeMapViewManager(
             MarkerOptions().position(position.toGaoDe).apply {
                 zIndex(ZINDEX_MARKER)
                 icon(R.drawable.icon_gcoding.newGaodeIcon(height = 38.dp))
-                globalApplyCustomOptions?.invoke(mapPositionGroup, this)
+                globalApplyCustomOptions?.invoke(mapPositionGroup, this, position)
                 (applyCustomOptions ?: mapPositionGroup?.applyCustomOptions)?.invoke(
                     mapPositionGroup,
-                    this
+                    this,
+                    position
                 )
             }
         )

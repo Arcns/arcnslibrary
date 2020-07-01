@@ -8,7 +8,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-typealias ApplyCustomOptions = ((group: MapPositionGroup?, options: Any) -> Unit)
+typealias ApplyCustomOptions = ((group: MapPositionGroup?, options: Any, position: MapPosition?) -> Unit)
 
 /**
  * 通用地图坐标组（请在ViewModel中创建）

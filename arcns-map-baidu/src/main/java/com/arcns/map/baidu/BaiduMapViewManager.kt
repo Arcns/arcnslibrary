@@ -247,15 +247,19 @@ class BaiduMapViewManager(
         }
 //        // 开始创建
         val screenPosition =
-            mapView.map.projection.toScreenLocation(mapView.map.mapStatus.target)
+            mapView.map.projection.toScreenLocation(getCamera().target)
         centerFixedMarker = mapView.map.addOverlay(
             MarkerOptions()
-                .position(mapView.map.mapStatus.target)
+                .position(getCamera().target)
                 .anchor(0.5f, 0.5f)
                 .apply {
                     zIndex(ZINDEX_CENTER_FIXED_MARKER.toInt())
                     icon(R.drawable.purple_pin.newBaiduIcon(height = 88.dp))
-                    centerFixedMarkerApplyCustomOptions?.invoke(null, this)
+                    centerFixedMarkerApplyCustomOptions?.invoke(
+                        null,
+                        this,
+                        getCamera().target.toMapPosition
+                    )
                 }) as Marker?
         //设置Marker在屏幕上,不跟随地图移动
         centerFixedMarker?.setFixedScreenPosition(Point(screenPosition.x, screenPosition.y))
@@ -313,8 +317,8 @@ class BaiduMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYLINE.toInt())
                         // 应用自定义样式
-                        globalApplyCustomOptions?.invoke(mapPositionGroup, this)
-                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup, this, null)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this, null)
 //                        .color(R.color.colorAccent.color).width(4f).zIndex(900f)
                         addNewID()
                     }
@@ -347,8 +351,8 @@ class BaiduMapViewManager(
                     .apply {
                         zIndex(ZINDEX_POLYGON.toInt())
                         // 应用自定义样式
-                        globalApplyCustomOptions?.invoke(mapPositionGroup, this)
-                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this)
+                        globalApplyCustomOptions?.invoke(mapPositionGroup, this, null)
+                        mapPositionGroup.applyCustomOptions?.invoke(mapPositionGroup, this, null)
                         addNewID()
                     }
 //                    .fillColor(
@@ -412,10 +416,11 @@ class BaiduMapViewManager(
             MarkerOptions().position(position.toBaidu).apply {
                 zIndex(ZINDEX_MARKER.toInt())
                 icon(R.drawable.icon_gcoding.newBaiduIcon(height = 38.dp))
-                globalApplyCustomOptions?.invoke(mapPositionGroup, this)
+                globalApplyCustomOptions?.invoke(mapPositionGroup, this, position)
                 (applyCustomOptions ?: mapPositionGroup?.applyCustomOptions)?.invoke(
                     mapPositionGroup,
-                    this
+                    this,
+                    position
                 )
             }
         ) as Marker
