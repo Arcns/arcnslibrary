@@ -1,7 +1,6 @@
 package com.arcns.core.map
 
 import androidx.lifecycle.LifecycleOwner
-import com.arcns.core.util.LOG
 
 const val ZINDEX_CENTER_FIXED_MARKER = 10000f
 const val ZINDEX_MARKER = 9999f

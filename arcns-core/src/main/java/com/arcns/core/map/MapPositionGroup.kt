@@ -68,6 +68,37 @@ class MapPositionGroup {
     }
 
     /**
+     * 刷新地图点列表
+     * 与setMapPositions的区别在于，该方法会对新老列表进行对比，并在遇到相同坐标点的时候会回调onRefreshSameItemCallback，全部判断完成后会调用setMapPositions进行设置
+     */
+    fun refreshMapPositions(
+        newMapPositions: ArrayList<MapPosition>?,
+        decimalPlaces: Int? = null,//刷新时忽略坐标小数点的位数，默认为空即不忽略
+        isRounding: Boolean = true,//刷新时忽略坐标小数点时是否四舍五入
+        isEqualtExtraData: Boolean = false, //刷新时是否同时对比坐标的ExtraData
+        isUniquenessItem: Boolean = true, // 刷新时是否每个item在列表中都是唯一的，若是则不进行重复对比
+        isFillMapPositionIDWhenSame: Boolean = true, // 对比相同时，自动把老坐标中的id填充给新坐标
+        onRefreshSameItemCallback: (MapPosition, MapPosition) -> Unit // 对比相同时的回调
+    ) {
+        if (!mapPositions.isNullOrEmpty() && !newMapPositions.isNullOrEmpty()) {
+            equaltMapPositions(
+                newMapPositions,
+                mapPositions,
+                decimalPlaces,
+                isRounding,
+                isEqualtExtraData,
+                isUniquenessItem
+            ) { newMapPosition, oldMapPosition ->
+                if (isFillMapPositionIDWhenSame) {
+                    newMapPosition.id = oldMapPosition.id
+                }
+                onRefreshSameItemCallback(newMapPosition, oldMapPosition)
+            }
+        }
+        setMapPositions(newMapPositions)
+    }
+
+    /**
      * 清空地图点列表
      */
     fun clearMapPositions() = setMapPositions(null)

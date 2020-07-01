@@ -8,7 +8,9 @@ import android.net.Uri
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItems
 import com.arcns.core.R
+import com.arcns.core.util.keepDecimalPlaces
 import com.arcns.core.util.showDialog
+import com.arcns.core.util.toArrayList
 import kotlin.math.abs
 
 
@@ -182,4 +184,64 @@ fun MapPosition.distanceBetween(mapPosition: MapPosition): Float {
         results
     )
     return results[0]
+}
+
+
+/**
+ * 对比两个坐标组是否相同
+ */
+fun equaltMapPositions(
+    positions1: ArrayList<MapPosition>,
+    positions2: ArrayList<MapPosition>,
+    decimalPlaces: Int? = null,//忽略坐标小数点的位数，默认为空即不忽略
+    isRounding: Boolean = true,//忽略坐标小数点时是否四舍五入
+    isEqualtExtraData: Boolean = false, //是否同时对比坐标的ExtraData
+    isUniquenessItem: Boolean = true, // 是否每个item在列表中都是唯一的，若是则不进行重复对比
+    onSameCallback: (MapPosition, MapPosition) -> Unit // 对比相同时的回调
+) {
+    val compare = positions2.toArrayList()
+    positions1.forEach {
+        run checkSamePosition@{
+            compare.forEach { compareItem ->
+                if (equaltMapPosition(
+                        it,
+                        compareItem,
+                        decimalPlaces,
+                        isEqualtExtraData,
+                        isRounding
+                    )
+                ) {
+                    onSameCallback(it, compareItem)
+                    if (isUniquenessItem) compare.remove(compareItem)
+                    return@checkSamePosition
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 对比两个坐标的经纬度是否相同（注意不对比ID）
+ */
+fun equaltMapPosition(
+    position1: MapPosition,
+    position2: MapPosition,
+    decimalPlaces: Int? = null,//忽略坐标小数点的位数，默认为空即不忽略
+    isRounding: Boolean = true,//忽略坐标小数点时是否四舍五入
+    isEqualtExtraData: Boolean = false //是否同时对比坐标的ExtraData
+): Boolean {
+    if (position1.type != position2.type) return false
+    if (isEqualtExtraData && position1.extraData != position2.extraData) return false
+    return if (decimalPlaces == null)
+        position1.latitude == position2.latitude && position1.longitude == position2.longitude
+    else
+        position1.latitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) == position2.latitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) && position1.longitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) == position2.longitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        )
 }
