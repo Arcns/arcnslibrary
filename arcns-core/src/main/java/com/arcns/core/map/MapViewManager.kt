@@ -11,7 +11,7 @@ const val ZINDEX_POLYGON = 9997f
 /**
  * 地图管理器基类
  */
-abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng, MoveCameraData>(
+abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng, MoveCameraData, CameraData>(
     val lifecycleOwner: LifecycleOwner,
     val mapView: MapView,
     val viewManagerData: MapViewManagerData
@@ -74,6 +74,11 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         moveCameraAnimationDuration: Long = 0,
         onCompletionCallback: (() -> Unit)? = null
     )
+
+    /**
+     * 返回地图的当前场景信息（层级、坐标等）
+     */
+    abstract fun getCamera():CameraData
 
     /**
      * 更新中心点（固定），注意该更新操作将以centerFixedMarkerEnabled为依据

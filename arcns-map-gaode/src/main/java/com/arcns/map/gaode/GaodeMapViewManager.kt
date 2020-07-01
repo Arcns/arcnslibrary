@@ -26,7 +26,7 @@ class GaodeMapViewManager(
     lifecycleOwner: LifecycleOwner,
     mapView: MapView,
     viewManagerData: MapViewManagerData
-) : MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng, CameraUpdate>(
+) : MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng, CameraUpdate, CameraPosition>(
     lifecycleOwner,
     mapView,
     viewManagerData
@@ -210,6 +210,11 @@ class GaodeMapViewManager(
                 })
         }
     }
+
+    /**
+     * 返回地图的当前场景信息（层级、坐标等）
+     */
+    override fun getCamera(): CameraPosition = mapView.map.cameraPosition
 
     /**
      * 更新中心点（固定），注意该更新操作将以centerFixedMarkerEnabled为依据

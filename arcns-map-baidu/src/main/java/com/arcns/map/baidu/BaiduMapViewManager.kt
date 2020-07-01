@@ -22,7 +22,7 @@ class BaiduMapViewManager(
     lifecycleOwner: LifecycleOwner,
     mapView: MapView,
     viewManagerData: MapViewManagerData
-) : MapViewManager<MapView, MyLocationConfiguration, Marker, Polyline, Polygon, LatLng, MapStatusUpdate>(
+) : MapViewManager<MapView, MyLocationConfiguration, Marker, Polyline, Polygon, LatLng, MapStatusUpdate, MapStatus>(
     lifecycleOwner, mapView, viewManagerData
 ) {
 
@@ -218,6 +218,11 @@ class BaiduMapViewManager(
                 )
         }
     }
+
+    /**
+     * 返回地图的当前场景信息（层级、坐标等）
+     */
+    override fun getCamera(): MapStatus = mapView.map.mapStatus
 
 
     /**

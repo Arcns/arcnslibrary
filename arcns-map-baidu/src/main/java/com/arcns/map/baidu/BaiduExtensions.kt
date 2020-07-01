@@ -18,7 +18,7 @@ import java.util.*
 /**
  * 把通用地图管理器转为百度地图管理器，通常用于使用百度地图管理器特有的功能
  */
-val MapViewManager<*, *, *, *, *, *, *>.asGaoDe: BaiduMapViewManager? get() = this as? BaiduMapViewManager
+val MapViewManager<*, *, *, *, *, *, *, *>.asGaoDe: BaiduMapViewManager? get() = this as? BaiduMapViewManager
 
 /**
  * 把百度坐标转换为通用坐标
