@@ -78,7 +78,7 @@ class MapPositionGroup {
         isEqualtExtraData: Boolean = false, //刷新时是否同时对比坐标的ExtraData
         isUniquenessItem: Boolean = true, // 刷新时是否每个item在列表中都是唯一的，若是则不进行重复对比
         isFillMapPositionIDWhenSame: Boolean = true, // 对比相同时，自动把老坐标中的id填充给新坐标
-        onRefreshSameItemCallback: (MapPosition, MapPosition) -> Unit // 对比相同时的回调
+        onRefreshSameItemCallback: ((MapPosition, MapPosition) -> Unit)? = null // 对比相同时的回调
     ) {
         if (!mapPositions.isNullOrEmpty() && !newMapPositions.isNullOrEmpty()) {
             equaltMapPositions(
@@ -92,7 +92,7 @@ class MapPositionGroup {
                 if (isFillMapPositionIDWhenSame) {
                     newMapPosition.id = oldMapPosition.id
                 }
-                onRefreshSameItemCallback(newMapPosition, oldMapPosition)
+                onRefreshSameItemCallback?.invoke(newMapPosition, oldMapPosition)
             }
         }
         setMapPositions(newMapPositions)
