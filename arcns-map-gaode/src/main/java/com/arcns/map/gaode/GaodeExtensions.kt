@@ -44,7 +44,7 @@ fun Marker.startBeatingAnimation(mapView: MapView) {
 /**
  * 把通用地图管理器转为高德地图管理器，通常用于使用高低地图管理器特有的功能
  */
-val MapViewManager<*,*,*,*,*,*,*,*>.asGaode: GaodeMapViewManager? get() = this as? GaodeMapViewManager
+val MapViewManager<*, *, *, *, *, *, *, *>.asGaode: GaodeMapViewManager? get() = this as? GaodeMapViewManager
 
 /**
  * 把高德坐标转换为通用坐标
@@ -109,13 +109,22 @@ fun calculateGaodeArea(mapPositionGroup: MapPositionGroup): Double =
 /**
  * 比较坐标是否一致
  */
-fun equaltGaodeLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int? = null): Boolean {
+fun equaltGaodeLatLng(
+    latLng1: LatLng,
+    latLng2: LatLng,
+    decimalPlaces: Int? = null,
+    isRounding: Boolean = true
+): Boolean {
     return if (decimalPlaces == null)
         latLng1.latitude == latLng2.latitude && latLng1.longitude == latLng2.longitude
     else
-        latLng1.latitude.keepDecimalPlaces(decimalPlaces) == latLng2.latitude.keepDecimalPlaces(
-            decimalPlaces
-        ) && latLng1.longitude.keepDecimalPlaces(decimalPlaces) == latLng2.longitude.keepDecimalPlaces(
-            decimalPlaces
+        latLng1.latitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) == latLng2.latitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) && latLng1.longitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) == latLng2.longitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
         )
 }

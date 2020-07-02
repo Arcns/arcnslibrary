@@ -77,7 +77,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     /**
      * 返回地图的当前场景信息（层级、坐标等）
      */
-    abstract fun getCamera():CameraData
+    abstract fun getCamera(): CameraData
 
     /**
      * 更新中心点（固定），注意该更新操作将以centerFixedMarkerEnabled为依据
@@ -557,5 +557,23 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     /**
      * 比较坐标是否一致
      */
-    abstract fun equaltLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int? = null): Boolean
+    abstract fun equaltLatLng(
+        latLng1: LatLng,
+        latLng2: LatLng,
+        decimalPlaces: Int? = null,
+        isRounding: Boolean = true
+    ): Boolean
+
+    /**
+     * 比较场景是否一致
+     * 可以仅对比某些项，但必须至少对比一项，否则返回false
+     */
+    abstract fun equaltCamera(
+        latLng: LatLng? = null, //坐标,
+        latLngDecimalPlaces: Int? = null,//坐标保留的小数位数，若为空则不做处理，保持原有位数
+        latLngIsRounding: Boolean = true,//坐标保留小数位时是否四舍五入
+        zoom: Float? = null, //缩放层级
+        tilt: Float? = null, //俯仰角（overlook）
+        bearing: Float? = null //偏航角（rotate）
+    ): Boolean
 }

@@ -111,13 +111,22 @@ fun calculateBaiduArea(mapPositionGroup: MapPositionGroup): Double =
 /**
  * 比较坐标是否一致
  */
-fun equaltBaiduLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int? = null): Boolean {
+fun equaltBaiduLatLng(
+    latLng1: LatLng,
+    latLng2: LatLng,
+    decimalPlaces: Int? = null,
+    isRounding: Boolean = true
+): Boolean {
     return if (decimalPlaces == null)
         latLng1.latitude == latLng2.latitude && latLng1.longitude == latLng2.longitude
     else
-        latLng1.latitude.keepDecimalPlaces(decimalPlaces) == latLng2.latitude.keepDecimalPlaces(
-            decimalPlaces
-        ) && latLng1.longitude.keepDecimalPlaces(decimalPlaces) == latLng2.longitude.keepDecimalPlaces(
-            decimalPlaces
+        latLng1.latitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) == latLng2.latitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) && latLng1.longitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
+        ) == latLng2.longitude.keepDecimalPlaces(
+            decimalPlaces, isRounding
         )
 }

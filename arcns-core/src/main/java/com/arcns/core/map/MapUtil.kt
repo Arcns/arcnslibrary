@@ -245,3 +245,51 @@ fun equaltMapPosition(
             decimalPlaces, isRounding
         )
 }
+
+/**
+ * 计算层级动画持续时间
+ */
+fun calculateZoomAnimDuration(
+    currentZoom: Float,//当前层级
+    destinationZoom: Float,//目标层级
+    maxZoom: Float,//最大层级
+    minZoom: Float,//最小层级
+    maxDuration: Long,//最大持续时间
+    minDuration: Long? = null//最小持续时间，若计算出的时间值小于该值，则返回该值
+): Long {
+    val averageDuration = calculateZoomAnimAverageDuration(maxZoom, minZoom, maxDuration)
+    return if (destinationZoom > currentZoom) {
+        (averageDuration * (destinationZoom - currentZoom)).toLong()
+            .let { if (minDuration != null && it < minDuration) minDuration else it }
+    } else {
+        (averageDuration * (currentZoom - destinationZoom)).toLong()
+            .let { if (minDuration != null && it < minDuration) minDuration else it }
+    }
+}
+
+/**
+ * 计算层级动画持续时间
+ */
+fun calculateZoomAnimDuration(
+    currentZoom: Float,//当前层级
+    destinationZoom: Float,//目标层级
+    averageDuration: Double,//层级动画平均持续时间
+    minDuration: Long? = null//最小持续时间，若计算出的时间值小于该值，则返回该值
+): Long {
+    return if (destinationZoom > currentZoom) {
+        (averageDuration * (destinationZoom - currentZoom)).toLong()
+            .let { if (minDuration != null && it < minDuration) minDuration else it }
+    } else {
+        (averageDuration * (currentZoom - destinationZoom)).toLong()
+            .let { if (minDuration != null && it < minDuration) minDuration else it }
+    }
+}
+
+/**
+ * 计算层级动画平均持续时间
+ */
+fun calculateZoomAnimAverageDuration(
+    maxZoom: Float,//最大层级
+    minZoom: Float,//最小层级
+    maxDuration: Long//最大持续时间
+): Double = maxDuration.toDouble() / (maxZoom - minZoom)

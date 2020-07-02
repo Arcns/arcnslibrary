@@ -65,10 +65,10 @@ class BaiduMapViewManager(
             @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             fun onPause() {
                 viewManagerData.savePauseCameraPosition(
-                    mapView.map.mapStatus.target.toMapPosition,
-                    mapView.map.mapStatus.zoom,
-                    mapView.map.mapStatus.overlook,
-                    mapView.map.mapStatus.rotate
+                    getCamera().target.toMapPosition,
+                    getCamera().zoom,
+                    getCamera().overlook,
+                    getCamera().rotate
                 )
                 mapView.onPause()
             }
@@ -372,7 +372,7 @@ class BaiduMapViewManager(
     /**
      * 返回中心点坐标
      */
-    override fun getCenterFixedPosition(): MapPosition = mapView.map.mapStatus.target.toMapPosition
+    override fun getCenterFixedPosition(): MapPosition = getCamera().target.toMapPosition
 
     /**
      * 返回左上角坐标
@@ -387,13 +387,13 @@ class BaiduMapViewManager(
      * 返回左下角坐标
      */
     override fun getLeftBottomFixedPosition(): MapPosition =
-        mapView.map.mapStatus.bound.southwest.toMapPosition
+        getCamera().bound.southwest.toMapPosition
 
     /**
      * 返回右上角坐标
      */
     override fun getRightTopFixedPosition(): MapPosition =
-        mapView.map.mapStatus.bound.northeast.toMapPosition
+        getCamera().bound.northeast.toMapPosition
 
     /**
      * 返回右下角坐标
@@ -461,6 +461,44 @@ class BaiduMapViewManager(
     /**
      * 比较坐标是否一致
      */
-    override fun equaltLatLng(latLng1: LatLng, latLng2: LatLng, decimalPlaces: Int?): Boolean =
-        equaltBaiduLatLng(latLng1, latLng2, decimalPlaces)
+    override fun equaltLatLng(
+        latLng1: LatLng,
+        latLng2: LatLng,
+        decimalPlaces: Int?,
+        isRounding: Boolean
+    ): Boolean =
+        equaltBaiduLatLng(latLng1, latLng2, decimalPlaces, isRounding)
+
+    /**
+     * 比较场景是否一致
+     */
+    override fun equaltCamera(
+        latLng: LatLng?, //坐标,
+        latLngDecimalPlaces: Int?,//坐标保留的小数位数，若为空则不做处理，保持原有位数
+        latLngIsRounding: Boolean,//坐标保留小数位时是否四舍五入
+        zoom: Float?, //缩放层级
+        tilt: Float?, //俯仰角（overlook）
+        bearing: Float? //偏航角（rotate）
+    ): Boolean {
+        if (latLng == null && zoom == null && tilt == null && bearing == null) return false
+        latLng?.run {
+            if (!equaltLatLng(
+                    getCamera().target,
+                    this,
+                    latLngDecimalPlaces,
+                    latLngIsRounding
+                )
+            ) return false
+        }
+        zoom?.run {
+            if (getCamera().zoom != this) return false
+        }
+        tilt?.run {
+            if (getCamera().overlook != this) return false
+        }
+        bearing?.run {
+            if (getCamera().rotate != this) return false
+        }
+        return true
+    }
 }
