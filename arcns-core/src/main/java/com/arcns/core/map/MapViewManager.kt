@@ -80,6 +80,11 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     abstract fun getCamera(): CameraData
 
     /**
+     * 返回我的定位
+     */
+    abstract fun getMyLocationData(): MapPosition?
+
+    /**
      * 更新中心点（固定），注意该更新操作将以centerFixedMarkerEnabled为依据
      */
     abstract fun updateCenterFixedMarker()

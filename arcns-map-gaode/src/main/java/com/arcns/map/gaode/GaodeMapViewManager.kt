@@ -216,6 +216,19 @@ class GaodeMapViewManager(
      */
     override fun getCamera(): CameraPosition = mapView.map.cameraPosition
 
+
+    /**
+     * 返回我的定位
+     */
+    override fun getMyLocationData(): MapPosition? = mapView.map.myLocation?.let {
+        MapPosition(
+            latitude = it.latitude,
+            longitude = it.longitude,
+            type = MapPositionType.BD09LL,
+            extraData = it
+        )
+    }
+
     /**
      * 更新中心点（固定），注意该更新操作将以centerFixedMarkerEnabled为依据
      */
