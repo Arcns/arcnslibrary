@@ -101,7 +101,7 @@ val Int.string: String get() = APP.CONTEXT.getString(this)
 // 获取string资源
 fun Int.string(value: Any?): String = APP.CONTEXT.getString(this, value)
 fun Int.string(value: Any?, value2: Any?): String = APP.CONTEXT.getString(this, value, value2)
-fun Int.string(vararg values: Any?): String = APP.CONTEXT.getString(this, *values)
+fun Int.stringVararg(vararg values: Any?): String = APP.CONTEXT.getString(this, *values)
 
 // 获取drawable资源
 val Int.drawable: Drawable
