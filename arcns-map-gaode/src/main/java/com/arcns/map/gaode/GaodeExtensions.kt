@@ -112,15 +112,24 @@ fun calculateGaodeLineDistance(mapPositionGroup: MapPositionGroup): Double {
     var lineDistance = 0.0
     mapPositionGroup.mapPositions.forEach {
         if (lastPosition != null) {
-            lineDistance += AMapUtils.calculateLineDistance(
-                lastPosition?.toGaoDe,
-                it.toGaoDe
-            );
+            lineDistance += calculateGaodeLineDistance(lastPosition!!, it);
         }
         lastPosition = it
     }
     return lineDistance
 }
+
+/**
+ * 计算百度面积
+ */
+fun calculateBaiduArea(latLngs: List<LatLng>): Double =
+    AMapUtils.calculateArea(latLngs).toDouble()
+
+/**
+ * 计算百度面积
+ */
+fun calculateBaiduArea(mapPositions: ArrayList<MapPosition>): Double =
+    AMapUtils.calculateArea(mapPositions.toGaoDeLatLngs).toDouble()
 
 /**
  * 计算高德面积

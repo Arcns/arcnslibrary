@@ -112,10 +112,7 @@ fun calculateBaiduLineDistance(mapPositionGroup: MapPositionGroup): Double {
     var lineDistance = 0.0
     mapPositionGroup.mapPositions.forEach {
         if (lastPosition != null) {
-            lineDistance += DistanceUtil.getDistance(
-                lastPosition?.toBaidu,
-                it.toBaidu
-            )
+            lineDistance += calculateBaiduLineDistance(lastPosition!!, it)
         }
         lastPosition = it
     }
@@ -125,10 +122,20 @@ fun calculateBaiduLineDistance(mapPositionGroup: MapPositionGroup): Double {
 /**
  * 计算百度面积
  */
+fun calculateBaiduArea(latLngs: List<LatLng>): Double =
+    AreaUtil.calculateArea(latLngs)
+
+/**
+ * 计算百度面积
+ */
+fun calculateBaiduArea(mapPositions: ArrayList<MapPosition>): Double =
+    AreaUtil.calculateArea(mapPositions.toBaiduLatLngs)
+
+/**
+ * 计算百度面积
+ */
 fun calculateBaiduArea(mapPositionGroup: MapPositionGroup): Double =
-    AreaUtil.calculateArea(mapPositionGroup.mapPositions.map {
-        it.toBaidu
-    })
+    calculateBaiduArea(mapPositionGroup.mapPositions)
 
 
 /**
