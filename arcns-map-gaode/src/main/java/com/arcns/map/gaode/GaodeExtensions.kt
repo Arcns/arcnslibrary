@@ -95,6 +95,18 @@ fun Int.newGaodeIcon(width: Int? = null, height: Int? = null) =
 /**
  * 计算高德长度
  */
+fun calculateGaodeLineDistance(latLng1: LatLng, latLng2: LatLng): Double =
+    AMapUtils.calculateLineDistance(latLng1, latLng2).toDouble()
+
+/**
+ * 计算高德长度
+ */
+fun calculateGaodeLineDistance(position1: MapPosition, position2: MapPosition): Double =
+    AMapUtils.calculateLineDistance(position1.toGaoDe, position2.toGaoDe).toDouble()
+
+/**
+ * 计算高德长度
+ */
 fun calculateGaodeLineDistance(mapPositionGroup: MapPositionGroup): Double {
     var lastPosition: MapPosition? = null
     var lineDistance = 0.0

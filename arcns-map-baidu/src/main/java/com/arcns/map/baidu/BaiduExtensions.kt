@@ -95,6 +95,18 @@ fun Int.newBaiduIcon(width: Int? = null, height: Int? = null) =
 /**
  * 计算百度长度
  */
+fun calculateBaiduLineDistance(latLng1: LatLng, latLng2: LatLng): Double =
+    DistanceUtil.getDistance(latLng1, latLng2)
+
+/**
+ * 计算百度长度
+ */
+fun calculateBaiduLineDistance(position1: MapPosition, position2: MapPosition): Double =
+    DistanceUtil.getDistance(position1.toBaidu, position2.toBaidu)
+
+/**
+ * 计算百度长度
+ */
 fun calculateBaiduLineDistance(mapPositionGroup: MapPositionGroup): Double {
     var lastPosition: MapPosition? = null
     var lineDistance = 0.0
