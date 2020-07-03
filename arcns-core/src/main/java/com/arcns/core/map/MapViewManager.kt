@@ -581,4 +581,9 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         tilt: Float? = null, //俯仰角（overlook）
         bearing: Float? = null //偏航角（rotate）
     ): Boolean
+
+    /**
+     * 坐标点是否包含在多边形内
+     */
+    abstract fun isPolygonContainsPoint(polygonLatLngs: List<LatLng>, latLng: LatLng): Boolean
 }

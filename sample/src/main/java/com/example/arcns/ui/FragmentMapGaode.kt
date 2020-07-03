@@ -335,6 +335,8 @@ class FragmentMapGaode : Fragment() {
                 refreshTag = "districtMapPositions",
                 polylineMapPositionGroups = viewModel.districtMapPositions
             )
+//            mapViewManager.polygons[""]?.contains()
+
         }.await()
     }
 

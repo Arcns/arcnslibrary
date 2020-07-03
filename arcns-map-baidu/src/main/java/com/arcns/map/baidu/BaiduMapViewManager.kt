@@ -14,6 +14,7 @@ import com.baidu.location.BDLocation
 import com.baidu.location.LocationClientOption
 import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
+import com.baidu.mapapi.utils.SpatialRelationUtil
 
 /**
  * 百度地图管理器
@@ -513,4 +514,10 @@ class BaiduMapViewManager(
         }
         return true
     }
+
+    /**
+     * 坐标点是否包含在多边形内
+     */
+    override fun isPolygonContainsPoint(polygonLatLngs: List<LatLng>, latLng: LatLng): Boolean =
+        SpatialRelationUtil.isPolygonContainsPoint(polygonLatLngs, latLng)
 }

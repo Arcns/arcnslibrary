@@ -523,4 +523,17 @@ class GaodeMapViewManager(
         }
         return true
     }
+
+    /**
+     * 坐标点是否包含在多边形内
+     */
+    override fun isPolygonContainsPoint(polygonLatLngs: List<LatLng>, latLng: LatLng): Boolean =
+        mapView.map.addPolygon(PolygonOptions().apply {
+            visible(false)
+            addAll(polygonLatLngs)
+        }).let {
+            val isContains = it.contains(latLng)
+            it.remove()
+            return isContains
+        }
 }

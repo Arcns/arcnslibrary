@@ -8,6 +8,7 @@ import com.arcns.core.map.MapPosition
 import com.arcns.core.map.MapPositionGroup
 import com.arcns.core.util.bitmap
 import com.arcns.core.util.keepDecimalPlaces
+import com.arcns.core.util.toArrayList
 import com.baidu.mapapi.map.*
 import com.baidu.mapapi.model.LatLng
 import com.baidu.mapapi.utils.AreaUtil
@@ -41,6 +42,16 @@ val MapPosition.toBaidu: LatLng
         )
     }
 
+/**
+ * 把通用坐标列表转换为百度坐标列表
+ */
+val ArrayList<MapPosition>.toBaiduLatLngs: ArrayList<LatLng> get() = map { it.toBaidu }.toArrayList()
+
+/**
+ * 返回百度坐标列表
+ */
+val MapPositionGroup.mapPositionBaiduLatLngs: ArrayList<LatLng>
+    get() = mapPositions.toBaiduLatLngs
 
 // 字符串id在扩展信息中的key
 const val BAIDU_OVERLAY_ID_KEY = "BAIDU_OVERLAY_ID_KEY"
@@ -130,3 +141,4 @@ fun equaltBaiduLatLng(
             decimalPlaces, isRounding
         )
 }
+

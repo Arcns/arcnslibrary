@@ -14,6 +14,8 @@ import com.arcns.core.map.MapPositionGroup
 import com.arcns.core.util.bitmap
 import com.arcns.core.util.dp
 import com.arcns.core.util.keepDecimalPlaces
+import com.arcns.core.util.toArrayList
+import java.util.ArrayList
 
 
 /**
@@ -66,6 +68,17 @@ val MapPosition.toGaoDe: LatLng
             it.longitude
         )
     }
+
+/**
+ * 把通用坐标列表转换为高德坐标列表
+ */
+val ArrayList<MapPosition>.toGaoDeLatLngs: ArrayList<LatLng> get() = map { it.toGaoDe }.toArrayList()
+
+/**
+ * 返回高德坐标列表
+ */
+val MapPositionGroup.mapPositionGaoDeLatLngs: ArrayList<LatLng>
+    get() = mapPositions.toGaoDeLatLngs
 
 /**
  * 创建一个高德地图自定义图标
