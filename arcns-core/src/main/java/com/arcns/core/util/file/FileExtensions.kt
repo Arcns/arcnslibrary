@@ -205,7 +205,9 @@ fun getRandomAudioCacheFilePath(suffixName: String = ".mp3"): String =
     getRandomCacheFilePath(suffixName)
 
 fun getRandomCacheFilePath(suffixName: String): String =
-    APP.INSTANCE.cacheDir?.absoluteFile.toString() + "/" + getCurrentTimeMillisFileName(suffixName)
+    APP.INSTANCE.cacheDir?.absoluteFile.toString() + File.separator + getCurrentTimeMillisFileName(
+        suffixName
+    )
 
 fun getCurrentTimeMillisFileName(suffixName: String): String =
     System.currentTimeMillis().toString() + suffixName
@@ -214,4 +216,7 @@ fun getCurrentDateTimeFileName(
     suffixName: String,
     dateTimeFormat: String = "yyyyMMddHHmmss"
 ): String =
-    SimpleDateFormat(dateTimeFormat).format(Date(System.currentTimeMillis())) + suffixName
+    SimpleDateFormat(
+        dateTimeFormat,
+        Locale.CHINA
+    ).format(Date(System.currentTimeMillis())) + suffixName
