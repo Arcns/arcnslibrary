@@ -12,6 +12,9 @@ import com.arcns.core.APP
 import com.arcns.core.util.file.MIME_TYPE_WILDCARD
 import com.arcns.core.util.fileProviderAuthority
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 fun getMediasFromMediaStore(
@@ -263,4 +266,10 @@ fun getRandomAudioCacheFilePath(suffixName: String = ".mp3"): String =
     getRandomCacheFilePath(suffixName)
 
 fun getRandomCacheFilePath(suffixName: String): String =
-    APP.INSTANCE.cacheDir?.absoluteFile.toString() + "/" + System.currentTimeMillis() + suffixName
+    APP.INSTANCE.cacheDir?.absoluteFile.toString() + "/" + getCurrentTimeMillisFileName(suffixName)
+
+fun getCurrentTimeMillisFileName(suffixName: String): String =
+    System.currentTimeMillis().toString() + suffixName
+
+fun getCurrentDateTimeFileName(suffixName: String): String =
+    SimpleDateFormat("yyyyMMddHHmmss").format(Date(System.currentTimeMillis())) + suffixName
