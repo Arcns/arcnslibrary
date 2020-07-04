@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.arcns.core.APP
+import com.arcns.core.util.file.MIME_TYPE_WILDCARD
 import com.arcns.core.util.fileProviderAuthority
 import java.io.File
 
@@ -93,11 +94,11 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
 
 
 
-typealias PhtotoListener = (String?) -> Unit
-typealias FileUriListener = (Uri?) -> Unit
+typealias PhtotoListener = (Intent?, String?) -> Unit
+typealias FileUriListener = (Intent?, Uri?) -> Unit
 
 /**
- * 打开系统相机拍照和打开系统相册选择相片的工具类
+ * 资源库工具类（打开系统相机拍照和打开系统相册选择相片等）
  */
 class MediaUtil(var fragment: Fragment) {
 
@@ -105,25 +106,52 @@ class MediaUtil(var fragment: Fragment) {
     private val requestCodeForImageCapture: Int = 101
     private val requestCodeForPhotoAlbum: Int = 102
     private val requestCodeForVideoCapture: Int = 103
-    private val requestCodeForFileSelector: Int = 104
+    private val requestCodeForOpenFileSelector: Int = 104
+    private val requestCodeForCreateFileSelector: Int = 105
     private var phtotoListener: PhtotoListener? = null
     private var phtotoUriListener: FileUriListener? = null
     private var fileUriListener: FileUriListener? = null
 
+
     /**
-     * 打开SAF文件选择器
+     * SAF创建文件选择器
      */
-    fun onFileSelector(type: String = "*/*", fileUriListener: FileUriListener? = null) {
+    fun onCreateFileSelector(
+        fileName: String,
+        fileMimeType: String = MIME_TYPE_WILDCARD,
+        fileUriListener: FileUriListener? = null
+    ) {
+        this.fileUriListener = fileUriListener
+        // 启动一个用于选择创建文件的目录的选择器
+        var intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+        // 设置文件类型
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = fileMimeType
+        // 设置默认文件名
+        intent.putExtra(Intent.EXTRA_TITLE, fileName);
+        fragment.startActivityForResult(
+            intent,
+            requestCodeForCreateFileSelector
+        )
+    }
+
+    /**
+     * SAF打开文件选择器
+     */
+    fun onOpenFileSelector(
+        fileMimeType: String = MIME_TYPE_WILDCARD,
+        fileUriListener: FileUriListener? = null
+    ) {
         this.fileUriListener = fileUriListener
         // 启动一个展示所有匹配到的document provider的选择器
         var intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         // 设置仅可打开过滤类型的文件
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         // 设置过滤类型
-        intent.type = type
+        intent.type = fileMimeType
         fragment.startActivityForResult(
             intent,
-            requestCodeForFileSelector
+            requestCodeForOpenFileSelector
         )
     }
 
@@ -135,7 +163,7 @@ class MediaUtil(var fragment: Fragment) {
         this.phtotoListener = phtotoListener
         var context = fragment.context
         if (context == null) {
-            phtotoListener?.invoke(null)
+            phtotoListener?.invoke(null, null)
             return
         }
         val saveFileUri: Uri
@@ -166,7 +194,7 @@ class MediaUtil(var fragment: Fragment) {
         this.phtotoListener = phtotoListener
         var context = fragment.context
         if (context == null) {
-            phtotoListener?.invoke(null)
+            phtotoListener?.invoke(null, null)
             return
         }
         val saveFileUri: Uri
@@ -209,15 +237,15 @@ class MediaUtil(var fragment: Fragment) {
         }
         when (requestCode) {
             requestCodeForImageCapture, requestCodeForVideoCapture -> {
-                phtotoListener?.invoke(captureSaveFilePath)
+                phtotoListener?.invoke(data, captureSaveFilePath)
                 return true
             }
             requestCodeForPhotoAlbum -> {
-                phtotoUriListener?.invoke(data?.data)
+                phtotoUriListener?.invoke(data, data?.data)
                 return true
             }
-            requestCodeForFileSelector -> {
-                fileUriListener?.invoke(data?.data)
+            requestCodeForOpenFileSelector, requestCodeForCreateFileSelector -> {
+                fileUriListener?.invoke(data, data?.data)
             }
         }
         return false

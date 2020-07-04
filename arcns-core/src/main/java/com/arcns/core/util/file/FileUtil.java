@@ -3,6 +3,7 @@ package com.arcns.core.util.file;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -176,8 +177,8 @@ public class FileUtil {
     /**
      * 写入内容
      */
-    public static String writerContent(String content, String toFileDir, String toFileName) {
-        if (isEmptyOrBlank(toFileDir) || isEmptyOrBlank(toFileName)) {
+    public static String writerContent(String toFileDir, String toFileName, WriterProcess<BufferedWriter> writerProcess) {
+        if (isEmptyOrBlank(toFileDir) || isEmptyOrBlank(toFileName) || writerProcess == null) {
             return null;
         }
         // 判断目标目录是否存在
@@ -188,7 +189,7 @@ public class FileUtil {
         BufferedWriter bufferedWriter = null;
         try {
             bufferedWriter = new BufferedWriter(new FileWriter(toFilePath));
-            bufferedWriter.write(content);
+            writerProcess.onWriter(bufferedWriter);
             return toFilePath;
         } catch (IOException e) {
             e.printStackTrace();
@@ -202,6 +203,55 @@ public class FileUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * 写入内容
+     */
+    public static Boolean writerContent(Context context, byte[] content, Uri toFileUri) {
+        return writerContent(context, toFileUri, writer -> writer.write(content));
+    }
+
+    /**
+     * 写入内容
+     */
+    public static Boolean writerContent(Context context, Uri toFileUri, WriterProcess<FileOutputStream> writerProcess) {
+        if (toFileUri == null || writerProcess == null) {
+            return null;
+        }
+        ParcelFileDescriptor parcelFileDescriptor = null;
+        FileOutputStream fileOutputStream = null;
+        try {
+            parcelFileDescriptor = context.getContentResolver().openFileDescriptor(toFileUri, "w");
+            fileOutputStream = new FileOutputStream(parcelFileDescriptor.getFileDescriptor());
+            writerProcess.onWriter(fileOutputStream);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (parcelFileDescriptor != null) {
+                try {
+                    parcelFileDescriptor.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 写入内容
+     */
+    public static String writerContent(String content, String toFileDir, String toFileName) {
+        return writerContent(toFileDir, toFileName, writer -> writer.write(content));
     }
 
     /**
@@ -595,5 +645,13 @@ public class FileUtil {
 
     public interface ProgressListener {
         void update(int progress);
+    }
+
+    /**
+     * 写入处理接口
+     * 请在onWriterProcess中写入
+     */
+    public interface WriterProcess<T> {
+        public void onWriter(T writer) throws IOException;
     }
 }

@@ -1,5 +1,9 @@
 package com.arcns.core.util.file
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import com.arcns.core.APP
 import java.io.File
 import java.util.*
 
@@ -32,6 +36,7 @@ const val MIME_TYPE_APPLICATION_M3U8 = "application/x-mpegURL"
 // text
 const val MIME_TYPE_TEXT_PLAIN = "text/plain"
 const val MIME_TYPE_TEXT_HTML = "text/html"
+const val MIME_TYPE_TEXT_XML = "text/xml"
 
 // image
 const val MIME_TYPE_IMAGE_WILDCARD = "image/*"
@@ -114,7 +119,8 @@ val String.mimeType: String
         ".m3u8" -> MIME_TYPE_APPLICATION_M3U8
         // text
         ".c", ".conf", ".cpp", ".h", ".prop", ".rc", ".sh", ".txt", ".log" -> MIME_TYPE_TEXT_PLAIN
-        ".htm", ".html", ".xml" -> MIME_TYPE_TEXT_HTML
+        ".htm", ".html" -> MIME_TYPE_TEXT_HTML
+        ".xml" -> MIME_TYPE_TEXT_XML
         ".java" -> MIME_TYPE_TEXT_PLAIN
         // image
         ".jpeg", ".jpg" -> MIME_TYPE_IMAGE_JPEG
@@ -169,3 +175,21 @@ val String.mimeType: String
         //
         else -> MIME_TYPE_WILDCARD
     }
+
+/**
+ * 获取URI永久权限modeFlags（如果没有获取该权限，则设备重启后Uri将自动失效）
+ */
+fun Uri.takePersistableUriPermission(dataIntent: Intent) =
+    takePersistableUriPermission(dataIntent.flags)
+
+/**
+ * 获取URI永久权限（如果没有获取该权限，则设备重启后Uri将自动失效）
+ */
+fun Uri.takePersistableUriPermission(modeFlags: Int) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        APP.INSTANCE.contentResolver.takePersistableUriPermission(
+            this,
+            modeFlags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        )
+    }
+}
