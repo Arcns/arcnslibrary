@@ -6,6 +6,7 @@ import com.arcns.core.APP
 import com.arcns.core.R
 import com.arcns.core.util.Event
 import com.arcns.core.util.file.FileUtil
+import com.arcns.core.util.file.getRandomCacheFilePath
 import com.arcns.core.util.saveImageAsLocal
 import com.arcns.core.util.string
 import kotlinx.coroutines.*

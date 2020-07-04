@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import com.arcns.core.APP
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
 const val MIME_TYPE_PREFIX_IMAGE = "image/"
@@ -193,3 +194,24 @@ fun Uri.takePersistableUriPermission(modeFlags: Int) {
         )
     }
 }
+
+fun getRandomPhotoCacheFilePath(suffixName: String = ".jpg"): String =
+    getRandomCacheFilePath(suffixName)
+
+fun getRandomVideoCacheFilePath(suffixName: String = ".mp4"): String =
+    getRandomCacheFilePath(suffixName)
+
+fun getRandomAudioCacheFilePath(suffixName: String = ".mp3"): String =
+    getRandomCacheFilePath(suffixName)
+
+fun getRandomCacheFilePath(suffixName: String): String =
+    APP.INSTANCE.cacheDir?.absoluteFile.toString() + "/" + getCurrentTimeMillisFileName(suffixName)
+
+fun getCurrentTimeMillisFileName(suffixName: String): String =
+    System.currentTimeMillis().toString() + suffixName
+
+fun getCurrentDateTimeFileName(
+    suffixName: String,
+    dateTimeFormat: String = "yyyyMMddHHmmss"
+): String =
+    SimpleDateFormat(dateTimeFormat).format(Date(System.currentTimeMillis())) + suffixName
