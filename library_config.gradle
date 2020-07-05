@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
 group = 'com.github.Arcns'
+// 引入jcenter仓库
+//apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion versions.compile_sdk
@@ -49,3 +51,13 @@ android {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 }
+
+// jcenter仓库配置
+//publish {
+//    userOrg = 'xinyangzaikongzhongpiaoyang' //bintray注册的用户名（不是邮箱）
+//    groupId = module_group
+//    artifactId = module_name //项目名称
+//    publishVersion = versions.publish_name //版本号
+//    desc = 'https://github.com/Arcns/arcnslibrary' //项目描述。可空。
+//    website = 'https://github.com/Arcns/arcnslibrary' //项目地址，通常填github地址。可空。
+//}

@@ -15,12 +15,14 @@ buildscript {
 
     }
     dependencies {
-        classpath deps.gradle_plugins.android
+        classpath 'com.android.tools.build:gradle:4.0.0'
         classpath deps.gradle_plugins.kotlin
         // 引入navigation插件库
         classpath deps.gradle_plugins.nav_args
         // 引入仓库插件 需运行gradle wrapper和gradlew install
         classpath deps.gradle_plugins.maven
+        // 引入jcenter仓库插件（另外还需在各个moudle的build.gradle中添加apply plugin: 'com.novoda.bintray-release'和publish配置）
+//        classpath 'com.novoda:bintray-release:0.9.2'
     }
 }
 

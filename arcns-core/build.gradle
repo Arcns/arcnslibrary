@@ -1,3 +1,6 @@
+//ext.module_group = "com.github.Arcns.arcnslibrary"
+////ext.module_name = "arcns-core"
+
 apply from: rootProject.file("library_config.gradle")
 
 dependencies {
