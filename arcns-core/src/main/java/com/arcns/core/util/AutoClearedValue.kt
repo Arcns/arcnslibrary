@@ -62,7 +62,7 @@ class ActivityAutoClearedValue<T : Any?>(
     val onCreateCallback: (() -> T?)? = null,
     val onClearCallback: ((value: T?) -> Unit)? = null
 ) :
-    ReadWriteProperty<ComponentActivity, T> {
+    ReadWriteProperty<ComponentActivity, T?> {
     private var _value: T? = null
 
     init {
@@ -82,13 +82,11 @@ class ActivityAutoClearedValue<T : Any?>(
         })
     }
 
-    override fun getValue(thisRef: ComponentActivity, property: KProperty<*>): T {
-        return _value ?: throw IllegalStateException(
-            "should never call auto-cleared-value get when it might not be available"
-        )
+    override fun getValue(thisRef: ComponentActivity, property: KProperty<*>): T? {
+        return _value
     }
 
-    override fun setValue(thisRef: ComponentActivity, property: KProperty<*>, value: T) {
+    override fun setValue(thisRef: ComponentActivity, property: KProperty<*>, value: T?) {
         _value = value
     }
 }
