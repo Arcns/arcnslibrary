@@ -42,6 +42,18 @@ class MapTrackRecorder {
     var eventTrackDataUpdate: LiveData<Event<Unit>> = _eventTrackDataUpdate
 
     /**
+     * 过滤器是否开启
+     */
+    var filterEnabled: Boolean = true
+
+    /**
+     * 轨迹过滤器（返回false表示过滤不添加，返回true表示不过滤）
+     */
+    var onFilter: (MapPosition) -> Boolean = {
+        !(it.latitude == 0.0 && it.longitude == 0.0)
+    }
+
+    /**
      * 添加轨迹坐标
      */
     fun addTrackPosiition(position: MapPosition) {
@@ -60,6 +72,10 @@ class MapTrackRecorder {
                 }
                 LOG("添加坐标距离：" + last.distanceBetween(position))
             }
+        }
+        // 过滤
+        if (filterEnabled && !onFilter.invoke(position)) {
+            return
         }
         LOG("添加坐标：" + position.latitude + "  " + position.latitude)
         trackData.addMapPosition(position)
