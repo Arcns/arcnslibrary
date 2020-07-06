@@ -16,7 +16,7 @@ class AutoClearedValue<T : Any?>(
     val onCreateCallback: (() -> T?)? = null,
     val onClearCallback: ((value: T?) -> Unit)? = null
 ) :
-    ReadWriteProperty<Fragment, T> {
+    ReadWriteProperty<Fragment, T?> {
     private var _value: T? = null
 
     init {
@@ -43,13 +43,11 @@ class AutoClearedValue<T : Any?>(
         })
     }
 
-    override fun getValue(thisRef: Fragment, property: KProperty<*>): T {
-        return _value ?: throw IllegalStateException(
-            "should never call auto-cleared-value get when it might not be available"
-        )
+    override fun getValue(thisRef: Fragment, property: KProperty<*>): T? {
+        return _value
     }
 
-    override fun setValue(thisRef: Fragment, property: KProperty<*>, value: T) {
+    override fun setValue(thisRef: Fragment, property: KProperty<*>, value: T?) {
         _value = value
     }
 }
