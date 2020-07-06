@@ -30,6 +30,25 @@ class MapPositionGroup {
     var applyCustomOptions: ApplyCustomOptions? = null
 
     /**
+     * 根据ExtraData查找地图点
+     */
+    fun <T> findMapPositionByExtraData(
+        extraData: T,
+        onContrast: ((T, T?) -> Boolean)? = null
+    ): MapPosition? {
+        mapPositions.forEach {
+            if (onContrast != null) {
+                if (onContrast(extraData, it.extraData as? T)) {
+                    return it
+                }
+            } else if (it.extraData == extraData) {
+                return it
+            }
+        }
+        return null
+    }
+
+    /**
      * 根据id查找地图点
      */
     fun findMapPositionByID(id: String): MapPosition? {
