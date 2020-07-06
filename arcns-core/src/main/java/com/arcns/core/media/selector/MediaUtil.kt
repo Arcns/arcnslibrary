@@ -14,8 +14,6 @@ import com.arcns.core.util.file.getRandomPhotoCacheFilePath
 import com.arcns.core.util.file.getRandomVideoCacheFilePath
 import com.arcns.core.util.fileProviderAuthority
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.collections.ArrayList
 
 
@@ -99,8 +97,8 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
 
 
 
-typealias PhtotoListener = (Intent?, String?) -> Unit
-typealias FileUriListener = (Intent?, Uri?) -> Unit
+typealias PhtotoListener = (Intent?, String?, Int?) -> Unit
+typealias FileUriListener = (Intent?, Uri?, Int?) -> Unit
 
 /**
  * 资源库工具类（打开系统相机拍照和打开系统相册选择相片等）
@@ -114,8 +112,9 @@ class MediaUtil(var fragment: Fragment) {
     private val requestCodeForOpenFileSelector: Int = 104
     private val requestCodeForCreateFileSelector: Int = 105
     private var phtotoListener: PhtotoListener? = null
-    private var phtotoUriListener: FileUriListener? = null
+    private var photoUriListener: FileUriListener? = null
     private var fileUriListener: FileUriListener? = null
+    private var listeneRequestCode: Int? = null
 
 
     /**
@@ -124,8 +123,10 @@ class MediaUtil(var fragment: Fragment) {
     fun onCreateFileSelector(
         fileName: String,
         fileMimeType: String = MIME_TYPE_WILDCARD,
+        resultCode: Int? = null,
         fileUriListener: FileUriListener? = null
     ) {
+        this.listeneRequestCode = resultCode
         this.fileUriListener = fileUriListener
         // 启动一个用于选择创建文件的目录的选择器
         var intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
@@ -145,8 +146,10 @@ class MediaUtil(var fragment: Fragment) {
      */
     fun onOpenFileSelector(
         fileMimeType: String = MIME_TYPE_WILDCARD,
+        resultCode: Int? = null,
         fileUriListener: FileUriListener? = null
     ) {
+        this.listeneRequestCode = resultCode
         this.fileUriListener = fileUriListener
         // 启动一个展示所有匹配到的document provider的选择器
         var intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
@@ -163,12 +166,14 @@ class MediaUtil(var fragment: Fragment) {
     /**
      * 打开系统相机拍照
      */
-    fun onImageCapture(phtotoListener: PhtotoListener? = null) {
+    fun onImageCapture(resultCode: Int? = null, phtotoListener: PhtotoListener? = null) {
         this.captureSaveFilePath = null
+        this.listeneRequestCode = resultCode
         this.phtotoListener = phtotoListener
         var context = fragment.context
         if (context == null) {
-            phtotoListener?.invoke(null, null)
+            phtotoListener?.invoke(null, null, listeneRequestCode)
+            this.phtotoListener = null
             return
         }
         val saveFileUri: Uri
@@ -194,12 +199,14 @@ class MediaUtil(var fragment: Fragment) {
     /**
      * 打开系统相机录制视频
      */
-    fun onVideoCapture(phtotoListener: PhtotoListener? = null) {
+    fun onVideoCapture(resultCode: Int? = null, phtotoListener: PhtotoListener? = null) {
         this.captureSaveFilePath = null
+        this.listeneRequestCode = resultCode
         this.phtotoListener = phtotoListener
         var context = fragment.context
         if (context == null) {
-            phtotoListener?.invoke(null, null)
+            phtotoListener?.invoke(null, null, listeneRequestCode)
+            this.phtotoListener = null
             return
         }
         val saveFileUri: Uri
@@ -225,9 +232,10 @@ class MediaUtil(var fragment: Fragment) {
     /**
      * 打开系统相册选择相片
      */
-    fun onPhotoAlbum(phtotoUriListener: FileUriListener? = null) {
+    fun onPhotoAlbum(resultCode: Int? = null, phtotoUriListener: FileUriListener? = null) {
         this.captureSaveFilePath = null
-        this.phtotoUriListener = phtotoUriListener
+        this.listeneRequestCode = resultCode
+        this.photoUriListener = phtotoUriListener
         fragment.startActivityForResult(Intent(Intent.ACTION_PICK).apply {
             type = "image/*"
         }, requestCodeForPhotoAlbum);
@@ -242,15 +250,18 @@ class MediaUtil(var fragment: Fragment) {
         }
         when (requestCode) {
             requestCodeForImageCapture, requestCodeForVideoCapture -> {
-                phtotoListener?.invoke(data, captureSaveFilePath)
+                phtotoListener?.invoke(data, captureSaveFilePath, listeneRequestCode)
+                phtotoListener = null
                 return true
             }
             requestCodeForPhotoAlbum -> {
-                phtotoUriListener?.invoke(data, data?.data)
+                photoUriListener?.invoke(data, data?.data, listeneRequestCode)
+                photoUriListener = null
                 return true
             }
             requestCodeForOpenFileSelector, requestCodeForCreateFileSelector -> {
-                fileUriListener?.invoke(data, data?.data)
+                fileUriListener?.invoke(data, data?.data, listeneRequestCode)
+                fileUriListener = null
             }
         }
         return false
