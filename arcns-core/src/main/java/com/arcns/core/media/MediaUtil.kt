@@ -1,4 +1,4 @@
-package com.arcns.core.media.selector
+package com.arcns.core.media
 
 import android.app.Activity
 import android.content.ContentUris
@@ -12,6 +12,8 @@ import com.arcns.core.APP
 import com.arcns.core.file.MIME_TYPE_WILDCARD
 import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.getRandomVideoCacheFilePath
+import com.arcns.core.media.selector.EMedia
+import com.arcns.core.media.selector.EMediaQuery
 import com.arcns.core.util.fileProviderAuthority
 import java.io.File
 import kotlin.collections.ArrayList
@@ -19,7 +21,7 @@ import kotlin.collections.ArrayList
 
 fun getMediasFromMediaStore(
     vararg mediaQuerys: EMediaQuery = arrayOf(
-        com.arcns.core.media.selector.EMediaQuery(
+        EMediaQuery(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
     )
