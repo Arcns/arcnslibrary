@@ -10,12 +10,16 @@ import android.os.IBinder
 import android.widget.Toast
 import androidx.core.content.edit
 import com.arcns.core.APP
+import com.arcns.core.file.mimeType
 import com.google.gson.Gson
 import org.greenrobot.eventbus.EventBus
 import java.io.Serializable
 
 val DOWNLOAD_SAVE_NAME_SUFFIX_APK = ".apk"
 
+/**
+ * 下载任务类
+ */
 data class DownloadTask(
     // 下载地址
     val downloadUrl: String,
@@ -40,6 +44,9 @@ data class DownloadTask(
     var downloadStatus: Int? = null
 }
 
+/**
+ * 下载工具类
+ */
 class DownloadUtil(var context: Context) {
 
     private var downloadTasks = HashMap<String, DownloadTask>()
@@ -66,6 +73,7 @@ class DownloadUtil(var context: Context) {
             )
         var ids: HashMap<String, Double>? = Gson().tryFromJson(value)
         ids?.forEach {
+            // 把仍然正在进行中的下载任务添加到缓存列表中
             if (checkDownloadTaskHasExistsByID(it.value.toLong())) {
                 cachedDownloadIDs[it.key] = it.value.toLong()
             }
@@ -145,30 +153,10 @@ class DownloadUtil(var context: Context) {
     fun startDownloadTask(
         downloadTask: DownloadTask
     ) {
-        // 安卓Q疑似与downloadManager存在bug，暂时调用浏览器直接下载
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            openBrowserDownloadApk(downloadApkUrl)
-//            return
-//        }
-
-
         // 防止重复提交下载任务
         if (!downloadTask.isAllowDuplicate && checkDownloadTaskHasExistsByUrl(downloadTask.downloadUrl)) {
             return
         }
-//        var existing = run checkAllowDuplicate@{
-//            if (!downloadTask.isAllowDuplicate) {
-//                var state = getDownloadTaskStatusByUrl(downloadTask.downloadUrl)
-//                when (state) {
-//                    DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING -> return@checkAllowDuplicate true
-//                }
-//            }
-//            return@checkAllowDuplicate false
-//        }
-//        if (existing) {
-//            return
-//        }
-
         // 添加到下载任务列表
         downloadTasks[downloadTask.downloadUrl] = downloadTask
 
@@ -300,7 +288,7 @@ class DownloadUtil(var context: Context) {
      */
     fun onInstallApk(context: Context?, apkUri: Uri) {
         var intent = Intent(Intent.ACTION_VIEW);
-        val type = "application/vnd.android.package-archive"
+        val type = DOWNLOAD_SAVE_NAME_SUFFIX_APK.mimeType
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             // android N以上在设置安装Uri时必须获取Uri权限，否则无法正常安装
 //        var apkUri = FileProvider.getUriForFile(context, getFileProviderAuthority(context), apkFile)

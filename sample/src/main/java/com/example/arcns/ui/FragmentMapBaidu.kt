@@ -12,7 +12,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.arcns.core.APP
+import com.arcns.core.app.ForegroundServiceBinder
+import com.arcns.core.app.ForegroundServiceConnection
+import com.arcns.core.map.MapLocator
 import com.arcns.core.map.MapPositionGroup
+import com.arcns.core.map.startMapLocatorService
 import com.arcns.core.util.*
 import com.arcns.map.baidu.BaiduMapViewManager
 import com.arcns.map.baidu.toMapPosition
@@ -64,6 +68,25 @@ class FragmentMapBaidu : Fragment() {
         setActionBarAsToolbar(toolbar)
         setupResult()
         setupMap()
+//
+//        startMapLocatorService(
+//            serviceConnection = object : ForegroundServiceConnection<MapLocator>() {
+//                override fun onServiceConnected(
+//                    binder: ForegroundServiceBinder<MapLocator>,
+//                    serviceContent: MapLocator?
+//                ) {
+////                    serviceContent?.addTrackRecorder(viewModel.mapTrackRecorder)
+////                    serviceContent?.start()
+//
+////                    Handler().postDelayed({
+////
+////                        binder.stopService(serviceConnection = this)
+////
+////                        LOG("ForegroundService stop")
+////                    }, 5000)
+//                }
+//            }
+//        )
     }
 
     var mapTypeSelectionIndex = 0
@@ -294,7 +317,7 @@ class FragmentMapBaidu : Fragment() {
         if (districtSearch == null) {
             districtSearch = DistrictSearch.newInstance()
             districtSearch?.setOnDistrictSearchListener { districtResult ->
-                if (districtResult == null || districtResult?.error != SearchResult.ERRORNO.NO_ERROR ) {
+                if (districtResult == null || districtResult?.error != SearchResult.ERRORNO.NO_ERROR) {
                     return@setOnDistrictSearchListener
                 }
                 viewModel.viewModelScope.async(Dispatchers.IO) {

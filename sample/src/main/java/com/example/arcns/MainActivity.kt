@@ -5,6 +5,7 @@ import android.content.*
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
+import com.arcns.core.APP
 import com.arcns.core.app.*
 import com.arcns.core.map.*
 import com.arcns.core.util.*
@@ -74,22 +76,44 @@ class MainActivity : AppCompatActivity() {
         setMapLocatorServiceDefaultOptions(
             ForegroundServiceOptions(
                 onCreateServiceContent = {
-                    GaodeMapLocator(it)
+                    GaodeMapLocator(it).apply {
+                        addTrackRecorder(viewModel.mapTrackRecorder)
+                        start()
+                    }
                 },
-                notificationOptions = NotificationOptions(
+                notificationOptions = ForegroundServiceNotificationOptions(
                     smallIcon = R.mipmap.ic_launcher
-                )
+                ),
+                onDestroyServiceContent = {
+                    LOG("ForegroundService Service Content onDestroy")
+                    it?.onDestroy()
+                }
             )
         )
         startMapLocatorService(
-            this,
-            object : ForegroundServiceConnection<MapLocator>() {
+            serviceConnection = object : ForegroundServiceConnection<MapLocator>() {
                 override fun onServiceConnected(
                     binder: ForegroundServiceBinder<MapLocator>,
                     serviceContent: MapLocator?
                 ) {
-                    serviceContent?.addTrackRecorder(viewModel.mapTrackRecorder)
-                    serviceContent?.start()
+                    LOG("ForegroundService onServiceConnected")
+//                    serviceContent?.addTrackRecorder(viewModel.mapTrackRecorder)
+//                    serviceContent?.start()
+                    Handler().postDelayed({
+
+//                        binder.service.updateNotification {
+//                            it.setProgress(100, 50, false)
+//                            it.setContentText("test")
+//                        }
+
+                        LOG("ForegroundService stopService")
+                    }, 5000)
+                    Handler().postDelayed({
+
+                        binder.stopService()
+
+                        LOG("ForegroundService stopService")
+                    }, 15000)
                 }
             }
         )

@@ -6,6 +6,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import com.arcns.core.app.ForegroundServiceBinder
+import com.arcns.core.app.ForegroundServiceConnection
+import com.arcns.core.map.MapLocator
+import com.arcns.core.map.startMapLocatorService
 import com.arcns.core.util.setActionBarAsToolbar
 import com.arcns.core.util.EventObserver
 import com.arcns.core.util.autoCleared

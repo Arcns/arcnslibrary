@@ -11,8 +11,12 @@ import android.os.Build
  */
 class WakeAppReceiver : BroadcastReceiver() {
     companion object {
-        const val ACTION = "com.arcns.core.app.WakeAppReceiver"
-        const val KEY_WAKE_APP_PACKAGE_NAME = "KEY_WAKE_APP_PACKAGE_NAME"
+        private const val ACTION = "com.arcns.core.app.WakeAppReceiver"
+        private const val KEY_WAKE_APP_PACKAGE_NAME = "KEY_WAKE_APP_PACKAGE_NAME"
+
+        /**
+         * 创建唤醒广播意图
+         */
         fun newIntent(context: Context, packageName: String = context.packageName): Intent = Intent(
             // 明确Receiver，否则在安卓10及以上无法接收到广播
             context, WakeAppReceiver::class.java
@@ -32,6 +36,7 @@ class WakeAppReceiver : BroadcastReceiver() {
  */
 fun Context.wakeApp(packageName: String): Boolean {
     val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+    // 尝试通过任务列表唤醒
     if (this.packageName.equals(packageName, true)) {
         activityManager?.getRunningTasks(100)?.forEach {
             if (it.topActivity?.packageName?.equals(packageName) == true) {
@@ -43,6 +48,7 @@ fun Context.wakeApp(packageName: String): Boolean {
             }
         }
     }
+    // 无法通过任务列表唤醒时，通过打开包对应app进行唤醒
     packageManager.getLaunchIntentForPackage(packageName)?.run {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(this)

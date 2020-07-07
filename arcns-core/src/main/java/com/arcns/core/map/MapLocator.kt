@@ -1,17 +1,14 @@
 package com.arcns.core.map
 
-import android.app.Service
 import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.os.Binder
-import android.os.IBinder
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
+import com.arcns.core.APP
 import com.arcns.core.R
 import com.arcns.core.app.ForegroundService
+import com.arcns.core.app.ForegroundServiceBinder
 import com.arcns.core.app.ForegroundServiceConnection
 import com.arcns.core.app.ForegroundServiceOptions
 import com.arcns.core.util.string
@@ -127,14 +124,14 @@ abstract class MapLocator(
 /**
  * 设置地图定位器前台服务默认设置
  */
-fun setMapLocatorServiceDefaultOptions(options: ForegroundServiceOptions<MapLocator>) =
+fun <T : MapLocator> setMapLocatorServiceDefaultOptions(options: ForegroundServiceOptions<T>) =
     ForegroundService.setDefaultOptions(MapLocator::class, options.apply {
         if (onDestroyServiceContent == null) {
             onDestroyServiceContent = {
                 it?.onDestroy()
             }
         }
-        if (notificationOptions != null && notificationOptions?.channelName.equals(R.string.text_notification_default_channel_name.string)) {
+        if (notificationOptions != null && notificationOptions?.channelName.equals(R.string.text_foreground_service_notification_default_channel_name.string)) {
             notificationOptions?.channelName =
                 R.string.text_map_locator_service_notification_channel_name.string
         }
@@ -144,9 +141,8 @@ fun setMapLocatorServiceDefaultOptions(options: ForegroundServiceOptions<MapLoca
  * 开启地图定位器前台服务
  */
 fun startMapLocatorService(
-    context: Context?,
     serviceConnection: ForegroundServiceConnection<MapLocator>? = null,
     options: ForegroundServiceOptions<MapLocator>? = ForegroundService.getDefaultOptions(
         MapLocator::class
     )
-) = ForegroundService.startService(context, serviceConnection, options)
+) = ForegroundService.startService(serviceConnection, options)
