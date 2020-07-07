@@ -1,12 +1,10 @@
-package com.arcns.core.util.file;
+package com.arcns.core.file;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -512,20 +510,21 @@ public class FileUtil {
     }
 
     /**
-     * 返回Uri的对应文件信息（名称、类型）
+     * 返回Uri的对应文件信息（名称、类型，文件大小）
      */
     public static String[] getFileInfoWithUri(Context context, Uri uri) {
-        Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.MIME_TYPE}, null, null, null);
+        Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.MIME_TYPE, MediaStore.Files.FileColumns.SIZE}, null, null, null);
         if (cursor == null) {
             return null;
         }
         if (cursor.moveToFirst()) {
             String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME));
             String mimeType = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE));
+            String fileSize = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE));
             if (!cursor.isClosed()) {
                 cursor.close();
             }
-            String[] info = {fileName, mimeType};
+            String[] info = {fileName, mimeType, fileSize};
             return info;
         }
         return null;
@@ -540,6 +539,21 @@ public class FileUtil {
             return null;
         }
         return getFileSuffix(info[0]);
+    }
+
+    /**
+     * 返回Uri的对应文件大小
+     */
+    public static Long getFileSizeWithUri(Context context, Uri uri) {
+        String[] info = getFileInfoWithUri(context, uri);
+        if (info == null || info.length < 3) {
+            return null;
+        }
+        try {
+            return Long.parseLong(info[2]);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

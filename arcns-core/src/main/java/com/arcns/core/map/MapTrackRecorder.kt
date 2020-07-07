@@ -47,7 +47,7 @@ class MapTrackRecorder {
     var filterEnabled: Boolean = true
 
     /**
-     * 轨迹过滤器（返回false表示过滤不添加，返回true表示不过滤）
+     * 轨迹过滤器（返回false表示过滤掉不添加，返回true表示不过滤）
      */
     var onFilter: (MapPosition) -> Boolean = {
         !(it.latitude == 0.0 && it.longitude == 0.0)

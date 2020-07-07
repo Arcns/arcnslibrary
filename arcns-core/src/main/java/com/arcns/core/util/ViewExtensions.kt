@@ -44,7 +44,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.Companion.DEFAULT_BEHAVIOR
 import com.arcns.core.APP
 import com.arcns.core.R
-import com.arcns.core.util.file.mimeType
+import com.arcns.core.file.mimeType
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DecodeFormat

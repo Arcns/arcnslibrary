@@ -1,4 +1,4 @@
-package com.arcns.core.util.file
+package com.arcns.core.file
 
 import android.content.Intent
 import android.net.Uri

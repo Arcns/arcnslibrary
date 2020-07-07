@@ -1,6 +1,5 @@
 package com.example.arcns.ui
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,7 +14,6 @@ import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.arcns.core.APP
 import com.arcns.core.map.MapPositionGroup
 import com.arcns.core.util.*
-import com.arcns.core.util.file.FileUtil
 import com.arcns.map.baidu.BaiduMapViewManager
 import com.arcns.map.baidu.toMapPosition
 import com.baidu.mapapi.SDKInitializer
@@ -35,7 +33,6 @@ import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelMap
 import kotlinx.android.synthetic.main.fragment_map_baidu.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.async
 
 

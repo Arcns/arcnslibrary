@@ -1,4 +1,4 @@
-package com.arcns.core.util.file;
+package com.arcns.core.file;
 
 /**
  * 文件真实类型枚举

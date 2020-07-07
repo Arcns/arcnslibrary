@@ -16,7 +16,6 @@ import androidx.navigation.findNavController
 import com.arcns.core.app.*
 import com.arcns.core.map.*
 import com.arcns.core.util.*
-import com.arcns.core.util.file.FileUtil
 import com.arcns.map.gaode.GaodeMapLocator
 import com.example.arcns.databinding.ActivityMainBinding
 import com.example.arcns.event.EventMainActivity
