@@ -25,9 +25,3 @@
     implementation 'com.afollestad.material-dialogs:datetime:3.3.0'
     implementation 'com.afollestad.material-dialogs:bottomsheets:3.3.0'
 ```
-
-####  录音和播放相关的工具在本library为仅编译（compileOnly），所以如果需要用到录音和播放相关的工具，需要在主项目的build.gradle中添加：
-```
-    // 录音和播放
-    implementation 'com.github.CarGuo:GSYRecordWave:2.0.1'
-```
