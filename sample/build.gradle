@@ -134,6 +134,7 @@ dependencies {
     implementation project(path: ':arcns-core')
     implementation project(path: ':arcns-map-gaode')
     implementation project(path: ':arcns-map-baidu')
+    implementation project(path: ':arcns-media-audio')
 
 
 //    implementation 'com.github.Arcns.arcnslibrary:arcns-core:0.1.19-10'

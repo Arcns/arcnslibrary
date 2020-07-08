@@ -15,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.arcns.core.util.*
+import com.arcns.media.audio.MediaAudioRecorderPlayerUtil
 import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.runtime.Permission
 import com.example.arcns.MainActivity
@@ -35,6 +36,7 @@ class FragmentMain : Fragment() {
     private var binding by autoCleared<FragmentMainBinding>()
     private val viewModel by viewModels<ViewModelMain>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
+    private lateinit var audioRecorderPlayerUtil: MediaAudioRecorderPlayerUtil
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,6 +69,7 @@ class FragmentMain : Fragment() {
     }
 
     private fun setupResult() {
+        audioRecorderPlayerUtil = MediaAudioRecorderPlayerUtil(activity = activity!!)
         viewModel.toast.observe(this, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
@@ -92,6 +95,23 @@ class FragmentMain : Fragment() {
         }
         btnGoMapBaidu.setOnClickListener {
             findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentMapBaidu())
+        }
+        btnAudioTest.setOnClickListener {
+            AndPermission.with(this)
+                .runtime()
+                .permission(Permission.RECORD_AUDIO)
+                .onGranted {
+                    audioRecorderPlayerUtil.openRecorder(
+                        isDefaultAutoRecorder = true,
+                        completed = EventObserver {
+                        })
+                }.onDenied {
+                    Toast.makeText(
+                        context,
+                        "录音功能需要使用麦克风权限，请您允许应用使用相应权限",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }.start()
         }
     }
 

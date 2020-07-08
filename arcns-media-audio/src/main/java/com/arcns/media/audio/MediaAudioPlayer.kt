@@ -1,4 +1,4 @@
-package com.arcns.core.media.audio
+package com.arcns.media.audio
 
 import android.content.Context
 import android.media.AudioManager

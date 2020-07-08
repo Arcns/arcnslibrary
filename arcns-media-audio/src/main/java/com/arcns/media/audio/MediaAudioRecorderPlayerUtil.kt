@@ -1,4 +1,4 @@
-package com.arcns.core.media.audio
+package com.arcns.media.audio
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -12,9 +12,9 @@ import androidx.lifecycle.*
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.arcns.core.R
-import com.arcns.core.databinding.MediaAudioRecorderPlayerLayoutDefaultBinding
 import com.arcns.core.util.EventObserver
 import com.arcns.core.util.showDialog
+import com.arcns.media.audio.databinding.MediaAudioRecorderPlayerLayoutDefaultBinding
 
 
 class MediaAudioRecorderPlayerUtil {

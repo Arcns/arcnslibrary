@@ -7,11 +7,11 @@
 
         <import type="android.view.View" />
 
-        <import type="com.arcns.core.media.audio.MediaAudioPlayerState" />
+        <import type="com.arcns.media.audio.MediaAudioPlayerState" />
 
         <variable
             name="viewModel"
-            type="com.arcns.core.media.audio.MediaAudioRecorderPlayerViewModel" />
+            type="com.arcns.media.audio.MediaAudioRecorderPlayerViewModel" />
 
     </data>
 

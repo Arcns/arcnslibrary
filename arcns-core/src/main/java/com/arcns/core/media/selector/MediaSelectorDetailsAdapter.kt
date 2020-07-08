@@ -1,27 +1,19 @@
 package com.arcns.core.media.selector
 
-import android.app.Activity
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.BindingAdapter
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.afollestad.materialdialogs.callbacks.onDismiss
-import com.afollestad.materialdialogs.callbacks.onShow
-import com.afollestad.materialdialogs.customview.customView
 import com.arcns.core.APP
-import com.arcns.core.databinding.MediaAudioRecorderPlayerLayoutDefaultBinding
 import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemDetailsBinding
 import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemDetailsNoPreviewBinding
-import com.arcns.core.media.audio.MediaAudioRecorderPlayerViewModel
-import com.arcns.core.util.*
+import com.arcns.core.util.openAppByPath
+import com.arcns.core.util.openAppByUri
 
 
 class MediaSelectorDetailsAdapter(val viewModel: MediaSelectorViewModel) :

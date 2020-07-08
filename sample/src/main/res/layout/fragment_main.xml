@@ -72,7 +72,15 @@
             android:text="百度地图"
             app:layout_constraintTop_toBottomOf="@id/btnGoMapGaode" />
 
-<!--        <TextView-->
+        <Button
+            android:id="@+id/btnAudioTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="录音器测试"
+            app:layout_constraintTop_toBottomOf="@id/btnGoMapBaidu" />
+
+
+        <!--        <TextView-->
 <!--            app:layout_constraintTop_toBottomOf="@id/btnGoMapBaidu"-->
 <!--            customDrawableLeft="@{@drawable/ic_my_location}"-->
 <!--            customDrawableRight="@{@drawable/ic_my_location}"-->
