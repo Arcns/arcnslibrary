@@ -160,16 +160,16 @@ val DEFAULT_DAPTIVE_MAP_UNITS = arrayOf("m", "km")
  */
 fun Double.adaptiveMapUnit(
     units: Array<String> = DEFAULT_DAPTIVE_MAP_UNITS,
-    decimalScale: Int = 2,
+    decimalPlaces: Int = 2,
     isRounding: Boolean = true
 ) =
-    adaptiveMapUnitValue(decimalScale, isRounding).toString() + adaptiveMapUnitName(units)
+    adaptiveMapUnitValue(decimalPlaces, isRounding).toString() + adaptiveMapUnitName(units)
 
 /**
  * 转换为自适应单位后的值（输入单位为米）
  */
-fun Double.adaptiveMapUnitValue(decimalScale: Int = 2, isRounding: Boolean = true) =
-    if (abs(this) >= 1000) (this / 1000).keepDecimalPlaces(decimalScale, isRounding) else this
+fun Double.adaptiveMapUnitValue(decimalPlaces: Int = 2, isRounding: Boolean = true) =
+    if (abs(this) >= 1000) (this / 1000).keepDecimalPlaces(decimalPlaces, isRounding) else this
 
 /**
  * 转换为自适应单位后的单位名（输入单位为米）

@@ -209,7 +209,8 @@ open class ForegroundServiceNotificationOptions : NotificationOptions {
     constructor(
         channelId: String = UUID.randomUUID().toString(),
         channelName: String = R.string.text_foreground_service_notification_default_channel_name.string,
-        notificationID: Int = ((Int.MAX_VALUE / 2)..Int.MAX_VALUE).random(),
+        channelImportance:Int = NotificationManager.IMPORTANCE_DEFAULT,
+        notificationID: Int = randomNotificationID,
         contentTitle: String = R.string.text_foreground_service_notification_default_content_title.string,
         contentText: String = R.string.text_foreground_service_notification_default_content_text.string,
         contentIntent: PendingIntent? = null,
@@ -226,6 +227,7 @@ open class ForegroundServiceNotificationOptions : NotificationOptions {
     ) : super(
         channelId,
         channelName,
+        channelImportance,
         notificationID,
         contentTitle,
         contentText,

@@ -8,7 +8,11 @@
     <string name="text_foreground_service_notification_default_content_title">后台服务</string>
     <string name="text_foreground_service_notification_default_content_text">后台服务运行中</string>
     <string name="text_download_progress_notification_default_channel_name">下载进度通知</string>
+    <string name="text_download_progress_notification_default_task_success">下载成功</string>
+    <string name="text_download_progress_notification_default_task_failure">下载失败</string>
     <string name="text_upload_progress_notification_default_channel_name">上传进度通知</string>
+    <string name="text_upload_progress_notification_default_task_success">上传成功</string>
+    <string name="text_upload_progress_notification_default_task_failure">上传失败</string>
     <string name="media_selector_max_size_tip">你最多只能选择%1$d个文件</string>
     <string name="media_selector_complete_view_text">完成</string>
     <string name="media_selector_complete_view_text_and_number">完成(%1$d/%2$d)</string>

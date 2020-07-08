@@ -14,6 +14,8 @@ import com.arcns.core.util.bitmap
 import com.arcns.core.util.string
 import java.util.*
 
+private var lastNotificationID = 10000
+val randomNotificationID: Int get() = lastNotificationID++
 
 /**
  * 通知配置
@@ -21,13 +23,14 @@ import java.util.*
 open class NotificationOptions(
     var channelId: String = UUID.randomUUID().toString(),
     var channelName: String,
-    var notificationID: Int = ((Int.MAX_VALUE / 2)..Int.MAX_VALUE).random(),
+    var channelImportance: Int = NotificationManager.IMPORTANCE_DEFAULT,
+    var notificationID: Int = randomNotificationID,
     var contentTitle: String,
     var contentText: String,
     var contentIntent: PendingIntent? = null,
     var smallIcon: Int,
     var largeIcon: Bitmap? = null,
-    var defaults: Int? = null, // 默认通知选项
+    var defaults: Int? = null, // 默认通知选项 全部(DEFAULT_ALL) 震動(DEFAULT_VIBRATE) 音效(DEFAULT_VIBRATE) 燈光(DEFAULT_LIGHT)
     var priority: Int? = null, // 通知优先级
     var progress: NotificationProgressOptions? = null,//进度
     var isOngoing: Boolean? = null,// 是否禁用滑动删除
@@ -57,8 +60,13 @@ open class NotificationOptions(
 data class NotificationProgressOptions(
     var max: Int,
     var progress: Int = 0,
-    var indeterminate: Boolean = false
-)
+    var indeterminate: Boolean = false //是否不确定进度
+) {
+    companion object {
+        val COMPLETED = NotificationProgressOptions(100, 100)
+        val FAILURE = NotificationProgressOptions(100, 0)
+    }
+}
 
 /**
  * 通知管理器
@@ -77,7 +85,7 @@ fun NotificationOptions.createBuilder(): NotificationCompat.Builder? {
             (onCreateNotificationChannel?.invoke() ?: NotificationChannel(
                 channelId,
                 channelName,
-                NotificationManager.IMPORTANCE_DEFAULT
+                channelImportance
             )).apply {
                 notificationChannelId = id
             }
@@ -125,9 +133,10 @@ fun NotificationOptions.create(): Notification? = createBuilder()?.build()
 /**
  * 显示通知
  */
-fun NotificationOptions.show(): Notification? = create()?.apply {
-    notificationManager.notify(notificationID, this)
-}
+fun NotificationOptions.show(notificationID: Int = this.notificationID): Notification? =
+    create()?.apply {
+        notificationManager.notify(notificationID, this)
+    }
 
 /**
  * 更新NotificationCompat.Builder，注意与create相比，update不会配置channelId和初始化空contentIntent

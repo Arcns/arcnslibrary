@@ -1,5 +1,6 @@
 package com.example.arcns.ui
 
+import android.app.NotificationManager
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
@@ -121,7 +122,13 @@ class FragmentMain : Fragment() {
                 }.start()
         }
         btnDownloadTest.setOnClickListener {
-            NotificationOptions.DISABLE.show()
+            NotificationOptions(
+                channelName = "test",
+                channelImportance = NotificationManager.IMPORTANCE_HIGH,
+                contentTitle = "test",
+                contentText = "test",
+                smallIcon = R.drawable.ic_download
+            ).show()
         }
     }
 

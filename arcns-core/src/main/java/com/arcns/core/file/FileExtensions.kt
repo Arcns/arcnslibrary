@@ -231,7 +231,7 @@ val DEFAULT_DAPTIVE_FILE_LENGTH_UNITS = arrayOf("BYTE", "KB", "MB", "GB", "TB")
 fun Long.adaptiveFileLengthUnit(
     currentLevel: Int = 0,
     units: Array<String> = DEFAULT_DAPTIVE_FILE_LENGTH_UNITS,
-    decimalScale: Int = 2,
+    decimalPlaces: Int = 2,
     isRounding: Boolean = true
 ): String {
     var value = this.toDouble()
@@ -239,7 +239,7 @@ fun Long.adaptiveFileLengthUnit(
     run adaptive@{
         while (value >= 1024) {
             level++
-            value = (value / 1024).keepDecimalPlaces(decimalScale, isRounding)
+            value = (value / 1024).keepDecimalPlaces(decimalPlaces, isRounding)
             if (level == DEFAULT_DAPTIVE_FILE_LENGTH_UNITS.size - 1) {
                 return@adaptive
             }
@@ -253,7 +253,7 @@ fun Long.adaptiveFileLengthUnit(
  */
 fun Long.adaptiveFileLengthUnitValue(
     currentLevel: Int = 0,
-    decimalScale: Int = 2,
+    decimalPlaces: Int = 2,
     isRounding: Boolean = true
 ): Double {
     var value = this.toDouble()
@@ -261,7 +261,7 @@ fun Long.adaptiveFileLengthUnitValue(
     run adaptive@{
         while (value >= 1024) {
             level++
-            value = (value / 1024).keepDecimalPlaces(decimalScale, isRounding)
+            value = (value / 1024).keepDecimalPlaces(decimalPlaces, isRounding)
             if (level == DEFAULT_DAPTIVE_FILE_LENGTH_UNITS.size - 1) {
                 return@adaptive
             }
@@ -276,7 +276,7 @@ fun Long.adaptiveFileLengthUnitValue(
 fun Long.adaptiveFileLengthUnitName(
     currentLevel: Int = 0,
     units: Array<String> = DEFAULT_DAPTIVE_FILE_LENGTH_UNITS,
-    decimalScale: Int = 2,
+    decimalPlaces: Int = 2,
     isRounding: Boolean = true
 ): String {
     if (units.size < DEFAULT_DAPTIVE_FILE_LENGTH_UNITS.size) throw java.lang.Exception("units length error")
@@ -285,7 +285,7 @@ fun Long.adaptiveFileLengthUnitName(
     run adaptive@{
         while (value >= 1024) {
             level++
-            value = (value / 1024).keepDecimalPlaces(decimalScale, isRounding)
+            value = (value / 1024).keepDecimalPlaces(decimalPlaces, isRounding)
             if (level == DEFAULT_DAPTIVE_FILE_LENGTH_UNITS.size - 1) {
                 return@adaptive
             }
