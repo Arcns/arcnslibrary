@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import com.arcns.core.APP
+import com.arcns.core.util.keepDecimalPlaces
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -220,3 +221,75 @@ fun getCurrentDateTimeFileName(
         dateTimeFormat,
         Locale.CHINA
     ).format(Date(System.currentTimeMillis())) + suffixName
+
+
+val DEFAULT_DAPTIVE_FILE_LENGTH_UNITS = arrayOf("BYTE", "KB", "MB", "GB", "TB")
+
+/**
+ * 转换为自适应单位（level表示输入单位的类型： 0字节，1KB，2MB，3GB，4TB）
+ */
+fun Long.adaptiveFileLengthUnit(
+    currentLevel: Int = 0,
+    units: Array<String> = DEFAULT_DAPTIVE_FILE_LENGTH_UNITS,
+    decimalScale: Int = 2,
+    isRounding: Boolean = true
+): String {
+    var value = this.toDouble()
+    var level = currentLevel // 0字节，1KB，2MB，3GB，4TB
+    run adaptive@{
+        while (value >= 1024) {
+            level++
+            value = (value / 1024).keepDecimalPlaces(decimalScale, isRounding)
+            if (level == DEFAULT_DAPTIVE_FILE_LENGTH_UNITS.size - 1) {
+                return@adaptive
+            }
+        }
+    }
+    return value.toString() + units[level]
+}
+
+/**
+ * 转换为自适应单位后的值（level表示输入单位的类型： 0字节，1KB，2MB，3GB，4TB）
+ */
+fun Long.adaptiveFileLengthUnitValue(
+    currentLevel: Int = 0,
+    decimalScale: Int = 2,
+    isRounding: Boolean = true
+): Double {
+    var value = this.toDouble()
+    var level = currentLevel // 0字节，1KB，2MB，3GB，4TB
+    run adaptive@{
+        while (value >= 1024) {
+            level++
+            value = (value / 1024).keepDecimalPlaces(decimalScale, isRounding)
+            if (level == DEFAULT_DAPTIVE_FILE_LENGTH_UNITS.size - 1) {
+                return@adaptive
+            }
+        }
+    }
+    return value
+}
+
+/**
+ * 转换为自适应单位后的单位名（level表示输入单位的类型： 0字节，1KB，2MB，3GB，4TB）
+ */
+fun Long.adaptiveFileLengthUnitName(
+    currentLevel: Int = 0,
+    units: Array<String> = DEFAULT_DAPTIVE_FILE_LENGTH_UNITS,
+    decimalScale: Int = 2,
+    isRounding: Boolean = true
+): String {
+    if (units.size < DEFAULT_DAPTIVE_FILE_LENGTH_UNITS.size) throw java.lang.Exception("units length error")
+    var value = this.toDouble()
+    var level = currentLevel // 0字节，1KB，2MB，3GB，4TB
+    run adaptive@{
+        while (value >= 1024) {
+            level++
+            value = (value / 1024).keepDecimalPlaces(decimalScale, isRounding)
+            if (level == DEFAULT_DAPTIVE_FILE_LENGTH_UNITS.size - 1) {
+                return@adaptive
+            }
+        }
+    }
+    return units[level]
+}

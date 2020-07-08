@@ -19,23 +19,37 @@ import java.util.*
  * 通知配置
  */
 open class NotificationOptions(
-    var isEnable: Boolean = true,
     var channelId: String = UUID.randomUUID().toString(),
     var channelName: String,
     var notificationID: Int = ((Int.MAX_VALUE / 2)..Int.MAX_VALUE).random(),
     var contentTitle: String,
     var contentText: String,
     var contentIntent: PendingIntent? = null,
-    var smallIcon: Int? = null,
+    var smallIcon: Int,
     var largeIcon: Bitmap? = null,
     var defaults: Int? = null, // 默认通知选项
     var priority: Int? = null, // 通知优先级
     var progress: NotificationProgressOptions? = null,//进度
+    var isOngoing: Boolean? = null,// 是否禁用滑动删除
     // 创建自定义NotificationChannel代替默认
     var onCreateNotificationChannel: (() -> NotificationChannel)? = null,
     // 设置NotificationCompatBuilder
     var onSettingNotificationCompatBuilder: ((NotificationCompat.Builder) -> Unit)? = null
-)
+) {
+
+    var isEnable: Boolean = true
+        private set
+
+    companion object {
+        val DISABLE: NotificationOptions
+            get() = NotificationOptions(
+                channelName = "",
+                contentTitle = "",
+                contentText = "",
+                smallIcon = -1
+            ).apply { isEnable = false }
+    }
+}
 
 /**
  * 通知进度配置
@@ -88,6 +102,9 @@ fun NotificationOptions.createBuilder(): NotificationCompat.Builder? {
             progress?.run {
                 setProgress(max, progress, indeterminate)
             }
+            isOngoing?.run {
+                setOngoing(this)
+            }
             setContentIntent(
                 contentIntent ?: PendingIntent.getBroadcast(
                     APP.INSTANCE,
@@ -108,7 +125,9 @@ fun NotificationOptions.create(): Notification? = createBuilder()?.build()
 /**
  * 显示通知
  */
-fun NotificationOptions.show() = notificationManager.notify(notificationID, create())
+fun NotificationOptions.show(): Notification? = create()?.apply {
+    notificationManager.notify(notificationID, this)
+}
 
 /**
  * 更新NotificationCompat.Builder，注意与create相比，update不会配置channelId和初始化空contentIntent
@@ -131,6 +150,9 @@ fun NotificationCompat.Builder.update(options: NotificationOptions): Notificatio
     options.progress?.run {
         setProgress(max, progress, indeterminate)
     }
+    options.isOngoing?.run {
+        setOngoing(this)
+    }
     options.contentIntent?.run {
         setContentIntent(this)
     }
@@ -149,3 +171,10 @@ fun NotificationCompat.Builder.updateAndShow(options: NotificationOptions) =
  */
 fun NotificationCompat.Builder.show(notificationID: Int) =
     notificationManager.notify(notificationID, build())
+
+
+/**
+ * 取消显示通知
+ */
+fun NotificationOptions.cancel() = notificationManager.cancel(notificationID)
+fun Int.cancelNotification() = notificationManager.cancel(this)

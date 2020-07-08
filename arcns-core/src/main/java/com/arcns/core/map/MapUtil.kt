@@ -152,24 +152,31 @@ fun Context.openBrowserMapNavigation(position: MapPosition, title: String?, cont
     startActivity(intent);
 }
 
+
+val DEFAULT_DAPTIVE_MAP_UNITS = arrayOf("m", "km")
+
 /**
  * 转换为自适应单位（输入单位为米）
  */
-fun Double.adaptiveMapUnit(units: List<String> = listOf("m", "km"), decimalScale: Int = 2) =
-    adaptiveMapUnitValue(decimalScale).toString() + adaptiveMapUnitName(units)
+fun Double.adaptiveMapUnit(
+    units: Array<String> = DEFAULT_DAPTIVE_MAP_UNITS,
+    decimalScale: Int = 2,
+    isRounding: Boolean = true
+) =
+    adaptiveMapUnitValue(decimalScale, isRounding).toString() + adaptiveMapUnitName(units)
 
 /**
  * 转换为自适应单位后的值（输入单位为米）
  */
-fun Double.adaptiveMapUnitValue(decimalScale: Int = 2) =
-    if (abs(this) >= 1000) String.format("%." + decimalScale + "f", this / 1000)
-        .toDouble() else this
+fun Double.adaptiveMapUnitValue(decimalScale: Int = 2, isRounding: Boolean = true) =
+    if (abs(this) >= 1000) (this / 1000).keepDecimalPlaces(decimalScale, isRounding) else this
 
 /**
  * 转换为自适应单位后的单位名（输入单位为米）
  */
-fun Double.adaptiveMapUnitName(units: List<String> = listOf("m", "km")) =
-    if (abs(this) >= 1000) units[1] else units[0]
+fun Double.adaptiveMapUnitName(units: Array<String> = DEFAULT_DAPTIVE_MAP_UNITS) =
+    if (units.size < DEFAULT_DAPTIVE_MAP_UNITS.size) throw java.lang.Exception("units length error")
+    else if (abs(this) >= 1000) units[1] else units[0]
 
 /**
  * 计算两点之间的距离（单位为米）

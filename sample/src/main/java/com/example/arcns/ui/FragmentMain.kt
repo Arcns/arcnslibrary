@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -14,6 +15,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.arcns.core.app.NotificationOptions
+import com.arcns.core.app.NotificationProgressOptions
+import com.arcns.core.app.show
 import com.arcns.core.util.*
 import com.arcns.media.audio.MediaAudioRecorderPlayerUtil
 import com.yanzhenjie.permission.AndPermission
@@ -27,6 +31,7 @@ import com.example.arcns.viewmodel.ViewModelMain
 import kotlinx.android.synthetic.main.fragment_empty.*
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
 import kotlinx.android.synthetic.main.fragment_main.*
+import kotlin.math.max
 
 
 /**
@@ -69,24 +74,26 @@ class FragmentMain : Fragment() {
     }
 
     private fun setupResult() {
-        audioRecorderPlayerUtil = MediaAudioRecorderPlayerUtil(activity = activity!!)
-        viewModel.toast.observe(this, EventObserver {
+        audioRecorderPlayerUtil = MediaAudioRecorderPlayerUtil(activity = requireActivity())
+        viewModel.toast.observe(viewLifecycleOwner, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
-        viewModel.eventOpenBluetoothAndPermission.observe(this, EventObserver { isBlueEnable ->
-            if (isBlueEnable) {
-                openBluetoothAndPermission()
-                return@EventObserver
-            }
-            requireActivity().showDialog {
-                message(text = "使用本应用需要开启蓝牙功能，当前手机蓝牙处于关闭状态，是否立即开启蓝牙？")
-                positiveButton(text = "立即开启蓝牙") {
+        viewModel.eventOpenBluetoothAndPermission.observe(
+            viewLifecycleOwner,
+            EventObserver { isBlueEnable ->
+                if (isBlueEnable) {
                     openBluetoothAndPermission()
+                    return@EventObserver
                 }
-                negativeButton(text = "取消")
-            }
-        })
-        viewModelActivityMain.eventBluetoothState.observe(this, EventObserver {
+                requireActivity().showDialog {
+                    message(text = "使用本应用需要开启蓝牙功能，当前手机蓝牙处于关闭状态，是否立即开启蓝牙？")
+                    positiveButton(text = "立即开启蓝牙") {
+                        openBluetoothAndPermission()
+                    }
+                    negativeButton(text = "取消")
+                }
+            })
+        viewModelActivityMain.eventBluetoothState.observe(viewLifecycleOwner, EventObserver {
             viewModel.startBluetooth()
         })
         //
@@ -112,6 +119,9 @@ class FragmentMain : Fragment() {
                         Toast.LENGTH_LONG
                     ).show()
                 }.start()
+        }
+        btnDownloadTest.setOnClickListener {
+            NotificationOptions.disable().show()
         }
     }
 

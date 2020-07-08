@@ -1,15 +1,29 @@
 package com.arcns.core.file
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.PendingIntent
+import android.graphics.Bitmap
 import android.net.Uri
+import androidx.core.app.NotificationCompat
 import com.arcns.core.APP
+import com.arcns.core.R
+import com.arcns.core.app.NotificationOptions
+import com.arcns.core.app.NotificationProgressOptions
+import com.arcns.core.map.DEFAULT_DAPTIVE_MAP_UNITS
 import com.arcns.core.util.keepDecimalPlaces
+import com.arcns.core.util.string
 import okhttp3.*
 import okio.Buffer
 import okio.BufferedSink
 import okio.Okio
 import okio.Source
 import java.io.*
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
+import kotlin.math.abs
+
 
 //任务失败
 typealias OnTaskFailure<T> = (T, Exception?, Response?) -> Unit
@@ -31,7 +45,6 @@ data class TaskProgress(
 }
 
 
-
 //上传任务各个文件事件
 typealias OnUploadFileSuccess = (UploadTask, UploadFileParameter) -> Unit
 typealias OnUploadFileFailure = (UploadTask, UploadFileParameter, Exception?) -> Unit
@@ -45,6 +58,7 @@ data class UploadTask(
     var parameters: List<UploadTaskBaseParameter>,
     var okHttpClient: OkHttpClient? = null,
     var onUploadFileProgressUpdate: OnUploadFileProgressUpdate? = null,
+    var notificationOptions: UploadNotificationOptions? = null,
     var onUploadFileFailure: OnUploadFileFailure? = null,
     var onUploadFileSuccess: OnUploadFileSuccess? = null,
     var onTaskFailure: OnTaskFailure<UploadTask>? = null,
@@ -431,4 +445,84 @@ class DownLoadManager {
         })
     }
 
+}
+
+
+/**
+ * 下载通知配置
+ */
+open class DownloadNotificationOptions : NotificationOptions {
+    constructor(
+        channelId: String = UUID.randomUUID().toString(),
+        channelName: String = R.string.text_download_progress_notification_default_channel_name.string,
+        notificationID: Int = ((Int.MAX_VALUE / 2)..Int.MAX_VALUE).random(),
+        contentTitle: String,
+        contentText: String,
+        contentIntent: PendingIntent? = null,
+        smallIcon: Int,
+        largeIcon: Bitmap? = null,
+        defaults: Int? = Notification.DEFAULT_ALL, //默认通知选项
+        priority: Int? = NotificationCompat.PRIORITY_MAX, // 通知优先级
+        progress: NotificationProgressOptions,//进度
+        isOngoing: Boolean? = null,// 是否禁用滑动删除
+        // 创建自定义NotificationChannel代替默认
+        onCreateNotificationChannel: (() -> NotificationChannel)? = null,
+        // 设置NotificationCompatBuilder
+        onSettingNotificationCompatBuilder: ((NotificationCompat.Builder) -> Unit)? = null
+    ) : super(
+        channelId,
+        channelName,
+        notificationID,
+        contentTitle,
+        contentText,
+        contentIntent,
+        smallIcon,
+        largeIcon,
+        defaults,
+        priority,
+        progress,
+        isOngoing,
+        onCreateNotificationChannel,
+        onSettingNotificationCompatBuilder
+    )
+}
+
+
+/**
+ * 上传通知配置
+ */
+open class UploadNotificationOptions : NotificationOptions {
+    constructor(
+        channelId: String = UUID.randomUUID().toString(),
+        channelName: String = R.string.text_download_progress_notification_default_channel_name.string,
+        notificationID: Int = ((Int.MAX_VALUE / 2)..Int.MAX_VALUE).random(),
+        contentTitle: String,
+        contentText: String,
+        contentIntent: PendingIntent? = null,
+        smallIcon: Int,
+        largeIcon: Bitmap? = null,
+        defaults: Int? = Notification.DEFAULT_ALL, //默认通知选项
+        priority: Int? = NotificationCompat.PRIORITY_MAX, // 通知优先级
+        progress: NotificationProgressOptions,//进度
+        isOngoing: Boolean? = null,// 是否禁用滑动删除
+        // 创建自定义NotificationChannel代替默认
+        onCreateNotificationChannel: (() -> NotificationChannel)? = null,
+        // 设置NotificationCompatBuilder
+        onSettingNotificationCompatBuilder: ((NotificationCompat.Builder) -> Unit)? = null
+    ) : super(
+        channelId,
+        channelName,
+        notificationID,
+        contentTitle,
+        contentText,
+        contentIntent,
+        smallIcon,
+        largeIcon,
+        defaults,
+        priority,
+        progress,
+        isOngoing,
+        onCreateNotificationChannel,
+        onSettingNotificationCompatBuilder
+    )
 }
