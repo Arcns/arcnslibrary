@@ -2,9 +2,10 @@
 
 ### 地址
 ```
-    implementation 'com.github.Arcns.arcnslibrary:arcns-core:0.1.12-3'
-    implementation 'com.github.Arcns.arcnslibrary:arcns-map-gaode:0.1.12-3'
-    implementation 'com.github.Arcns.arcnslibrary:arcns-map-baidu:0.1.12-3'
+    implementation 'com.github.Arcns.arcnslibrary:arcns-core:0.1.19-13'
+    implementation 'com.github.Arcns.arcnslibrary:arcns-map-gaode:0.1.19-13'
+    implementation 'com.github.Arcns.arcnslibrary:arcns-map-baidu:0.1.19-13'
+    implementation 'com.github.Arcns.arcnslibrary:arcns-media-audio:0.1.19-13'
 ```
 
 #### Navigation相关的工具在本library为仅编译（compileOnly），所以如果需要用到Navigation相关的工具，需要在主项目的build.gradle中添加：
