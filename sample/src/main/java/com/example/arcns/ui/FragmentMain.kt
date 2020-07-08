@@ -121,7 +121,7 @@ class FragmentMain : Fragment() {
                 }.start()
         }
         btnDownloadTest.setOnClickListener {
-            NotificationOptions.disable().show()
+            NotificationOptions.DISABLE.show()
         }
     }
 
