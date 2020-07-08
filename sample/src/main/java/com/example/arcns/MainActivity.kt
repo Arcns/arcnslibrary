@@ -14,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import com.arcns.core.APP
 import com.arcns.core.app.*
 import com.arcns.core.map.*
 import com.arcns.core.util.*
@@ -189,9 +188,9 @@ class MainActivity : AppCompatActivity() {
                             "正在下载..",
                             Toast.LENGTH_LONG
                         ).show()
-                        DownloadService.startService(
+                        SimpleDownloadService.startService(
                             this@MainActivity,
-                            DownloadTask(
+                            SimpleDownloadTask(
                                 downloadUrl = it,
                                 downloadTitle = getString(
                                     R.string.app_name

@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.amap.api.maps.*
 import com.amap.api.maps.model.*
+import com.amap.api.maps.model.animation.ScaleAnimation
 import com.amap.api.services.core.LatLonPoint
 import com.amap.api.services.core.PoiItem
 import com.amap.api.services.district.DistrictResult
@@ -178,8 +179,16 @@ class FragmentMapGaode : Fragment() {
         mapViewManager.locateMyLocation()
         // 绘制点点击
         mapView.map.setOnMarkerClickListener {
-            if (it.isInfoWindowShown) it.hideInfoWindow() else it.showInfoWindow()
+//            if (it.isInfoWindowShown) it.hideInfoWindow() else it.showInfoWindow()
             Toast.makeText(context, it.title, Toast.LENGTH_LONG).show()
+
+            it.setAnimation(ScaleAnimation(2f, 2f, 2f, 2f).apply {
+                setDuration(500)
+                fillMode = 0
+            })
+            it.startAnimation()
+
+
             true
         }
         // 绘制点拖拽

@@ -18,9 +18,9 @@ import java.io.Serializable
 val DOWNLOAD_SAVE_NAME_SUFFIX_APK = ".apk"
 
 /**
- * 下载任务类
+ * 简单下载任务类（会通过系统服务调用系统自带的下载器进行下载，适用于简单下载场景）
  */
-data class DownloadTask(
+data class SimpleDownloadTask(
     // 下载地址
     val downloadUrl: String,
     // 下载标题
@@ -45,11 +45,11 @@ data class DownloadTask(
 }
 
 /**
- * 下载工具类
+ * 简单下载工具类（会通过系统服务调用系统自带的下载器进行下载，适用于简单下载场景，注意Q及以上版本下载保存路径必须为公共目录否则无进度通知栏）
  */
-class DownloadUtil(var context: Context) {
+class SimpleDownloadUtil(var context: Context) {
 
-    private var downloadTasks = HashMap<String, DownloadTask>()
+    private var downloadTasks = HashMap<String, SimpleDownloadTask>()
     private var downloadManager =
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
@@ -95,7 +95,7 @@ class DownloadUtil(var context: Context) {
     /**
      * 添加任务ID到缓存列表
      */
-    private fun addCachedDownloadID(downloadTask: DownloadTask) {
+    private fun addCachedDownloadID(downloadTask: SimpleDownloadTask) {
         cachedDownloadIDs[downloadTask.downloadUrl] = downloadTask.downloadId ?: return
         saveCachedDownloadIDs()
     }
@@ -151,7 +151,7 @@ class DownloadUtil(var context: Context) {
      * 开始下载任务
      */
     fun startDownloadTask(
-        downloadTask: DownloadTask
+        downloadTask: SimpleDownloadTask
     ) {
         // 防止重复提交下载任务
         if (!downloadTask.isAllowDuplicate && checkDownloadTaskHasExistsByUrl(downloadTask.downloadUrl)) {
@@ -196,7 +196,7 @@ class DownloadUtil(var context: Context) {
     }
 
     // 根据id获取下载任务
-    fun getDownloadTaskByID(id: Long): DownloadTask? {
+    fun getDownloadTaskByID(id: Long): SimpleDownloadTask? {
         downloadTasks.values.forEach {
             if (it.downloadId == id) {
                 return it
@@ -210,10 +210,11 @@ class DownloadUtil(var context: Context) {
         sendDownloadCompleteEvent(getDownloadTaskByID(id), status)
 
     // 发送下载完成事件
-    fun sendDownloadCompleteEvent(downloadTask: DownloadTask?, status: Int) = downloadTask?.run {
-        downloadStatus = status
-        EventBus.getDefault().post(this)
-    }
+    fun sendDownloadCompleteEvent(downloadTask: SimpleDownloadTask?, status: Int) =
+        downloadTask?.run {
+            downloadStatus = status
+            EventBus.getDefault().post(this)
+        }
 
     /**
      * 下载状态广播接收者
@@ -310,11 +311,11 @@ class DownloadUtil(var context: Context) {
 
 
 /**
- * 下载服务
+ * 简单下载服务（会通过系统服务调用系统自带的下载器进行下载，适用于简单下载场景）
  */
-class DownloadService : Service() {
-    private val downloadUtil: DownloadUtil by lazy {
-        return@lazy DownloadUtil(APP.CONTEXT)
+class SimpleDownloadService : Service() {
+    private val downloadUtil: SimpleDownloadUtil by lazy {
+        return@lazy SimpleDownloadUtil(APP.CONTEXT)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -322,7 +323,7 @@ class DownloadService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         run startDownloadApk@{
             var downloadTask =
-                intent?.getSerializableExtra(dataNameFordownloadTask) as? DownloadTask
+                intent?.getSerializableExtra(dataNameFordownloadTask) as? SimpleDownloadTask
                     ?: return@startDownloadApk
             downloadUtil.startDownloadTask(downloadTask)
         }
@@ -338,9 +339,9 @@ class DownloadService : Service() {
         private const val dataNameFordownloadTask: String = "dataNameFordownloadTask"
         fun startService(
             context: Context?,
-            downloadTask: DownloadTask
+            downloadTask: SimpleDownloadTask
         ) {
-            context?.startService(Intent(context, DownloadService::class.java).apply {
+            context?.startService(Intent(context, SimpleDownloadService::class.java).apply {
                 putExtra(dataNameFordownloadTask, downloadTask)
             })
         }
