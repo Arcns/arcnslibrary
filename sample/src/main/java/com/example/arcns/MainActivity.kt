@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
 
 
         // 定位器服务
+        /*
         setMapLocatorServiceDefaultOptions(
             ForegroundServiceOptions(
                 onCreateServiceContent = {
@@ -116,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                     }, 15000)
                 }
             }
-        )
+        )*/
 
     }
 

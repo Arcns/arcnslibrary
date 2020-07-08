@@ -544,7 +544,7 @@ public class FileUtil {
     /**
      * 返回Uri的对应文件大小
      */
-    public static Long getFileSizeWithUri(Context context, Uri uri) {
+    public static Long getFileLengthWithUri(Context context, Uri uri) {
         String[] info = getFileInfoWithUri(context, uri);
         if (info == null || info.length < 3) {
             return null;

@@ -131,8 +131,13 @@ dependencies {
     //高德搜索
     implementation 'com.amap.api:search:7.3.0'
 
-//    implementation 'com.github.Arcns:arcnslibrary:0.0.8'
     implementation project(path: ':arcns-core')
     implementation project(path: ':arcns-map-gaode')
     implementation project(path: ':arcns-map-baidu')
+
+
+//    implementation 'com.github.Arcns.arcnslibrary:arcns-core:0.1.19-10'
+//    implementation 'com.github.Arcns.arcnslibrary:arcns-map-gaode:0.1.19-10'
+//    implementation 'com.github.Arcns.arcnslibrary:arcns-map-baidu:0.1.19-10'
+//    implementation 'com.github.CarGuo:GSYRecordWave:2.0.1'
 }
