@@ -14,6 +14,7 @@ import com.arcns.core.app.NotificationProgressOptions
 import com.arcns.core.app.randomNotificationID
 import com.arcns.core.file.FileUtil
 import com.arcns.core.file.mimeType
+import com.arcns.core.file.tryClose
 import com.arcns.core.util.string
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -28,16 +29,24 @@ import java.util.*
 /**
  * 上传任务类
  */
-data class UploadTask(
-    var url: String? = null,
+open class UploadTask(
+    url: String,
     var parameters: List<UploadTaskBaseParameter>,
-    var notificationOptions: NotificationOptions? = null, // 建议使用UploadNotificationOptions
-    var okHttpClient: OkHttpClient? = null,
+    notificationOptions: NotificationOptions? = null, // 建议使用UploadNotificationOptions
+    okHttpClient: OkHttpClient? = null,
+    progressUpdateInterval: Long? = null,
     var onUploadFileProgressUpdate: OnUploadFileProgressUpdate? = null,
     var onUploadFileFailure: OnUploadFileFailure? = null,
     var onUploadFileSuccess: OnUploadFileSuccess? = null,
-    var onTaskFailure: OnTaskFailure<UploadTask>? = null,
-    var onTaskSuccess: OnTaskSuccess<UploadTask>? = null
+    onTaskFailure: OnTaskFailure<UploadTask>? = null,
+    onTaskSuccess: OnTaskSuccess<UploadTask>? = null
+) : NetworkTask<UploadTask>(
+    url,
+    notificationOptions,
+    okHttpClient,
+    progressUpdateInterval,
+    onTaskFailure,
+    onTaskSuccess
 )
 
 
@@ -67,11 +76,12 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     private var uri: Uri? = null
     private var file: File? = null
     private var filePath: String? = null
-    var fileName: String? = null
+    lateinit var fileName: String
+    lateinit var showName: String
     var fileMimeType: String  // mimeType，例如 application/octet-stream
     var contentLength: Long = 0
     var breakpoint: Long = 0
-    var currentProgress: TaskProgress? = null
+    var currentProgress: NetworkTaskProgress? = null
         private set
 
     // 文件源
@@ -104,12 +114,14 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     constructor(
         name: String,
         fileName: String,
+        showName: String = fileName,
         source: Source,
         contentLength: Long,
         fileMimeType: String,
         notificationOptions: NotificationOptions? = null
     ) : super(name) {
         this.fileName = fileName
+        this.showName = showName
         this.source = source
         this.contentLength = contentLength
         this.fileMimeType = fileMimeType
@@ -119,12 +131,14 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     constructor(
         name: String,
         fileName: String,
+        showName: String = fileName,
         inputStream: InputStream,
         contentLength: Long,
         fileMimeType: String,
         notificationOptions: NotificationOptions? = null
     ) : super(name) {
         this.fileName = fileName
+        this.showName = showName
         this.inputStream = inputStream
         this.contentLength = contentLength
         this.fileMimeType = fileMimeType
@@ -134,12 +148,14 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     constructor(
         name: String,
         fileName: String,
+        showName: String = fileName,
         uri: Uri,
         contentLength: Long? = null,
         fileMimeType: String? = null,
         notificationOptions: NotificationOptions? = null
     ) : super(name) {
         this.fileName = fileName
+        this.showName = showName
         this.uri = uri
         this.contentLength = contentLength ?: FileUtil.getFileLengthWithUri(
             APP.INSTANCE,
@@ -156,6 +172,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     constructor(
         name: String,
         fileName: String,
+        showName: String = fileName,
         file: File,
         breakpoint: Long = 0,
         contentLength: Long? = null,
@@ -163,6 +180,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         notificationOptions: NotificationOptions? = null
     ) : super(name) {
         this.fileName = fileName
+        this.showName = showName
         this.file = file
         this.breakpoint = breakpoint
         this.contentLength = contentLength ?: file.length()
@@ -174,13 +192,16 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     constructor(
         name: String,
         fileName: String,
+        showName: String = fileName,
         filePath: String,
         breakpoint: Long = 0,
         contentLength: Long? = null,
         fileMimeType: String? = null,
+        notificationName: String = fileName,
         notificationOptions: NotificationOptions? = null
     ) : super(name) {
         this.fileName = fileName
+        this.showName = showName
         this.filePath = filePath
         this.breakpoint = breakpoint
         this.contentLength = contentLength ?: File(filePath).length()
@@ -192,15 +213,15 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     /**
      * 设置当前进度
      */
-    fun updateProgress(progress: Long): TaskProgress =
-        TaskProgress(contentLength, progress).apply {
+    fun updateProgress(progress: Long): NetworkTaskProgress =
+        NetworkTaskProgress(contentLength, progress).apply {
             currentProgress = this
         }
 
     /**
      * 创建标准源（不支持断点续传）
      */
-    fun createStandardSource(): Source? {
+    fun getStandardSource(): Source? {
         standardSource?.run { return this }
         if (source != null) {
             standardSource = source
@@ -220,7 +241,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     /**
      * 创建断电续传源
      */
-    fun createBreakpointResumeSource(): RandomAccessFile? {
+    fun getBreakpointResumeSource(): RandomAccessFile? {
         breakpointResumeSource?.run { return this }
         val sourceFile = file ?: filePath?.let { File(it) }
         if (sourceFile == null || !sourceFile.exists()) return null
@@ -233,7 +254,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     /**
      * 当前任务是否支持断点续传
      */
-    val isSupportBreakpointResume get() = breakpoint > 0 && createBreakpointResumeSource() != null
+    val isSupportBreakpointResume get() = breakpoint > 0 && getBreakpointResumeSource() != null
 
 
     /**
@@ -246,40 +267,29 @@ open class UploadFileParameter : UploadTaskBaseParameter {
      * 关闭源
      */
     fun closeSource() {
-        if (standardSource != null) {
-            try {
-                standardSource?.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            standardSource = null
-        }
-        if (breakpointResumeSource != null) {
-            try {
-                breakpointResumeSource?.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            breakpointResumeSource = null
-        }
+        standardSource?.tryClose()
+        breakpointResumeSource?.tryClose()
+        standardSource = null
+        breakpointResumeSource = null
     }
 
 }
-
 
 
 /**
  * 上传通知配置
  */
 open class UploadNotificationOptions(
-    channelId: String = UUID.randomUUID().toString(),
+    channelId: String = R.string.text_download_progress_notification_default_channel_name.string,
     channelName: String = R.string.text_download_progress_notification_default_channel_name.string,
-    channelImportance: Int = NotificationManager.IMPORTANCE_DEFAULT,
+    channelImportance: Int? = null,
     notificationID: Int = randomNotificationID,
-    contentTitle: String = "{fileName}",
-    var progressContentText: String = "{length} | {percentage}",//{length} | {percentage}: 1M/2M | 50%
+    var notificationTitle: String = "$TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME",
+    var progressContentText: String = "$TASK_NOTIFICATION_PLACEHOLDER_LENGTH | $TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE",//{length} | {percentage}: 1M/2M | 50%
     var successContentText: String = R.string.text_upload_progress_notification_default_task_success.string,
     var failureContentText: String = R.string.text_upload_progress_notification_default_task_failure.string,
+    var pauseContentText: String = R.string.text_upload_progress_notification_default_task_pause.string,
+    var cancelContentText: String = R.string.text_upload_progress_notification_default_task_cancel.string,
     var isFormatContent: Boolean = true,
     contentIntent: PendingIntent? = null,
     smallIcon: Int,
@@ -287,7 +297,8 @@ open class UploadNotificationOptions(
     defaults: Int? = Notification.DEFAULT_ALL, //默认通知选项
     priority: Int? = NotificationCompat.PRIORITY_MAX, // 通知优先级
     progress: NotificationProgressOptions,//进度
-    isOngoing: Boolean? = null,// 是否禁用滑动删除
+    isOngoing: Boolean? = true,// 是否禁用滑动删除
+    isAutoCancel: Boolean? = false,//是否点击时自动取消
     // 创建自定义NotificationChannel代替默认
     onCreateNotificationChannel: (() -> NotificationChannel)? = null,
     // 设置NotificationCompatBuilder
@@ -297,7 +308,7 @@ open class UploadNotificationOptions(
     channelName,
     channelImportance,
     notificationID,
-    contentTitle,
+    notificationTitle,
     progressContentText,
     contentIntent,
     smallIcon,
@@ -306,6 +317,7 @@ open class UploadNotificationOptions(
     priority,
     progress,
     isOngoing,
+    isAutoCancel,
     onCreateNotificationChannel,
     onSettingNotificationCompatBuilder
 )

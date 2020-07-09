@@ -3,6 +3,7 @@
     <string name="text_not_find_open_app_by_mime_type">未检测到可以打开此文件的应用</string>
     <string name="text_map_navigation_item_baidu">百度地图</string>
     <string name="text_map_navigation_item_gaode">高德地图</string>
+    <string name="text_notification_default_channel_name">默认消息通知</string>
     <string name="text_map_locator_service_notification_channel_name">定位服务运行通知</string>
     <string name="text_foreground_service_notification_default_channel_name">后台服务运行通知</string>
     <string name="text_foreground_service_notification_default_content_title">后台服务</string>
@@ -10,9 +11,13 @@
     <string name="text_download_progress_notification_default_channel_name">下载进度通知</string>
     <string name="text_download_progress_notification_default_task_success">下载成功</string>
     <string name="text_download_progress_notification_default_task_failure">下载失败</string>
+    <string name="text_download_progress_notification_default_task_cancel">取消下载</string>
+    <string name="text_download_progress_notification_default_task_pause">暂停下载</string>
     <string name="text_upload_progress_notification_default_channel_name">上传进度通知</string>
     <string name="text_upload_progress_notification_default_task_success">上传成功</string>
     <string name="text_upload_progress_notification_default_task_failure">上传失败</string>
+    <string name="text_upload_progress_notification_default_task_cancel">取消上传</string>
+    <string name="text_upload_progress_notification_default_task_pause">暂停上传</string>
     <string name="media_selector_max_size_tip">你最多只能选择%1$d个文件</string>
     <string name="media_selector_complete_view_text">完成</string>
     <string name="media_selector_complete_view_text_and_number">完成(%1$d/%2$d)</string>

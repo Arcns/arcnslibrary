@@ -207,9 +207,9 @@ open class ForegroundServiceOptions<T>(
  */
 open class ForegroundServiceNotificationOptions : NotificationOptions {
     constructor(
-        channelId: String = UUID.randomUUID().toString(),
+        channelId: String = R.string.text_foreground_service_notification_default_channel_name.string,
         channelName: String = R.string.text_foreground_service_notification_default_channel_name.string,
-        channelImportance:Int = NotificationManager.IMPORTANCE_DEFAULT,
+        channelImportance: Int? = null,
         notificationID: Int = randomNotificationID,
         contentTitle: String = R.string.text_foreground_service_notification_default_content_title.string,
         contentText: String = R.string.text_foreground_service_notification_default_content_text.string,
@@ -220,6 +220,7 @@ open class ForegroundServiceNotificationOptions : NotificationOptions {
         priority: Int? = NotificationCompat.PRIORITY_MAX, // 通知优先级
         progress: NotificationProgressOptions? = null,//进度
         isOngoing: Boolean? = null,// 是否禁用滑动删除
+        isAutoCancel: Boolean? = false,//是否点击时自动取消
         // 创建自定义NotificationChannel代替默认
         onCreateNotificationChannel: (() -> NotificationChannel)? = null,
         // 设置NotificationCompatBuilder
@@ -238,6 +239,7 @@ open class ForegroundServiceNotificationOptions : NotificationOptions {
         priority,
         progress,
         isOngoing,
+        isAutoCancel,
         onCreateNotificationChannel,
         onSettingNotificationCompatBuilder
     )

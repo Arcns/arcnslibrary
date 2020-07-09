@@ -3,9 +3,11 @@ package com.arcns.core.file
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import com.arcns.core.APP
 import com.arcns.core.util.keepDecimalPlaces
-import java.io.File
+import okio.Source
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -205,8 +207,10 @@ fun getRandomVideoCacheFilePath(suffixName: String = ".mp4"): String =
 fun getRandomAudioCacheFilePath(suffixName: String = ".mp3"): String =
     getRandomCacheFilePath(suffixName)
 
+val cacheDirPath: String get() = APP.INSTANCE.cacheDir?.absoluteFile.toString()
+
 fun getRandomCacheFilePath(suffixName: String): String =
-    APP.INSTANCE.cacheDir?.absoluteFile.toString() + File.separator + getCurrentTimeMillisFileName(
+    cacheDirPath + File.separator + getCurrentTimeMillisFileName(
         suffixName
     )
 
@@ -293,3 +297,13 @@ fun Long.adaptiveFileLengthUnitName(
     }
     return units[level]
 }
+
+// 捕获异常关闭
+fun RandomAccessFile.tryClose() = FileUtil.tryClose(this)
+fun OutputStream.tryClose() = FileUtil.tryClose(this)
+fun InputStream.tryClose() = FileUtil.tryClose(this)
+fun ParcelFileDescriptor.tryClose() = FileUtil.tryClose(this)
+fun Source.tryClose() = FileUtil.tryClose(this)
+fun BufferedWriter.tryClose() = FileUtil.tryClose(this)
+fun BufferedReader.tryClose() = FileUtil.tryClose(this)
+

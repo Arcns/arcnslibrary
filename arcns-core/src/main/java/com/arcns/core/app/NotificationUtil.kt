@@ -21,9 +21,9 @@ val randomNotificationID: Int get() = lastNotificationID++
  * 通知配置
  */
 open class NotificationOptions(
-    var channelId: String = UUID.randomUUID().toString(),
-    var channelName: String,
-    var channelImportance: Int = NotificationManager.IMPORTANCE_DEFAULT,
+    var channelId: String = R.string.text_notification_default_channel_name.string,
+    var channelName: String = R.string.text_notification_default_channel_name.string,
+    var channelImportance: Int? = null,
     var notificationID: Int = randomNotificationID,
     var contentTitle: String,
     var contentText: String,
@@ -34,6 +34,7 @@ open class NotificationOptions(
     var priority: Int? = null, // 通知优先级
     var progress: NotificationProgressOptions? = null,//进度
     var isOngoing: Boolean? = null,// 是否禁用滑动删除
+    var isAutoCancel: Boolean? = null, // 是否点击时自动取消
     // 创建自定义NotificationChannel代替默认
     var onCreateNotificationChannel: (() -> NotificationChannel)? = null,
     // 设置NotificationCompatBuilder
@@ -85,7 +86,7 @@ fun NotificationOptions.createBuilder(): NotificationCompat.Builder? {
             (onCreateNotificationChannel?.invoke() ?: NotificationChannel(
                 channelId,
                 channelName,
-                channelImportance
+                channelImportance ?: NotificationManager.IMPORTANCE_DEFAULT
             )).apply {
                 notificationChannelId = id
             }
@@ -112,6 +113,9 @@ fun NotificationOptions.createBuilder(): NotificationCompat.Builder? {
             }
             isOngoing?.run {
                 setOngoing(this)
+            }
+            isAutoCancel?.run {
+                setAutoCancel(this)
             }
             setContentIntent(
                 contentIntent ?: PendingIntent.getBroadcast(
@@ -161,6 +165,9 @@ fun NotificationCompat.Builder.update(options: NotificationOptions): Notificatio
     }
     options.isOngoing?.run {
         setOngoing(this)
+    }
+    options.isAutoCancel?.run {
+        setAutoCancel(this)
     }
     options.contentIntent?.run {
         setContentIntent(this)

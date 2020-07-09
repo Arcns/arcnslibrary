@@ -16,6 +16,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+
+import okio.Source;
 
 public class FileUtil {
 
@@ -161,13 +164,7 @@ public class FileUtil {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            tryClose(bufferedReader);
         }
         return null;
     }
@@ -192,13 +189,7 @@ public class FileUtil {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (bufferedWriter != null) {
-                try {
-                    bufferedWriter.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            tryClose(bufferedWriter);
         }
         return null;
     }
@@ -227,20 +218,8 @@ public class FileUtil {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (fileOutputStream != null) {
-                try {
-                    fileOutputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (parcelFileDescriptor != null) {
-                try {
-                    parcelFileDescriptor.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            tryClose(fileOutputStream);
+            tryClose(parcelFileDescriptor);
         }
         return false;
     }
@@ -301,20 +280,8 @@ public class FileUtil {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            tryClose(inputStream);
+            tryClose(outputStream);
         }
         return null;
     }
@@ -366,20 +333,8 @@ public class FileUtil {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            tryClose(inputStream);
+            tryClose(outputStream);
         }
         return null;
     }
@@ -425,20 +380,8 @@ public class FileUtil {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            tryClose(inputStream);
+            tryClose(outputStream);
         }
         return false;
     }
@@ -580,20 +523,8 @@ public class FileUtil {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            tryClose(inputStream);
+            tryClose(outputStream);
         }
         return false;
     }
@@ -630,9 +561,7 @@ public class FileUtil {
             inputStream = new FileInputStream(filePath);
             inputStream.read(b, 0, 28);
         } finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
+            tryClose(inputStream);
         }
 
         return bytesToHex(b);
@@ -668,4 +597,97 @@ public class FileUtil {
     public interface WriterProcess<T> {
         public void onWriter(T writer) throws IOException;
     }
+
+    /**
+     * 捕获异常关闭
+     */
+    public static void tryClose(RandomAccessFile randomAccessFile) {
+        if (randomAccessFile != null) {
+            try {
+                randomAccessFile.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 捕获异常关闭
+     */
+    public static void tryClose(OutputStream outputStream) {
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 捕获异常关闭
+     */
+    public static void tryClose(InputStream inputStream) {
+        if (inputStream != null) {
+            try {
+                inputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 捕获异常关闭
+     */
+    public static void tryClose(ParcelFileDescriptor parcelFileDescriptor) {
+        if (parcelFileDescriptor != null) {
+            try {
+                parcelFileDescriptor.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 捕获异常关闭
+     */
+    public static void tryClose(Source source) {
+        if (source != null) {
+            try {
+                source.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 捕获异常关闭
+     */
+    public static void tryClose(BufferedWriter bufferedWriter) {
+        if (bufferedWriter != null) {
+            try {
+                bufferedWriter.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 捕获异常关闭
+     */
+    public static void tryClose(BufferedReader bufferedReader) {
+        if (bufferedReader != null) {
+            try {
+                bufferedReader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 }

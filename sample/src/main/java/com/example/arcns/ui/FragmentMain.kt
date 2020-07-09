@@ -19,6 +19,12 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import com.arcns.core.app.NotificationOptions
 import com.arcns.core.app.NotificationProgressOptions
 import com.arcns.core.app.show
+import com.arcns.core.file.cacheDirPath
+import com.arcns.core.file.getCurrentTimeMillisFileName
+import com.arcns.core.file.getRandomCacheFilePath
+import com.arcns.core.network.DownLoadManager
+import com.arcns.core.network.DownLoadTask
+import com.arcns.core.network.DownloadNotificationOptions
 import com.arcns.core.util.*
 import com.arcns.media.audio.MediaAudioRecorderPlayerUtil
 import com.yanzhenjie.permission.AndPermission
@@ -43,6 +49,7 @@ class FragmentMain : Fragment() {
     private val viewModel by viewModels<ViewModelMain>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
     private lateinit var audioRecorderPlayerUtil: MediaAudioRecorderPlayerUtil
+    private var downLoadManager = DownLoadManager()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -121,14 +128,40 @@ class FragmentMain : Fragment() {
                     ).show()
                 }.start()
         }
+        downLoadManager.notificationOptions = DownloadNotificationOptions(
+            smallIcon = R.drawable.ic_download
+        )
+        val task = DownLoadTask(
+            url = "https://dldir1.qq.com/weixin/android/weixin7016android1700_arm64.apk",
+//            url = "https://6c0fee503ddb187fc6bd1ce48124b314.dd.cdntips.com/imtt.dd.qq.com/16891/apk/B63F493587B17E6AD41B8E6844E6CE99.apk?mkey=5f069da3b7ed4490&f=1806&cip=183.237.98.101&proto=https",
+            saveDirPath = cacheDirPath,
+            saveFileName = getCurrentTimeMillisFileName(".apk"),
+            isBreakpointResume = false
+        )
         btnDownloadTest.setOnClickListener {
-            NotificationOptions(
-                channelName = "test",
-                channelImportance = NotificationManager.IMPORTANCE_HIGH,
-                contentTitle = "test",
-                contentText = "test",
-                smallIcon = R.drawable.ic_download
-            ).show()
+//            NotificationOptions(
+//                channelName = "test",
+//                channelImportance = NotificationManager.IMPORTANCE_HIGH,
+//                contentTitle = "test",
+//                contentText = "test",
+//                smallIcon = R.drawable.ic_download
+//            ).show()
+
+            downLoadManager.downLoad(task)
+
+
+            downLoadManager.downLoad(
+                DownLoadTask(
+//                url = "https://dldir1.qq.com/weixin/android/weixin7016android1700_arm64.apk",
+                    url = "https://6c0fee503ddb187fc6bd1ce48124b314.dd.cdntips.com/imtt.dd.qq.com/16891/apk/B63F493587B17E6AD41B8E6844E6CE99.apk?mkey=5f069da3b7ed4490&f=1806&cip=183.237.98.101&proto=https",
+                    saveDirPath = cacheDirPath,
+                    saveFileName = getCurrentTimeMillisFileName(".apk"),
+                    isBreakpointResume = false
+                )
+            )
+        }
+        btnPauseDownloadTest.setOnClickListener {
+            task.pause()
         }
     }
 
