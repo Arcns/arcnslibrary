@@ -39,14 +39,16 @@ open class UploadTask(
     var onUploadFileFailure: OnUploadFileFailure? = null,
     var onUploadFileSuccess: OnUploadFileSuccess? = null,
     onTaskFailure: OnTaskFailure<UploadTask>? = null,
-    onTaskSuccess: OnTaskSuccess<UploadTask>? = null
+    onTaskSuccess: OnTaskSuccess<UploadTask>? = null,
+    extraData: Any? = null
 ) : NetworkTask<UploadTask>(
     url,
     notificationOptions,
     okHttpClient,
     progressUpdateInterval,
     onTaskFailure,
-    onTaskSuccess
+    onTaskSuccess,
+    extraData
 )
 
 
@@ -111,6 +113,9 @@ open class UploadFileParameter : UploadTaskBaseParameter {
             )
         }
 
+    // 附带数据
+    var extraData: Any? = null
+
     constructor(
         name: String,
         fileName: String,
@@ -118,7 +123,8 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         source: Source,
         contentLength: Long,
         fileMimeType: String,
-        notificationOptions: NotificationOptions? = null
+        notificationOptions: NotificationOptions? = null,
+        extraData:Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -126,6 +132,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         this.contentLength = contentLength
         this.fileMimeType = fileMimeType
         this.notificationOptions = notificationOptions
+        this.extraData = extraData
     }
 
     constructor(
@@ -135,7 +142,8 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         inputStream: InputStream,
         contentLength: Long,
         fileMimeType: String,
-        notificationOptions: NotificationOptions? = null
+        notificationOptions: NotificationOptions? = null,
+        extraData:Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -143,6 +151,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         this.contentLength = contentLength
         this.fileMimeType = fileMimeType
         this.notificationOptions = notificationOptions
+        this.extraData = extraData
     }
 
     constructor(
@@ -152,7 +161,8 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         uri: Uri,
         contentLength: Long? = null,
         fileMimeType: String? = null,
-        notificationOptions: NotificationOptions? = null
+        notificationOptions: NotificationOptions? = null,
+        extraData:Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -167,6 +177,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
                 uri
             ).mimeType
         this.notificationOptions = notificationOptions
+        this.extraData = extraData
     }
 
     constructor(
@@ -177,7 +188,8 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         breakpoint: Long = 0,
         contentLength: Long? = null,
         fileMimeType: String? = null,
-        notificationOptions: NotificationOptions? = null
+        notificationOptions: NotificationOptions? = null,
+        extraData:Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -187,6 +199,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         this.fileMimeType =
             fileMimeType ?: FileUtil.getFileSuffix(file.absolutePath).mimeType
         this.notificationOptions = notificationOptions
+        this.extraData = extraData
     }
 
     constructor(
@@ -198,7 +211,8 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         contentLength: Long? = null,
         fileMimeType: String? = null,
         notificationName: String = fileName,
-        notificationOptions: NotificationOptions? = null
+        notificationOptions: NotificationOptions? = null,
+        extraData:Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -208,6 +222,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         this.fileMimeType =
             fileMimeType ?: FileUtil.getFileSuffix(filePath).mimeType
         this.notificationOptions = notificationOptions
+        this.extraData = extraData
     }
 
     /**

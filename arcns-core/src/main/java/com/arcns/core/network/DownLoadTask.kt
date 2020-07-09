@@ -35,14 +35,16 @@ open class DownLoadTask(
     progressUpdateInterval: Long? = null,
     var onDownloadProgressUpdate: OnDownloadProgressUpdate? = null,
     onTaskFailure: OnTaskFailure<DownLoadTask>? = null,
-    onTaskSuccess: OnTaskSuccess<DownLoadTask>? = null
+    onTaskSuccess: OnTaskSuccess<DownLoadTask>? = null,
+    extraData: Any? = null
 ) : NetworkTask<DownLoadTask>(
     url,
     notificationOptions,
     okHttpClient,
     progressUpdateInterval,
     onTaskFailure,
-    onTaskSuccess
+    onTaskSuccess,
+    extraData
 ) {
     var currentProgress: NetworkTaskProgress? = null
         private set

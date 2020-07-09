@@ -6,8 +6,6 @@ import com.arcns.core.app.show
 import com.arcns.core.file.tryClose
 import com.arcns.core.util.LOG
 import okhttp3.*
-import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.lang.Exception
@@ -15,7 +13,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 
-// 下载任务进度事件
+// 下载任务进度更新回调
 typealias OnDownloadProgressUpdate = (DownLoadTask, NetworkTaskProgress) -> Unit
 
 
@@ -28,8 +26,8 @@ class DownLoadManager {
     var httpClient: OkHttpClient
         private set
 
-    // 下载任务列表
-    val tasks = ArrayList<DownLoadTask>()
+    // 当前运行中的下载任务列表
+    val currentTasks = ArrayList<DownLoadTask>()
 
     // 每次下载的字节数
     var perByteCount = 2048
@@ -46,16 +44,23 @@ class DownLoadManager {
     // 下载时间间隔
     var progressUpdateInterval: Long = 1000
 
-    // 上传通知
+    // 上传通知配置（内容优先级低于任务配置）
     var notificationOptions: NotificationOptions? = null
 
-    // 自定义
+    // 自定义Request回调
     var onCustomRequest: ((DownLoadTask, Request.Builder) -> Unit)? = null
 
 
     constructor(httpClient: OkHttpClient? = null) {
         this.httpClient =
             httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
+    }
+
+    @Synchronized
+    fun downLoad(
+        tasks: List<DownLoadTask>
+    ) = tasks.forEach {
+        downLoad(it, false)
     }
 
     @Synchronized
@@ -68,36 +73,47 @@ class DownLoadManager {
         task: DownLoadTask,
         isBreakpointRetry: Boolean
     ): Boolean {
-        tasks.removeAll {
-            it.isStop
+        // 确保任务不重复
+        currentTasks.removeAll {
+            it.isStop // 从列表中删除已结束的任务
         }
-        if (tasks.contains(task)) {
-            return false
+        if (currentTasks.contains(task)) {
+            return false // 不能重复添加任务
         }
-        tasks.forEach {
+        currentTasks.forEach {
             if (it.id == task.id) {
-                return false
+                return false // 任务id已存在
             }
             if (!it.isStop && it.saveFilePath == task.saveFilePath) {
-                return false
+                return false // 任务保存路径正在被使用
             }
         }
-        tasks.add(task)
+        currentTasks.add(task)
+        // 开始下载
         var current = 0L
         httpClient.newCall(Request.Builder().apply {
+            // 断点续传
             if (task.isBreakpointResume && !isBreakpointRetry && task.breakpoint > 0) {
                 header("Range", "bytes=${task.breakpoint}-") // 设置断点续传
-                current = task.breakpoint
+                current = task.breakpoint // 设置开始位置
             }
+            // 设置下载路径
             url(task.url)
+            // 自定义Request回调
             onCustomRequest?.invoke(task, this)
         }.build()).apply {
-            task.onRunning(this)
+            // 更新任务状态为运行中
+            task.changeStateToRunning(this)
+            // 封装请求回调处理
             enqueue(object : Callback {
+                // 上一次更新时间（用于与更新间隔做对比）
                 private var lastProgressUpdateTime: Long = 0
+
+                // 更新间隔
                 private val updateInterval = task.progressUpdateInterval ?: progressUpdateInterval
 
                 override fun onFailure(call: Call, e: IOException) {
+                    // 任务失败回调
                     downloadFailure(e, null)
                 }
 
@@ -107,24 +123,27 @@ class DownLoadManager {
                         try {
                             val responseBody =
                                 response.body() ?: throw Exception("response body not empty")
+                            // 获取下载任务的长度
                             var total = responseBody.contentLength()
-                            // 已下载完成
-                            if (task.isBreakpointResume && total == task.breakpoint) {
-                                downloadSuccess(response)
+                            // 判断断点继传相关
+                            if (isBreakpointRetry && task.isBreakpointResume && total == task.breakpoint) {
+                                // 任务长度与已下载的断点长度相同，则表示已下载完成
+                                downloadSuccess(response)//任务成功回调
                                 return
                             } else if (task.breakpoint > 0) {
-                                // 不启用或不支持断点续传
+                                // 不启用或不支持断点续传，则删除之前的文件
                                 if (!task.isBreakpointResume || isBreakpointRetry || !response.isAcceptRange) {
-                                    task.saveFile.deleteOnExit()
-                                    current = 0
+                                    task.saveFile.deleteOnExit()//删除之前的文件
+                                    current = 0 // 重置开始位置
                                 }
-                                // 重新计算断点续传的文件长度
                                 else {
+                                    // 确认启动断点续传，重新计算断点续传的文件长度（因为使用Range头后，responseBody.contentLength只会返回剩余的大小）
                                     total += current
                                 }
                             }
 
                             LOG("DownLoadManager:" + total + "  " + task.breakpoint + "  " + current)
+                            // 开始循环接收数据流
                             var outputStream =
                                 task.getOutputStream()
                                     ?: throw Exception("download task save file output stream not empty")
@@ -137,63 +156,69 @@ class DownLoadManager {
                                 }
                                 outputStream.write(buf, 0, len)
                                 current += len
-                                // 更新进度
+                                // 更新进度回调
                                 updateProgress(total, current)
                             }
+                            // 下载完成后，再更新一次进度回调
                             updateProgress(total, total, true)
                             outputStream.flush()
-
                             LOG("DownLoadManager task onResponse isSuccessful")
+                            // 任务完成回调
                             downloadSuccess(response)
                         } catch (e: Exception) {
                             LOG("DownLoadManager task error :" + e.message)
+                            // 任务失败回调
                             downloadFailure(e, response)
                         } finally {
+                            // 释放连接
                             inputStream?.tryClose()
                             task.closeOutputStream()
-                        }
-                        if (task.state == TaskState.Success) {
-                            LOG("DownLoadManager task success file length:" + task.saveFile.length())
                         }
 
                     } else {
                         LOG("DownLoadManager task onResponse not Successful")
+                        // 若断点继传使用Range头后请求失败，则尝试不使用Range头进行调用（重试）
                         if (!isBreakpointRetry && task.isBreakpointResume && task.breakpoint > 0) downLoad(
                             task,
                             true
                         )
+                        // 任务失败回调
                         else downloadFailure(null, response)
                     }
                 }
 
-                //下载任务的文件成功回调
+                //下载任务成功回调
                 private fun downloadSuccess(response: Response) {
-                    task.onSuccess()
+                    // 更新状态
+                    task.changeStateToSuccess()
+                    // 回调
                     task.onTaskSuccess?.invoke(task, response)
                     onTaskSuccess?.invoke(task, response)
                     // 更新到通知栏
                     updateNotification()
-                    tasks.remove(task)
+                    currentTasks.remove(task)
                 }
 
-                //下载任务的文件失败回调
+                //下载任务失败回调
                 private fun downloadFailure(e: Exception?, response: Response?) {
-                    task.onFailureIfNotStop()
+                    // 更新状态
+                    task.changeStateToFailureIfNotStop()
+                    // 回调
                     task.onTaskFailure?.invoke(task, e, response)
                     onTaskFailure?.invoke(task, e, response)
                     // 更新到通知栏
                     updateNotification()
-                    tasks.remove(task)
+                    currentTasks.remove(task)
                 }
 
                 /**
                  * 下载任务的文件进度回调
                  */
                 private fun updateProgress(total: Long, current: Long, isEnd: Boolean = false) {
-                    // 避免短时间内多次回调
+                    // 判断回调间隔，避免短时间内多次回调
                     if (!isEnd && System.currentTimeMillis() - lastProgressUpdateTime < updateInterval) return
                     lastProgressUpdateTime = System.currentTimeMillis()
-                    // 避免重复回调
+                    // 避免相同进度重复回调
                     if (task.currentProgress?.current == current) return
                     // 更新到任务中，然后进行回调
                     task.updateProgress(total, current)?.run {
@@ -208,6 +233,7 @@ class DownLoadManager {
                  */
                 private fun updateNotification() {
                     val notificationOptions = getNotificationOptions() ?: return
+                    // 判断是否允许自动格式化内容
                     if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
                         notificationOptions.contentTitle =
                             formatTaskNotificationPlaceholderContent(notificationOptions.notificationTitle)
@@ -278,8 +304,14 @@ class DownLoadManager {
         return true
     }
 
-    fun findTaskByUrl(url: String): DownLoadTask? = tasks.firstOrNull { it.url == url }
-    fun findTaskByID(id: String): DownLoadTask? = tasks.firstOrNull { it.id == id }
+    /**
+     * 根据url查找任务
+     */
+    fun findTaskByUrl(url: String): DownLoadTask? = currentTasks.firstOrNull { it.url == url }
+    /**
+     * 根据id查找任务
+     */
+    fun findTaskByID(id: String): DownLoadTask? = currentTasks.firstOrNull { it.id == id }
 }
 
 
