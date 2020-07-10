@@ -221,6 +221,7 @@ open class ForegroundServiceNotificationOptions : NotificationOptions {
         progress: NotificationProgressOptions? = null,//进度
         isOngoing: Boolean? = null,// 是否禁用滑动删除
         isAutoCancel: Boolean? = false,//是否点击时自动取消
+        isOnlyAlertOnce: Boolean? = null,//是否只提示一次声音
         // 创建自定义NotificationChannel代替默认
         onCreateNotificationChannel: (() -> NotificationChannel)? = null,
         // 设置NotificationCompatBuilder
@@ -240,6 +241,7 @@ open class ForegroundServiceNotificationOptions : NotificationOptions {
         progress,
         isOngoing,
         isAutoCancel,
+        isOnlyAlertOnce,
         onCreateNotificationChannel,
         onSettingNotificationCompatBuilder
     )

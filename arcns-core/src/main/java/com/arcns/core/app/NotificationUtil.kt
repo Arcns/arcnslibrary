@@ -36,6 +36,7 @@ open class NotificationOptions(
     var progress: NotificationProgressOptions? = null,//进度
     var isOngoing: Boolean? = null,// 是否禁用滑动删除
     var isAutoCancel: Boolean? = null, // 是否点击时自动取消
+    var isOnlyAlertOnce: Boolean? = null,//是否只提醒一次声音
     // 创建自定义NotificationChannel代替默认
     var onCreateNotificationChannel: (() -> NotificationChannel)? = null,
     // 设置NotificationCompatBuilder
@@ -87,7 +88,8 @@ fun NotificationOptions.createBuilder(): NotificationCompat.Builder? {
             (onCreateNotificationChannel?.invoke() ?: NotificationChannel(
                 channelId,
                 channelName,
-                channelImportance ?: NotificationManager.IMPORTANCE_DEFAULT
+                channelImportance
+                    ?: NotificationManager.IMPORTANCE_DEFAULT //NotificationManager.IMPORTANCE_LOW即可无声音
             )).apply {
                 notificationChannelId = id
             }
@@ -117,6 +119,9 @@ fun NotificationOptions.createBuilder(): NotificationCompat.Builder? {
             }
             isAutoCancel?.run {
                 setAutoCancel(this)
+            }
+            isOnlyAlertOnce?.run {
+                setOnlyAlertOnce(this)
             }
             setContentIntent(
                 contentIntent ?: PendingIntent.getBroadcast(
@@ -170,6 +175,9 @@ fun NotificationCompat.Builder.update(options: NotificationOptions): Notificatio
     options.isAutoCancel?.run {
         setAutoCancel(this)
     }
+    options.isOnlyAlertOnce?.run {
+        setOnlyAlertOnce(this)
+    }
     options.contentIntent?.run {
         setContentIntent(this)
     }
@@ -198,7 +206,7 @@ fun NotificationOptions.cancel(notificationID: Int = this.notificationID) =
 
 fun NotificationOptions.cancelIfDisable(notificationID: Int = this.notificationID): Boolean {
     if (!isEnable) {
-        LOG("updateNotification cancel "+notificationID)
+        LOG("updateNotification cancel " + notificationID)
         cancel(notificationID)
         return true
     }

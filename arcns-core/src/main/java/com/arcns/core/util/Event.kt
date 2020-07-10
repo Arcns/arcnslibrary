@@ -2,6 +2,7 @@ package com.arcns.core.util
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import java.lang.Exception
 
 open class Event<out T>(private val content: T) {
 
@@ -26,8 +27,17 @@ class EventObserver<T>(private val onEventUnhandledContent: (T) -> Unit) : Obser
     }
 }
 
+fun <T> MutableLiveData<Event<T>>.postEventValue(value: T) = postValue(Event(value))
+
 inline var <T> MutableLiveData<Event<T>>.eventValue: T
-    set(v) {
-        value = Event(v)
-    }
     get() = throw Exception()
+    set(value) {
+        this.value = Event(value)
+    }
+
+
+inline var <T> MutableLiveData<Event<T>>.fastEventValue: T
+    get() = throw Exception()
+    set(value) {
+        fastValue = Event(value)
+    }

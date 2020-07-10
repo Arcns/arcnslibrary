@@ -115,13 +115,13 @@ class UploadManager {
             }.build()
         ).apply {
             // 更新任务状态为运行中
-            task.changeStateToRunning(this)
+            task.onChangeStateToRunning(this)
             // 封装请求回调处理
             enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     LOG("UploadManager task onFailure")
                     // 更新状态
-                    task.changeStateToFailureIfNotStop()
+                    task.onChangeStateToFailureIfNotStop()
                     // 失败回调
                     task.onTaskFailure?.invoke(task, e, null)
                     onTaskFailure?.invoke(task, e, null)
@@ -131,16 +131,16 @@ class UploadManager {
                     if (response.isSuccessful) {
                         LOG("UploadManager task onResponse isSuccessful")
                         // 更新状态
-                        task.changeStateToSuccess()
+                        task.onChangeStateToSuccess()
                         // 成功回调
-                        task.onTaskSuccess?.invoke(task,response)
+                        task.onTaskSuccess?.invoke(task, response)
                         onTaskSuccess?.invoke(task, response)
                     } else {
                         LOG("UploadManager task onResponse not Successful")
                         // 更新状态
-                        task.changeStateToFailureIfNotStop()
+                        task.onChangeStateToFailureIfNotStop()
                         // 失败回调
-                        task.onTaskSuccess?.invoke(task,response)
+                        task.onTaskSuccess?.invoke(task, response)
                         onTaskFailure?.invoke(task, null, response)
                     }
                 }
@@ -203,7 +203,7 @@ class UploadManager {
                         }
                     }
                     // 上传完成后，再更新一次进度回调
-                    updateProgress(parameter.contentLength, true)
+                    updateProgress(current, true)
                     // 上传任务的文件成功回调
                     uploadFileSuccess()
                 } catch (e: Exception) {

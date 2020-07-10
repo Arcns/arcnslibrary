@@ -1,11 +1,15 @@
 package com.arcns.core.network
 
+import android.app.Notification
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import com.arcns.core.app.NotificationOptions
+import com.arcns.core.app.cancelNotification
 import com.arcns.core.util.Event
 import com.arcns.core.util.fastValue
+import com.arcns.core.util.reverseForEach
 import java.util.*
+import kotlin.collections.ArrayList
 
 class DownLoadManagerData {
     val uniqueID: String = UUID.randomUUID().toString()
@@ -30,22 +34,53 @@ class DownLoadManagerData {
     }
 
     // 添加任务
-    private var _eventNotifyManagerAddTask = MutableLiveData<Event<DownLoadTask>>()
-    var eventNotifyManagerAddTask: LiveData<Event<DownLoadTask>> = _eventNotifyManagerAddTask
-    fun addTask(task: DownLoadTask): Boolean {
-        if (!tasks.chackAddDownloadTask(task)) return false
-        tasks.add(task)
-        _eventNotifyManagerAddTask.fastValue = Event(task)
+    private var _eventNotifyManagerDownload = MutableLiveData<Event<DownLoadTask>>()
+    var eventNotifyManagerDownload: LiveData<Event<DownLoadTask>> = _eventNotifyManagerDownload
+    fun download(task: DownLoadTask): Boolean {
+        if (!tasks.addDownloadTask(task)) return false
+        _eventNotifyManagerDownload.fastValue = Event(task)
         onEventTaskUpdateByState(task)
         return true
     }
 
     // 删除任务
-    fun removeTask(task: DownLoadTask?, isCancelTask: Boolean = true) {
-        if (tasks.contains(task)) {
-            if (isCancelTask && task?.isRunning == true) task.cancel()
+    fun removeTask(
+        task: DownLoadTask?,
+        isCancelTask: Boolean = true,
+        isClearNotification: Boolean = true
+    ): Boolean {
+        if (task != null && tasks.contains(task)) {
+            if (isClearNotification) {
+                if (task.isStop) task.notificationID.cancelNotification()
+                else task.notificationOptions = NotificationOptions.DISABLE
+            }
+            if (isCancelTask && task.isRunning) task.cancel()
             tasks.remove(task)
-            onEventTaskUpdateByState(task ?: return)
+            onEventTaskUpdateByState(task)
+            return true
+        }
+        return false
+    }
+
+    /**
+     * 清空任务
+     */
+    fun clearTask(isCancelTask: Boolean = true, isClearNotification: Boolean = true) {
+        tasks.reverseForEach {
+            removeTask(it, isCancelTask, isClearNotification)
+        }
+    }
+
+    /**
+     * 取消所有任务
+     */
+    fun cancelAllTask(isClearNotification: Boolean = true) {
+        tasks.forEach {
+            if (isClearNotification) {
+                if (it.isStop) it.notificationID.cancelNotification()
+                else it.notificationOptions = NotificationOptions.DISABLE
+            }
+            if (it.isRunning) it.cancel()
         }
     }
 
@@ -60,17 +95,39 @@ class DownLoadManagerData {
     fun findTaskByID(id: String): DownLoadTask? = tasks.firstOrNull { it.id == id }
 }
 
-
-@Synchronized
-fun List<DownLoadTask>.chackAddDownloadTask(addTask: DownLoadTask): Boolean {
-    if (contains(addTask)) return false  // 不能重复添加任务
-    forEach {
-        if (it.id == addTask.id) {
-            return false // 任务id已存在
+/**
+ * 查找合适的位置
+ */
+fun ArrayList<DownLoadTask>.findDownloadTaskAppropriateIndex(addTask: DownLoadTask): Int? {
+    forEachIndexed { index, it ->
+        // 任务已存在
+        if (it == addTask || it.id == addTask.id) {
+            if (it.isStop) {
+                return index
+            }
+            return null
         }
+        // 任务保存路径正在被使用
         if (!it.isStop && it.saveFilePath == addTask.saveFilePath) {
-            return false // 任务保存路径正在被使用
+            return null
         }
     }
-    return true
+    return -1
+}
+
+/**
+ * 添加任务
+ */
+@Synchronized
+fun ArrayList<DownLoadTask>.addDownloadTask(addTask: DownLoadTask): Boolean {
+    findDownloadTaskAppropriateIndex(addTask)?.run {
+        if (this == -1) {
+            add(addTask)
+        } else {
+            removeAt(this)
+            add(this, addTask)
+        }
+        return true
+    }
+    return false
 }

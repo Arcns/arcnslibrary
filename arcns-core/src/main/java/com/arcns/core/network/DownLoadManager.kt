@@ -1,6 +1,9 @@
 package com.arcns.core.network
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.OnLifecycleEvent
 import com.arcns.core.app.*
 import com.arcns.core.file.tryClose
 import com.arcns.core.util.EventObserver
@@ -27,7 +30,7 @@ class DownLoadManager {
         private set
 
     // 当前运行中的下载任务列表
-    val currentTasks = ArrayList<DownLoadTask>()
+    private val currentTasks = ArrayList<DownLoadTask>()
 
     // 每次下载的字节数
     var perByteCount = 2048
@@ -52,6 +55,11 @@ class DownLoadManager {
 
     // 地图管理器绑定的数据
     var managerData: DownLoadManagerData? = null
+        private set
+
+    // 无生命周期管理时与managerdata连接的对象
+    var eventNotifyManagerDownloadObserver: EventObserver<DownLoadTask>? = null
+        private set
 
 
     constructor(httpClient: OkHttpClient? = null) {
@@ -60,23 +68,40 @@ class DownLoadManager {
     }
 
     constructor(
-        owner: LifecycleOwner,
         managerData: DownLoadManagerData,
+        lifecycleOwner: LifecycleOwner? = null,
         httpClient: OkHttpClient? = null
     ) {
         this.httpClient =
             httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
         this.managerData = managerData
-        managerData.eventNotifyManagerAddTask.observe(owner, EventObserver {
-            downLoad(it, true)
-        })
+        if (lifecycleOwner != null) {
+            // 拥有生命周期管理
+            managerData.eventNotifyManagerDownload.observe(lifecycleOwner, EventObserver {
+                downLoad(it, true)
+            })
+            lifecycleOwner.lifecycle.addObserver(object : LifecycleObserver {
+                @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+                fun onDestroy() {
+                    lifecycleOwner.lifecycle.removeObserver(this)
+                    releaseManagerData()
+                }
+            })
+        } else {
+            // 无生命周期管理
+            eventNotifyManagerDownloadObserver =
+                EventObserver<DownLoadTask> {
+                    downLoad(it, true)
+                }
+            managerData.eventNotifyManagerDownload.observeForever(eventNotifyManagerDownloadObserver!!)
+        }
     }
 
     @Synchronized
     fun downLoad(
         tasks: List<DownLoadTask>
     ) = tasks.forEach {
-        downLoad(it, false)
+        downLoad(it)
     }
 
     @Synchronized
@@ -90,11 +115,18 @@ class DownLoadManager {
         isManagerDataTask: Boolean,
         isBreakpointRetry: Boolean = false
     ): Boolean {
-        if (!isManagerDataTask) {
-            // 确保任务不重复
-            if (!currentTasks.chackAddDownloadTask(task)) return false
-            // 非managerData的任务则由管理器自己管理
-            currentTasks.add(task)
+        if (isManagerDataTask) {
+            // 来自managerData的任务
+            if (currentTasks.findDownloadTaskAppropriateIndex(task) == null) {
+                // 任务已存在管理器自己管理的列表中
+                task.stop(TaskState.Failure)
+                return false
+            }
+        } else {
+            // 有managerData时，任务由managerData管理
+            if (managerData != null) return managerData!!.download(task)
+            // 没有managerData时，任务由管理器自己管理
+            else if (!currentTasks.addDownloadTask(task)) return false  // 确保任务不重复
         }
         // 开始下载
         var current = 0L
@@ -110,7 +142,7 @@ class DownLoadManager {
             onCustomRequest?.invoke(task, this)
         }.build()).apply {
             // 更新任务状态为运行中
-            task.changeStateToRunning(this)
+            task.onChangeStateToRunning(this)
             // 封装请求回调处理
             enqueue(object : Callback {
                 // 上一次更新时间（用于与更新间隔做对比）
@@ -148,7 +180,7 @@ class DownLoadManager {
                                 }
                             }
 
-                            LOG("DownLoadManager:" + total + "  " + task.breakpoint + "  " + current)
+                            LOG("DownLoadTask:$total  $current")
                             // 开始循环接收数据流
                             var outputStream =
                                 task.getOutputStream()
@@ -166,23 +198,22 @@ class DownLoadManager {
                                 updateProgress(total, current)
                             }
                             // 下载完成后，再更新一次进度回调
-                            updateProgress(total, total, true)
+                            total = current
+                            updateProgress(total, current, true)
                             outputStream.flush()
-                            LOG("DownLoadManager task onResponse isSuccessful")
                             // 任务完成回调
                             downloadSuccess(response)
                         } catch (e: Exception) {
-                            LOG("DownLoadManager task error :" + e.message)
                             // 任务失败回调
                             downloadFailure(e, response)
                         } finally {
+                            LOG("DownLoadTask 释放连接" + task.breakpoint)
                             // 释放连接
                             inputStream?.tryClose()
                             task.closeOutputStream()
                         }
 
                     } else {
-                        LOG("DownLoadManager task onResponse not Successful")
                         // 若断点继传使用Range头后请求失败，则尝试不使用Range头进行调用（重试）
                         if (!isBreakpointRetry && task.isBreakpointResume && task.breakpoint > 0) downLoad(
                             task,
@@ -196,7 +227,7 @@ class DownLoadManager {
                 //下载任务成功回调
                 private fun downloadSuccess(response: Response) {
                     // 更新状态
-                    task.changeStateToSuccess()
+                    task.onChangeStateToSuccess()
                     // 回调
                     task.onTaskSuccess?.invoke(task, response)
                     onTaskSuccess?.invoke(task, response)
@@ -209,7 +240,7 @@ class DownLoadManager {
                 //下载任务失败（含取消、暂停）回调
                 private fun downloadFailure(e: Exception?, response: Response?) {
                     // 更新状态
-                    task.changeStateToFailureIfNotStop()
+                    task.onChangeStateToFailureIfNotStop()
                     // 回调
                     task.onTaskFailure?.invoke(task, e, response)
                     onTaskFailure?.invoke(task, e, response)
@@ -243,7 +274,7 @@ class DownLoadManager {
                 private fun updateNotification() {
                     val notificationOptions = getNotificationOptions() ?: return
                     if (notificationOptions.cancelIfDisable(task.notificationID)) return
-                    LOG("updateNotification show "+task.notificationID)
+                    LOG("updateNotification show " + task.notificationID)
                     // 判断是否允许自动格式化内容
                     if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
                         notificationOptions.contentTitle =
@@ -316,6 +347,33 @@ class DownLoadManager {
             })
         }
         return true
+    }
+
+
+    /**
+     * 取消所有任务
+     */
+    fun cancelAllTask(isClearNotification: Boolean = true) {
+        currentTasks.forEach {
+            if (isClearNotification) {
+                if (it.isStop) it.notificationID.cancelNotification()
+                else it.notificationOptions = NotificationOptions.DISABLE
+            }
+            if (it.isRunning) it.cancel()
+        }
+        managerData?.cancelAllTask(isClearNotification)
+    }
+
+    /**
+     * 释放ManagerData
+     */
+    fun releaseManagerData() {
+        eventNotifyManagerDownloadObserver?.run {
+            managerData?.eventNotifyManagerDownload?.removeObserver(this)
+            eventNotifyManagerDownloadObserver = null
+        }
+        managerData?.cancelAllTask()
+        managerData = null
     }
 
     /**

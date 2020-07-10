@@ -12,6 +12,7 @@ import com.arcns.core.app.NotificationProgressOptions
 import com.arcns.core.app.randomNotificationID
 import com.arcns.core.file.FileUtil
 import com.arcns.core.file.tryClose
+import com.arcns.core.util.LOG
 import com.arcns.core.util.string
 import okhttp3.OkHttpClient
 import okio.Source
@@ -97,7 +98,7 @@ open class DownLoadTask(
     fun getOutputStream(): OutputStream? {
         outputStream?.run { return this }
         FileUtil.mkdirIfNotExists(saveDirPath)
-        outputStream = FileOutputStream(saveFile)
+        outputStream = FileOutputStream(saveFile, true)
         return outputStream
     }
 
@@ -115,6 +116,7 @@ open class DownLoadTask(
 
     val breakpoint: Long
         get() {
+            LOG("DownLoadTask断点长度：" + saveFile.length())
             return if (saveFile.exists()) saveFile.length()
             else 0
         }
@@ -139,11 +141,12 @@ open class DownloadNotificationOptions(
     contentIntent: PendingIntent? = null,
     smallIcon: Int,
     largeIcon: Bitmap? = null,
-    defaults: Int? = Notification.DEFAULT_ALL, //默认通知选项
-    priority: Int? = NotificationCompat.PRIORITY_MAX, // 通知优先级
+    defaults: Int? = NotificationCompat.FLAG_ONLY_ALERT_ONCE, //默认通知选项
+    priority: Int? = null, // 通知优先级
     progress: NotificationProgressOptions? = null,//进度
-    var defaultIsOngoing: Boolean? = true,// 是否禁用滑动删除
-    var defaultIsAutoCancel: Boolean? = false,//是否点击时自动取消
+    var defaultIsOngoing: Boolean? = null,// 是否禁用滑动删除
+    var defaultIsAutoCancel: Boolean? = null,//是否点击时自动取消
+    isOnlyAlertOnce: Boolean? = true,//是否只提示一次声音
     // 创建自定义NotificationChannel代替默认
     onCreateNotificationChannel: (() -> NotificationChannel)? = null,
     // 设置NotificationCompatBuilder
@@ -163,6 +166,7 @@ open class DownloadNotificationOptions(
     progress,
     defaultIsOngoing,
     defaultIsAutoCancel,
+    isOnlyAlertOnce,
     onCreateNotificationChannel,
     onSettingNotificationCompatBuilder
 )

@@ -21,26 +21,38 @@ abstract class NetworkTask<T>(
 ) {
     // 任务唯一性id
     val id: String = UUID.randomUUID().toString()
+
     // 任务Call（Okhttp）
     var call: Call? = null
         private set
+
     // 任务状态
     var state: TaskState = TaskState.None
         private set
+
+    // 任务是否已经成功完成
+    val isSuccess: Boolean get() = state == TaskState.Success
+
     // 任务是否正在运行中
     val isRunning: Boolean get() = state == TaskState.Running
+
     // 任务是否已经停止
     val isStop: Boolean get() = !(isRunning || state == TaskState.None)
 
 
     /**
-     * 取消任务
+     * 停止任务
      */
-    fun cancel() {
-        state = TaskState.Cancel
+    fun stop(state: TaskState) {
+        this.state = state
         call?.cancel()
         call = null
     }
+
+    /**
+     * 取消任务
+     */
+    fun cancel(state: TaskState = TaskState.Cancel) = stop(TaskState.Cancel)
 
     /**
      * 暂停任务
@@ -54,27 +66,30 @@ abstract class NetworkTask<T>(
     /**
      * 更新任务状态为运行中（注意此方法通常由管理器中调用，请勿随意调用）
      */
-    fun changeStateToRunning(call: Call) {
+    fun onChangeStateToRunning(call: Call) {
         state = TaskState.Running
         this.call = call
     }
+
     /**
      * 更新任务状态为失败（注意此方法通常由管理器中调用，请勿随意调用）
      */
-    fun changeStateToFailure() {
+    fun onChangeStateToFailure() {
         state = TaskState.Failure
         call = null
     }
+
     /**
      * 若任务未停止，则更新任务状态为失败（注意此方法通常由管理器中调用，请勿随意调用）
      */
-    fun changeStateToFailureIfNotStop() {
-        if (!isStop) changeStateToFailure()
+    fun onChangeStateToFailureIfNotStop() {
+        if (!isStop) onChangeStateToFailure()
     }
+
     /**
      * 更新任务状态为成功（注意此方法通常由管理器中调用，请勿随意调用）
      */
-    fun changeStateToSuccess() {
+    fun onChangeStateToSuccess() {
         state = TaskState.Success
         call = null
     }
@@ -108,7 +123,7 @@ data class NetworkTaskProgress(
     val percentage: Int get() = if (indeterminate) 0 else getPercentage(2).toInt()
 
     // 返回下载进度百分比（int string）
-    val permissionToString: String get() = "$percentage%"
+    val permissionToString: String get() = if (indeterminate) "" else "$percentage%"
 
     // 返回下载长度字符串并自动转换合适的单位，格式为：已下载大小/总大小
     fun getLengthToString(decimalPlaces: Int = 2, isRounding: Boolean = true): String =

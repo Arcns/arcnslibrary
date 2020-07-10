@@ -3,11 +3,11 @@
     <!--pb背景样式-->
     <item
         android:id="@android:id/background"
-        android:drawable="@drawable/pgs_bar_bg" />
+        android:drawable="@drawable/shape_pgsb" />
     <!--pb进度条样式-->
     <item android:id="@android:id/progress">
         <scale
-            android:drawable="@drawable/shape_pgsb"
+            android:drawable="@drawable/pgs_bar_bg"
             android:scaleWidth="100%" />
     </item>
 

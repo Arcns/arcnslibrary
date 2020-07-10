@@ -3,6 +3,20 @@ package com.arcns.core.util
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
+/**
+ * 倒序循环输出
+ */
+public inline fun <T> List<T>.reverseForEach(action: (T) -> Unit): Unit {
+    val count = count()
+    for (index in count - 1 downTo 0) action(this[index])
+}
+/**
+ * 倒序循环输出
+ */
+public inline fun <T> List<T>.forEachIndexed(action: (index: Int, T) -> Unit): Unit {
+    val count = count()
+    for (index in count - 1 downTo 0) action(index, this[index])
+}
 
 /**
  * 保留小数点

@@ -20,25 +20,28 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:foreground="?selectableItemBackground"
+        android:onClick="@{()->viewModel.onEventTaskClick(item)}"
         android:padding="@dimen/dp_16">
 
         <TextView
             android:id="@+id/tvName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@{item.saveFileName}"
+            android:text="@{item.saveFileName +' '+item.state+'\n'+item.currentProgress.getLengthToString(2,true)+' '+item.currentProgress.permissionToString}"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ProgressBar
-            style="@style/StyleProgressBar"
+            style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/dp_6"
+            android:indeterminate="@{item.isStop?false:item.currentProgress.indeterminate}"
             android:max="100"
             android:progress="@{item.currentProgress.percentage}"
-            android:progressDrawable="@drawable/main_pb_bg"
             app:layout_constraintTop_toBottomOf="@id/tvName" />
+        <!--        android:progressDrawable="@drawable/main_pb_bg"-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

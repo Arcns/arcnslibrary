@@ -308,11 +308,12 @@ open class UploadNotificationOptions(
     contentIntent: PendingIntent? = null,
     smallIcon: Int,
     largeIcon: Bitmap? = null,
-    defaults: Int? = Notification.DEFAULT_ALL, //默认通知选项
-    priority: Int? = NotificationCompat.PRIORITY_MAX, // 通知优先级
+    defaults: Int? = null, //默认通知选项
+    priority: Int? = null, // 通知优先级
     progress: NotificationProgressOptions,//进度
-    var defaultIsOngoing: Boolean? = true,// 是否禁用滑动删除
-    var defaultIsAutoCancel: Boolean? = false,//是否点击时自动取消
+    var defaultIsOngoing: Boolean? = null,// 是否禁用滑动删除
+    var defaultIsAutoCancel: Boolean? = null,//是否点击时自动取消
+    isOnlyAlertOnce: Boolean? = true,//是否只提示一次声音
     // 创建自定义NotificationChannel代替默认
     onCreateNotificationChannel: (() -> NotificationChannel)? = null,
     // 设置NotificationCompatBuilder
@@ -332,6 +333,7 @@ open class UploadNotificationOptions(
     progress,
     defaultIsOngoing,
     defaultIsAutoCancel,
+    isOnlyAlertOnce,
     onCreateNotificationChannel,
     onSettingNotificationCompatBuilder
 )

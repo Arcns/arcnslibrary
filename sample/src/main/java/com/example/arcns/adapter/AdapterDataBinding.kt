@@ -18,6 +18,5 @@ fun RecyclerView.bindDownload(viewModel: ViewModelDownload, data: List<DownLoadT
     if (adapter == null) {
         adapter = AdapterDownload(viewModel)
     }
-    LOG("RecyclerView.bindDownload")
     (adapter as? AdapterDownload)?.submitList(data ?: listOf())
 }
