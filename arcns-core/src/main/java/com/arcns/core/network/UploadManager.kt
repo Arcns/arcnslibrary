@@ -2,6 +2,7 @@ package com.arcns.core.network
 
 import com.arcns.core.app.NotificationOptions
 import com.arcns.core.app.NotificationProgressOptions
+import com.arcns.core.app.cancelIfDisable
 import com.arcns.core.app.show
 import com.arcns.core.util.LOG
 import okhttp3.*
@@ -257,6 +258,7 @@ class UploadManager {
              */
             private fun updateNotification() {
                 val notificationOptions = getNotificationOptions() ?: return
+                if (notificationOptions.cancelIfDisable(parameter.notificationID)) return
                 // 判断是否允许自动格式化内容
                 if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
                     notificationOptions.contentTitle =
@@ -271,8 +273,10 @@ class UploadManager {
                                 parameter
                             )
                         notificationOptions.progress = parameter.notificationProgress
-                        notificationOptions.isOngoing = true
-                        notificationOptions.isAutoCancel = false
+                        notificationOptions.isOngoing =
+                            notificationOptions.defaultIsOngoing ?: true
+                        notificationOptions.isAutoCancel =
+                            notificationOptions.defaultIsAutoCancel ?: false
                     } else {
                         when (task.state) {
                             TaskState.Success -> {
@@ -304,8 +308,10 @@ class UploadManager {
                             }
                             else -> return
                         }
-                        notificationOptions.isOngoing = false
-                        notificationOptions.isAutoCancel = true
+                        notificationOptions.isOngoing =
+                            notificationOptions.defaultIsOngoing ?: false
+                        notificationOptions.isAutoCancel =
+                            notificationOptions.defaultIsAutoCancel ?: true
                     }
                 }
                 notificationOptions.show(parameter.notificationID)
@@ -313,7 +319,6 @@ class UploadManager {
 
             // 返回当前的通知配置
             private fun getNotificationOptions(): NotificationOptions? {
-                if (task.notificationOptions?.isEnable == false || parameter.notificationOptions?.isEnable == false) return null
                 return parameter.notificationOptions ?: task.notificationOptions
             }
 

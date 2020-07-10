@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.arcns.core.APP
 import com.arcns.core.R
+import com.arcns.core.util.LOG
 import com.arcns.core.util.bitmap
 import com.arcns.core.util.string
 import java.util.*
@@ -192,5 +193,16 @@ fun NotificationCompat.Builder.show(notificationID: Int) =
 /**
  * 取消显示通知
  */
-fun NotificationOptions.cancel() = notificationManager.cancel(notificationID)
+fun NotificationOptions.cancel(notificationID: Int = this.notificationID) =
+    notificationManager.cancel(notificationID)
+
+fun NotificationOptions.cancelIfDisable(notificationID: Int = this.notificationID): Boolean {
+    if (!isEnable) {
+        LOG("updateNotification cancel "+notificationID)
+        cancel(notificationID)
+        return true
+    }
+    return false
+}
+
 fun Int.cancelNotification() = notificationManager.cancel(this)

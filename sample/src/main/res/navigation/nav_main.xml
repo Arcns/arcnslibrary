@@ -29,7 +29,19 @@
             app:popExitAnim="@anim/slide_pop_exit" />
         <action
             android:id="@+id/action_fragmentMain_to_fragmentMapBaidu"
-            app:destination="@id/fragmentMapBaidu" />
+            app:destination="@id/fragmentMapBaidu"
+            app:enterAnim="@anim/slide_enter"
+            app:exitAnim="@anim/slide_exit"
+            app:popEnterAnim="@anim/slide_pop_enter"
+            app:popExitAnim="@anim/slide_pop_exit" />
+
+        <action
+            android:id="@+id/action_fragmentMain_to_fragmentDownload"
+            app:destination="@id/fragmentDownload"
+            app:enterAnim="@anim/slide_enter"
+            app:exitAnim="@anim/slide_exit"
+            app:popEnterAnim="@anim/slide_pop_enter"
+            app:popExitAnim="@anim/slide_pop_exit" />
     </fragment>
     <fragment
         android:id="@+id/fragmentMapGaode"
@@ -46,5 +58,9 @@
         android:id="@+id/fragmentMapBaidu"
         android:name="com.example.arcns.ui.FragmentMapBaidu"
         android:label="FragmentMapBaidu" />
+    <fragment
+        android:id="@+id/fragmentDownload"
+        android:name="com.example.arcns.ui.FragmentDownload"
+        android:label="FragmentDownload" />
 
 </navigation>

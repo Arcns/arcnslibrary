@@ -72,7 +72,8 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
      */
     abstract fun locateMyLocation(
         isLocateMyLocationOnlyWhenFirst: Boolean = false, //仅定位到我的位置一次
-        isMoveCameraOnlyWhenFirst: Boolean = true, //仅切换到我的位置一次
+        isMoveCamera: Boolean = true,//是否切换场景到我的位置
+        isMoveCameraOnlyWhenFirst: Boolean = true, //仅切换到我的位置一次，如果未否则为保持场景在我的定位
         isPriorityResumeDestroyCamera: Boolean = true, // 是否优先恢复上次关闭时保存的场景
         applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)? = null// 自定义我的位置的配置和样式
     )

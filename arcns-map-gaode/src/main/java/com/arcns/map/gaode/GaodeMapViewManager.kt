@@ -11,6 +11,7 @@ import com.amap.api.maps.CameraUpdate
 import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.MapView
 import com.amap.api.maps.model.*
+import com.amap.api.maps.model.MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER
 import com.arcns.core.APP
 import com.arcns.core.map.*
 import com.arcns.core.util.dp
@@ -126,21 +127,28 @@ class GaodeMapViewManager(
      * 定位到我的位置
      */
     override fun locateMyLocation(
-        isLocateMyLocationOnlyWhenFirst: Boolean,
-        isMoveCameraOnlyWhenFirst: Boolean,
-        isPriorityResumeDestroyCamera: Boolean,
-        applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)?
+        isLocateMyLocationOnlyWhenFirst: Boolean, //仅定位到我的位置一次
+        isMoveCamera: Boolean,//是否切换场景到我的位置
+        isMoveCameraOnlyWhenFirst: Boolean, //仅切换到我的位置一次，如果未否则为保持场景在我的定位
+        isPriorityResumeDestroyCamera: Boolean,// 是否优先恢复上次关闭时保存的场景
+        applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)?// 自定义我的位置的配置和样式
     ) {
-        // 连续定位、且将视角移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。（1秒1次定位）高德默认执行此种模式
-        var firstType = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE
+        var firstType =
+            // 连续定位、且将视角移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。（1秒1次定位）高德默认执行此种模式
+            if (isMoveCamera) MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE
+            // //连续定位、蓝点不会移动到地图中心点，定位点依照设备方向旋转，并且蓝点会跟随设备移动。
+            else MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER
         var followUpType: Int
         if (isLocateMyLocationOnlyWhenFirst) {
-            // 定位一次，且将视角移动到地图中心点
-            firstType = MyLocationStyle.LOCATION_TYPE_LOCATE
+            firstType =
+                    //定位一次，将视角移动到地图中心点
+                if (isMoveCamera) MyLocationStyle.LOCATION_TYPE_LOCATE
+                // 定位一次，不移动
+                else MyLocationStyle.LOCATION_TYPE_SHOW
             followUpType = firstType
         } else {
             followUpType =
-                if (isMoveCameraOnlyWhenFirst)
+                if (isMoveCamera && isMoveCameraOnlyWhenFirst)
                     MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER // 连续定位但不移动地图位置
                 else firstType
         }

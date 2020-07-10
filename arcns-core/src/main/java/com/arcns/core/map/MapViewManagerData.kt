@@ -3,6 +3,7 @@ package com.arcns.core.map
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.arcns.core.util.Event
+import com.arcns.core.util.fastValue
 
 /**
  * 通用地图管理器的数据，请在ViewModel中创建
@@ -22,7 +23,7 @@ class MapViewManagerData() {
     private var _eventOnUpdate = MutableLiveData<Event<Any>>()
     var eventOnUpdate: LiveData<Event<Any>> = _eventOnUpdate
     fun onUpdate(data: Any? = null) {
-        _eventOnUpdate.value = Event(data ?: Any())
+        _eventOnUpdate.fastValue = Event(data ?: Any())
     }
 
     // 页面关闭时的地图场景位置

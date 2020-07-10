@@ -95,14 +95,13 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     private var _notificationID: Int? = null
     val notificationID: Int
         get() {
-            var value = notificationOptions?.notificationID
-            if (value == null) {
+            if (_notificationID == null) {
+                _notificationID = notificationOptions?.notificationID
                 if (_notificationID == null) {
                     _notificationID = randomNotificationID
                 }
-                value = _notificationID!!
             }
-            return value
+            return _notificationID!!
         }
     val notificationProgress: NotificationProgressOptions
         get() {
@@ -124,7 +123,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         contentLength: Long,
         fileMimeType: String,
         notificationOptions: NotificationOptions? = null,
-        extraData:Any? = null
+        extraData: Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -143,7 +142,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         contentLength: Long,
         fileMimeType: String,
         notificationOptions: NotificationOptions? = null,
-        extraData:Any? = null
+        extraData: Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -162,7 +161,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         contentLength: Long? = null,
         fileMimeType: String? = null,
         notificationOptions: NotificationOptions? = null,
-        extraData:Any? = null
+        extraData: Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -189,7 +188,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         contentLength: Long? = null,
         fileMimeType: String? = null,
         notificationOptions: NotificationOptions? = null,
-        extraData:Any? = null
+        extraData: Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -212,7 +211,7 @@ open class UploadFileParameter : UploadTaskBaseParameter {
         fileMimeType: String? = null,
         notificationName: String = fileName,
         notificationOptions: NotificationOptions? = null,
-        extraData:Any? = null
+        extraData: Any? = null
     ) : super(name) {
         this.fileName = fileName
         this.showName = showName
@@ -312,8 +311,8 @@ open class UploadNotificationOptions(
     defaults: Int? = Notification.DEFAULT_ALL, //默认通知选项
     priority: Int? = NotificationCompat.PRIORITY_MAX, // 通知优先级
     progress: NotificationProgressOptions,//进度
-    isOngoing: Boolean? = true,// 是否禁用滑动删除
-    isAutoCancel: Boolean? = false,//是否点击时自动取消
+    var defaultIsOngoing: Boolean? = true,// 是否禁用滑动删除
+    var defaultIsAutoCancel: Boolean? = false,//是否点击时自动取消
     // 创建自定义NotificationChannel代替默认
     onCreateNotificationChannel: (() -> NotificationChannel)? = null,
     // 设置NotificationCompatBuilder
@@ -331,8 +330,8 @@ open class UploadNotificationOptions(
     defaults,
     priority,
     progress,
-    isOngoing,
-    isAutoCancel,
+    defaultIsOngoing,
+    defaultIsAutoCancel,
     onCreateNotificationChannel,
     onSettingNotificationCompatBuilder
 )

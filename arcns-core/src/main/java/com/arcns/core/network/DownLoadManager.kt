@@ -1,9 +1,9 @@
 package com.arcns.core.network
 
-import com.arcns.core.app.NotificationOptions
-import com.arcns.core.app.NotificationProgressOptions
-import com.arcns.core.app.show
+import androidx.lifecycle.LifecycleOwner
+import com.arcns.core.app.*
 import com.arcns.core.file.tryClose
+import com.arcns.core.util.EventObserver
 import com.arcns.core.util.LOG
 import okhttp3.*
 import java.io.IOException
@@ -50,10 +50,26 @@ class DownLoadManager {
     // 自定义Request回调
     var onCustomRequest: ((DownLoadTask, Request.Builder) -> Unit)? = null
 
+    // 地图管理器绑定的数据
+    var managerData: DownLoadManagerData? = null
+
 
     constructor(httpClient: OkHttpClient? = null) {
         this.httpClient =
             httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
+    }
+
+    constructor(
+        owner: LifecycleOwner,
+        managerData: DownLoadManagerData,
+        httpClient: OkHttpClient? = null
+    ) {
+        this.httpClient =
+            httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
+        this.managerData = managerData
+        managerData.eventNotifyManagerAddTask.observe(owner, EventObserver {
+            downLoad(it, true)
+        })
     }
 
     @Synchronized
@@ -71,24 +87,15 @@ class DownLoadManager {
     @Synchronized
     private fun downLoad(
         task: DownLoadTask,
-        isBreakpointRetry: Boolean
+        isManagerDataTask: Boolean,
+        isBreakpointRetry: Boolean = false
     ): Boolean {
-        // 确保任务不重复
-        currentTasks.removeAll {
-            it.isStop // 从列表中删除已结束的任务
+        if (!isManagerDataTask) {
+            // 确保任务不重复
+            if (!currentTasks.chackAddDownloadTask(task)) return false
+            // 非managerData的任务则由管理器自己管理
+            currentTasks.add(task)
         }
-        if (currentTasks.contains(task)) {
-            return false // 不能重复添加任务
-        }
-        currentTasks.forEach {
-            if (it.id == task.id) {
-                return false // 任务id已存在
-            }
-            if (!it.isStop && it.saveFilePath == task.saveFilePath) {
-                return false // 任务保存路径正在被使用
-            }
-        }
-        currentTasks.add(task)
         // 开始下载
         var current = 0L
         httpClient.newCall(Request.Builder().apply {
@@ -135,8 +142,7 @@ class DownLoadManager {
                                 if (!task.isBreakpointResume || isBreakpointRetry || !response.isAcceptRange) {
                                     task.saveFile.deleteOnExit()//删除之前的文件
                                     current = 0 // 重置开始位置
-                                }
-                                else {
+                                } else {
                                     // 确认启动断点续传，重新计算断点续传的文件长度（因为使用Range头后，responseBody.contentLength只会返回剩余的大小）
                                     total += current
                                 }
@@ -197,9 +203,10 @@ class DownLoadManager {
                     // 更新到通知栏
                     updateNotification()
                     currentTasks.remove(task)
+                    managerData?.onEventTaskUpdateByState(task)
                 }
 
-                //下载任务失败回调
+                //下载任务失败（含取消、暂停）回调
                 private fun downloadFailure(e: Exception?, response: Response?) {
                     // 更新状态
                     task.changeStateToFailureIfNotStop()
@@ -209,6 +216,7 @@ class DownLoadManager {
                     // 更新到通知栏
                     updateNotification()
                     currentTasks.remove(task)
+                    managerData?.onEventTaskUpdateByState(task)
                 }
 
                 /**
@@ -226,6 +234,7 @@ class DownLoadManager {
                     }
                     // 更新到通知栏
                     updateNotification()
+                    managerData?.onEventTaskUpdateByProgress(task)
                 }
 
                 /**
@@ -233,6 +242,8 @@ class DownLoadManager {
                  */
                 private fun updateNotification() {
                     val notificationOptions = getNotificationOptions() ?: return
+                    if (notificationOptions.cancelIfDisable(task.notificationID)) return
+                    LOG("updateNotification show "+task.notificationID)
                     // 判断是否允许自动格式化内容
                     if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
                         notificationOptions.contentTitle =
@@ -241,8 +252,10 @@ class DownLoadManager {
                             notificationOptions.contentText =
                                 formatTaskNotificationPlaceholderContent(notificationOptions.progressContentText)
                             notificationOptions.progress = task.notificationProgress
-                            notificationOptions.isOngoing = true
-                            notificationOptions.isAutoCancel = false
+                            notificationOptions.isOngoing =
+                                notificationOptions.defaultIsOngoing ?: true
+                            notificationOptions.isAutoCancel =
+                                notificationOptions.defaultIsAutoCancel ?: false
                         } else {
                             when (task.state) {
                                 TaskState.Success -> {
@@ -274,8 +287,10 @@ class DownLoadManager {
                                 }
                                 else -> return
                             }
-                            notificationOptions.isOngoing = false
-                            notificationOptions.isAutoCancel = true
+                            notificationOptions.isOngoing =
+                                notificationOptions.defaultIsOngoing ?: false
+                            notificationOptions.isAutoCancel =
+                                notificationOptions.defaultIsAutoCancel ?: true
                         }
                     }
                     notificationOptions.show(task.notificationID)
@@ -283,7 +298,6 @@ class DownLoadManager {
 
                 // 返回当前的通知配置
                 private fun getNotificationOptions(): NotificationOptions? {
-                    if (notificationOptions?.isEnable == false || task.notificationOptions?.isEnable == false) return null
                     return task.notificationOptions ?: notificationOptions
                 }
 
@@ -308,6 +322,7 @@ class DownLoadManager {
      * 根据url查找任务
      */
     fun findTaskByUrl(url: String): DownLoadTask? = currentTasks.firstOrNull { it.url == url }
+
     /**
      * 根据id查找任务
      */

@@ -20,7 +20,6 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import java.util.*
 
-
 /**
  * 下载任务类
  */
@@ -46,6 +45,16 @@ open class DownLoadTask(
     onTaskSuccess,
     extraData
 ) {
+    // 唯一标识
+    var itemId: Long? = null
+        get() {
+            if (field == null) {
+                field = System.currentTimeMillis()
+            }
+            return field
+        }
+
+    // 当前进度
     var currentProgress: NetworkTaskProgress? = null
         private set
 
@@ -56,14 +65,13 @@ open class DownLoadTask(
     private var _notificationID: Int? = null
     val notificationID: Int
         get() {
-            var value = notificationOptions?.notificationID
-            if (value == null) {
+            if (_notificationID == null) {
+                _notificationID = notificationOptions?.notificationID
                 if (_notificationID == null) {
                     _notificationID = randomNotificationID
                 }
-                value = _notificationID!!
             }
-            return value
+            return _notificationID!!
         }
     val notificationProgress: NotificationProgressOptions
         get() {
@@ -134,8 +142,8 @@ open class DownloadNotificationOptions(
     defaults: Int? = Notification.DEFAULT_ALL, //默认通知选项
     priority: Int? = NotificationCompat.PRIORITY_MAX, // 通知优先级
     progress: NotificationProgressOptions? = null,//进度
-    isOngoing: Boolean? = true,// 是否禁用滑动删除
-    isAutoCancel: Boolean? = false,//是否点击时自动取消
+    var defaultIsOngoing: Boolean? = true,// 是否禁用滑动删除
+    var defaultIsAutoCancel: Boolean? = false,//是否点击时自动取消
     // 创建自定义NotificationChannel代替默认
     onCreateNotificationChannel: (() -> NotificationChannel)? = null,
     // 设置NotificationCompatBuilder
@@ -153,8 +161,8 @@ open class DownloadNotificationOptions(
     defaults,
     priority,
     progress,
-    isOngoing,
-    isAutoCancel,
+    defaultIsOngoing,
+    defaultIsAutoCancel,
     onCreateNotificationChannel,
     onSettingNotificationCompatBuilder
 )

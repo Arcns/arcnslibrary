@@ -115,20 +115,23 @@ class BaiduMapViewManager(
      * 定位到我的位置
      */
     override fun locateMyLocation(
-        isLocateMyLocationOnlyWhenFirst: Boolean,
-        isMoveCameraOnlyWhenFirst: Boolean,
-        isPriorityResumeDestroyCamera: Boolean,
-        applyCustomMyLocation: ((MyLocationConfiguration) -> MyLocationConfiguration)?
+        isLocateMyLocationOnlyWhenFirst: Boolean, //仅定位到我的位置一次
+        isMoveCamera: Boolean,//是否切换场景到我的位置
+        isMoveCameraOnlyWhenFirst: Boolean, //仅切换到我的位置一次，如果未否则为保持场景在我的定位
+        isPriorityResumeDestroyCamera: Boolean,// 是否优先恢复上次关闭时保存的场景
+        applyCustomMyLocationStyle: ((MyLocationConfiguration) -> MyLocationConfiguration)?// 自定义我的位置的配置和样式
     ) {
         // 定位跟随态
-        var firstType = MyLocationConfiguration.LocationMode.FOLLOWING
+        var firstType =
+            if (isMoveCamera) MyLocationConfiguration.LocationMode.FOLLOWING //定位跟随态
+            else MyLocationConfiguration.LocationMode.NORMAL // 普通态，连续定位但不移动地图位置
         var followUpType: MyLocationConfiguration.LocationMode?
         if (isLocateMyLocationOnlyWhenFirst) {
-            // 定位一次，且将视角移动到地图中心点
+            // 定位一次
             followUpType = null
         } else {
             followUpType =
-                if (isMoveCameraOnlyWhenFirst)
+                if (isMoveCamera && isMoveCameraOnlyWhenFirst)
                     MyLocationConfiguration.LocationMode.NORMAL // 普通态，连续定位但不移动地图位置
                 else firstType
         }
@@ -136,7 +139,7 @@ class BaiduMapViewManager(
             firstType,
             followUpType,
             isPriorityResumeDestroyCamera,
-            applyCustomMyLocation
+            applyCustomMyLocationStyle
         )
     }
 
