@@ -74,7 +74,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
         isLocateMyLocationOnlyWhenFirst: Boolean = false, //仅定位到我的位置一次，如果为False则为连续定位
         isMoveCamera: Boolean = true,//是否跟随视觉到我的位置，如果为False则为只定位、不移动视觉，忽略isMoveCameraOnlyWhenFirst
         isMoveCameraOnlyWhenFirst: Boolean = true, //仅切换到我的位置一次，如果为False则视觉会一直跟随我的位置
-        isPriorityResumeDestroyCamera: Boolean,// 是否优先恢复上次关闭时保存的视觉
+        isPriorityResumeDestroyCamera: Boolean = true,// 是否优先恢复上次关闭时保存的视觉
         applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)? = null// 自定义我的位置的配置和样式
     )
 
