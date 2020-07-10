@@ -183,6 +183,10 @@ class FragmentMapBaidu : Fragment() {
         mapViewManager.centerFixedMarkerEnabled = true
         // 定位到我的位置
         mapViewManager.locateMyLocation()
+        // 加载完成回调
+        mapViewManager.onMapLoaded = {
+//            searchDistrict("汕头市")
+        }
         // 绘制点点击
         mapView.map.setOnMarkerClickListener {
             if (it.isInfoWindowEnabled) it.hideInfoWindow() else it.showInfoWindow(

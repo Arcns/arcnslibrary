@@ -2,8 +2,6 @@ package com.arcns.core.map
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import com.arcns.core.map.MapPosition
 import com.arcns.core.util.Event
 
 /**
@@ -11,10 +9,11 @@ import com.arcns.core.util.Event
  */
 class MapViewManagerData() {
     // 是否首次加载（用于兼容Navigation）
-    private var _isfirstLoad = MutableLiveData<Boolean>()
-    val isfirstLoad: Boolean get() = _isfirstLoad.value ?: true
+    var isFirstLoad = true
+        private set
+
     fun onFirstLoadComplete() {
-        _isfirstLoad.value = false
+        isFirstLoad = false
     }
 
     /**
@@ -26,34 +25,46 @@ class MapViewManagerData() {
         _eventOnUpdate.value = Event(data ?: Any())
     }
 
-    // 暂停时的地图场景位置
-    private var _cameraPositionTarget = MutableLiveData<MapPosition>()
-    val cameraPositionTarget get() = _cameraPositionTarget.value
+    // 页面关闭时的地图场景位置
+    var destroyCameraTarget: MapPosition? = null
+        private set
 
-    // 暂停时的地图场景缩放级别
-    private var _cameraPositionZoom = MutableLiveData<Float>()
-    val cameraPositionZoom get() = _cameraPositionZoom.value
+    // 页面关闭时的地图场景缩放级别
+    var destroyCameraZoom: Float? = null
+        private set
 
-    // 暂停时的地图场景俯仰角0°~45°（垂直与地图时为0）
-    private var _cameraPositionTilt = MutableLiveData<Float>()
-    val cameraPositionTilt get() = _cameraPositionTilt.value
+    // 页面关闭时的地图场景俯仰角0°~45°（垂直与地图时为0）
+    var destroyCameraTilt: Float? = null
+        private set
 
-    // 暂停时的地图场景偏航角 0~360° (正北方为0)
-    private var _cameraPositionBearing = MutableLiveData<Float>()
-    val cameraPositionBearing get() = _cameraPositionBearing.value
+    // 页面关闭时的地图场景偏航角 0~360° (正北方为0)
+    var destroyCameraBearing: Float? = null
+        private set
+
+    // 是否拥有未消费的页面关闭时保存的数据
+    var hasUnconsumedDestroyCamera: Boolean = false
+        private set
 
     /**
-     * 保存暂停时的地图场景相关数据
+     * 保存页面关闭时的地图场景相关数据
      */
-    fun savePauseCameraPosition(
+    fun saveDestroyCamera(
         mapPosition: MapPosition,
         zoom: Float,
         tilt: Float,
         bearing: Float
     ) {
-        _cameraPositionTarget.value = mapPosition
-        _cameraPositionZoom.value = zoom
-        _cameraPositionTilt.value = tilt
-        _cameraPositionBearing.value = bearing
+        destroyCameraTarget = mapPosition
+        destroyCameraZoom = zoom
+        destroyCameraTilt = tilt
+        destroyCameraBearing = bearing
+        hasUnconsumedDestroyCamera = true
+    }
+
+    /**
+     * 已消费页面关闭时保存的地图场景相关数据
+     */
+    fun onConsumedDestroyCamera() {
+        hasUnconsumedDestroyCamera = false
     }
 }

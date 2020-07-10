@@ -49,7 +49,8 @@ class GaodeMapViewManager(
             override fun onMapLoaded() {
                 isMapLoaded = true
                 // 通知回调
-                onMapLoaded?.invoke()
+                onMapLoaded?.invoke(viewManagerData.isFirstLoad)
+                viewManagerData.onFirstLoadComplete()
                 // 更新中心点（固定）
                 updateCenterFixedMarker()
                 mapView.map.removeOnMapLoadedListener(this)
@@ -61,6 +62,7 @@ class GaodeMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroy() {
+                saveDestroyCamera()
                 stopLocateMyLocation()
                 mapView.onDestroy()
 
@@ -73,16 +75,41 @@ class GaodeMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             fun onPause() {
-                viewManagerData.savePauseCameraPosition(
-                    getCamera().target.toMapPosition,
-                    getCamera().zoom,
-                    getCamera().tilt,
-                    getCamera().bearing
-                )
                 mapView.onPause()
             }
         })
 
+    }
+
+    /**
+     * 保存暂停时的地图场景相关数据
+     */
+    override fun saveDestroyCamera() = viewManagerData.saveDestroyCamera(
+        getCamera().target.toMapPosition,
+        getCamera().zoom,
+        getCamera().tilt,
+        getCamera().bearing
+    )
+
+
+    /**
+     * 恢复暂停时保存的地图场景相关数据
+     */
+    override fun resumeDestroyCamera() {
+        viewManagerData.onConsumedDestroyCamera()
+        viewManagerData.destroyCameraTarget?.run {
+            // 返回到暂停时保存的状态
+            moveCamera(
+                moveCameraData = CameraUpdateFactory.newCameraPosition(
+                    CameraPosition(
+                        this.toGaoDe,
+                        viewManagerData.destroyCameraZoom!!,
+                        viewManagerData.destroyCameraTilt!!,
+                        viewManagerData.destroyCameraBearing!!
+                    )
+                )
+            )
+        }
     }
 
     /**
@@ -101,7 +128,7 @@ class GaodeMapViewManager(
     override fun locateMyLocation(
         isLocateMyLocationOnlyWhenFirst: Boolean,
         isMoveCameraOnlyWhenFirst: Boolean,
-        isFirstFlagFromViewModel: Boolean,
+        isPriorityResumeDestroyCamera: Boolean,
         applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)?
     ) {
         // 连续定位、且将视角移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。（1秒1次定位）高德默认执行此种模式
@@ -120,7 +147,7 @@ class GaodeMapViewManager(
         locateMyLocationByType(
             firstType,
             followUpType,
-            isFirstFlagFromViewModel,
+            isPriorityResumeDestroyCamera,
             applyCustomMyLocationStyle
         )
     }
@@ -131,34 +158,20 @@ class GaodeMapViewManager(
     fun locateMyLocationByType(
         firstType: Int = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE, //第一次定位类型
         followUpType: Int = MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER,//后续定位类型
-        isFirstFlagFromViewModel: Boolean = true, // 是否首次加载的标志从viewmodel进行获取，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
+        isPriorityResumeDestroyCamera: Boolean = true, // 是否首次加载的标志从viewmodel进行获取，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
         applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)? = null
     ) {
         val initType =
-            if (isFirstFlagFromViewModel && !viewManagerData.isfirstLoad) followUpType else firstType
+            if (isPriorityResumeDestroyCamera && viewManagerData.hasUnconsumedDestroyCamera) followUpType else firstType
         mapView.map.myLocationStyle = MyLocationStyle().let {
             (applyCustomMyLocationStyle?.invoke(it) ?: it).myLocationType(initType)
         }
         mapView.map.isMyLocationEnabled = true
-        if (isFirstFlagFromViewModel && !viewManagerData.isfirstLoad) {
+        if (isPriorityResumeDestroyCamera && viewManagerData.hasUnconsumedDestroyCamera) {
             // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
-            viewManagerData.cameraPositionTarget?.run {
-                // 返回到暂停时保存的状态
-                moveCamera(
-                    moveCameraData = CameraUpdateFactory.newCameraPosition(
-                        CameraPosition(
-                            this.toGaoDe,
-                            viewManagerData.cameraPositionZoom!!,
-                            viewManagerData.cameraPositionTilt!!,
-                            viewManagerData.cameraPositionBearing!!
-                        )
-                    )
-                )
-            }
-
+            resumeDestroyCamera()
             return
         }
-        viewManagerData.onFirstLoadComplete()
         if (initType == followUpType) {
             // 第一次定位类型与后续定位类型一致
             return

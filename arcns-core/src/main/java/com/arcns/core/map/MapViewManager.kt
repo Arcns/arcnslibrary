@@ -42,12 +42,25 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     /**
      * 地图加载完成后的回调
      */
-    var onMapLoaded: (() -> Unit)? = null
+    var onMapLoaded: ((Boolean) -> Unit)? = null
 
     /**
      * 添加时样式配置格式化，如果如果使用自定义样式时，可以使用该变量，其中options为MarkerOptions或PolylineOptions或PolygonOptions等
      */
     var globalApplyCustomOptions: ApplyCustomOptions? = null
+
+
+    /**
+     * 保存关闭页面时的地图场景相关数据
+     */
+    abstract fun saveDestroyCamera()
+
+
+    /**
+     * 恢复关闭页面时保存的地图场景相关数据
+     */
+    abstract fun resumeDestroyCamera()
+
 
     /**
      * 停止监听定位
@@ -60,7 +73,7 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
     abstract fun locateMyLocation(
         isLocateMyLocationOnlyWhenFirst: Boolean = false, //仅定位到我的位置一次
         isMoveCameraOnlyWhenFirst: Boolean = true, //仅切换到我的位置一次
-        isFirstFlagFromViewModel: Boolean = true, // 是否首次加载从viewmodel进行获取
+        isPriorityResumeDestroyCamera: Boolean = true, // 是否优先恢复上次关闭时保存的场景
         applyCustomMyLocationStyle: ((MyLocationStyle) -> MyLocationStyle)? = null// 自定义我的位置的配置和样式
     )
 

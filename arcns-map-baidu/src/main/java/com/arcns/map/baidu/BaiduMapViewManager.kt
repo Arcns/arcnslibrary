@@ -9,7 +9,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
 import com.arcns.core.map.*
 import com.arcns.core.util.dp
-import com.arcns.core.util.keepDecimalPlaces
 import com.baidu.location.BDLocation
 import com.baidu.location.LocationClientOption
 import com.baidu.mapapi.map.*
@@ -45,7 +44,8 @@ class BaiduMapViewManager(
         mapView.map.setOnMapLoadedCallback {
             isMapLoaded = true
             // 通知回调
-            onMapLoaded?.invoke()
+            onMapLoaded?.invoke(viewManagerData.isFirstLoad)
+            viewManagerData.onFirstLoadComplete()
             // 更新中心点（固定）
             updateCenterFixedMarker()
         }
@@ -55,6 +55,7 @@ class BaiduMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroy() {
+                saveDestroyCamera()
                 mapView.onDestroy()
             }
 
@@ -65,16 +66,41 @@ class BaiduMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             fun onPause() {
-                viewManagerData.savePauseCameraPosition(
-                    getCamera().target.toMapPosition,
-                    getCamera().zoom,
-                    getCamera().overlook,
-                    getCamera().rotate
-                )
                 mapView.onPause()
             }
         })
 
+    }
+
+    /**
+     * 保存暂停时的地图场景相关数据
+     */
+    override fun saveDestroyCamera() = viewManagerData.saveDestroyCamera(
+        getCamera().target.toMapPosition,
+        getCamera().zoom,
+        getCamera().overlook,
+        getCamera().rotate
+    )
+
+
+    /**
+     * 恢复暂停时保存的地图场景相关数据
+     */
+    override fun resumeDestroyCamera() {
+        viewManagerData.onConsumedDestroyCamera()
+        viewManagerData.destroyCameraTarget?.run {
+            // 返回到暂停时保存的状态
+            moveCamera(
+                moveCameraData = MapStatusUpdateFactory.newMapStatus(
+                    MapStatus.Builder()
+                        .target(this.toBaidu)
+                        .zoom(viewManagerData.destroyCameraZoom!!)
+                        .overlook(viewManagerData.destroyCameraTilt!!)
+                        .rotate(viewManagerData.destroyCameraBearing!!)
+                        .build()
+                )
+            )
+        }
     }
 
 
@@ -91,7 +117,7 @@ class BaiduMapViewManager(
     override fun locateMyLocation(
         isLocateMyLocationOnlyWhenFirst: Boolean,
         isMoveCameraOnlyWhenFirst: Boolean,
-        isFirstFlagFromViewModel: Boolean,
+        isPriorityResumeDestroyCamera: Boolean,
         applyCustomMyLocation: ((MyLocationConfiguration) -> MyLocationConfiguration)?
     ) {
         // 定位跟随态
@@ -109,7 +135,7 @@ class BaiduMapViewManager(
         locateMyLocationByType(
             firstType,
             followUpType,
-            isFirstFlagFromViewModel,
+            isPriorityResumeDestroyCamera,
             applyCustomMyLocation
         )
     }
@@ -120,35 +146,22 @@ class BaiduMapViewManager(
     fun locateMyLocationByType(
         firstType: MyLocationConfiguration.LocationMode = MyLocationConfiguration.LocationMode.FOLLOWING, //第一次定位类型
         followUpType: MyLocationConfiguration.LocationMode? = MyLocationConfiguration.LocationMode.NORMAL,//后续定位类型
-        isFirstFlagFromViewModel: Boolean = true, // 是否首次加载的标志从viewmodel进行获取，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
+        isPriorityResumeDestroyCamera: Boolean = true, // 是否首次加载的标志从viewmodel进行获取，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
         applyCustomMyLocation: ((MyLocationConfiguration) -> MyLocationConfiguration)? = null,
         applyCustomLocationClientOption: ((LocationClientOption) -> Void)? = null,
         onReceiveLocation: ((location: BDLocation?) -> Void)? = null
     ) {
         this.onReceiveLocation = onReceiveLocation
         val initType =
-            if (isFirstFlagFromViewModel && !viewManagerData.isfirstLoad) followUpType else firstType
+            if (isPriorityResumeDestroyCamera && viewManagerData.hasUnconsumedDestroyCamera) followUpType else firstType
         mapView.map.setMyLocationConfiguration(MyLocationConfiguration(initType, true, null).let {
             applyCustomMyLocation?.invoke(it) ?: it
         })
         mapView.map.isMyLocationEnabled = true
-        if (isFirstFlagFromViewModel && !viewManagerData.isfirstLoad) {
+        if (isPriorityResumeDestroyCamera && viewManagerData.hasUnconsumedDestroyCamera) {
             // 首次加载模式，如果为该模式则只会在页面首次加载时设置firstType，若页面非首次加载则设置为followUpType
-            viewManagerData.cameraPositionTarget?.run {
-                // 返回到暂停时保存的状态
-                moveCamera(
-                    moveCameraData = MapStatusUpdateFactory.newMapStatus(
-                        MapStatus.Builder()
-                            .target(this.toBaidu)
-                            .zoom(viewManagerData.cameraPositionZoom!!)
-                            .overlook(viewManagerData.cameraPositionTilt!!)
-                            .rotate(viewManagerData.cameraPositionBearing!!)
-                            .build()
-                    )
-                )
-            }
+            resumeDestroyCamera()
         }
-        viewManagerData.onFirstLoadComplete()
         baiduMapLocator =
             BaiduMapLocator(mapView.context, applyCustomLocationClientOption, true).apply {
                 lifecycleOwner = this@BaiduMapViewManager.lifecycleOwner

@@ -171,7 +171,7 @@ class FragmentMapGaode : Fragment() {
         }
         mapViewManager = GaodeMapViewManager(this, mapView, viewModel.mapViewManagerData)
         mapViewManager.centerFixedMarkerEnabled = true
-        // 加载完成回调
+//         加载完成回调
         mapViewManager.onMapLoaded = {
 //            searchDistrict("汕头市")
         }
