@@ -1,8 +1,6 @@
 package com.arcns.core.network
 
-import android.app.Notification
 import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
@@ -11,33 +9,33 @@ import com.arcns.core.app.NotificationOptions
 import com.arcns.core.app.NotificationProgressOptions
 import com.arcns.core.app.randomNotificationID
 import com.arcns.core.file.FileUtil
+import com.arcns.core.file.getCurrentTimeMillisFileName
 import com.arcns.core.file.tryClose
 import com.arcns.core.util.LOG
 import com.arcns.core.util.string
 import okhttp3.OkHttpClient
-import okio.Source
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
-import java.util.*
 
 /**
  * 下载任务类
  */
-open class DownLoadTask(
+open class DownloadTask(
     url: String,
     var saveDirPath: String,
-    var saveFileName: String,
-    var showName: String = saveFileName,
+    var saveFileName: String? = null,
+    var saveFileSuffix: String? = null,
+    var showName: String? = null,
     var isBreakpointResume: Boolean = true, //是否开启断点续传
     notificationOptions: NotificationOptions? = null, // 建议使用DownloadNotificationOptions
     okHttpClient: OkHttpClient? = null,
     progressUpdateInterval: Long? = null,
     var onDownloadProgressUpdate: OnDownloadProgressUpdate? = null,
-    onTaskFailure: OnTaskFailure<DownLoadTask>? = null,
-    onTaskSuccess: OnTaskSuccess<DownLoadTask>? = null,
+    onTaskFailure: OnTaskFailure<DownloadTask>? = null,
+    onTaskSuccess: OnTaskSuccess<DownloadTask>? = null,
     extraData: Any? = null
-) : NetworkTask<DownLoadTask>(
+) : NetworkTask<DownloadTask>(
     url,
     notificationOptions,
     okHttpClient,
@@ -46,6 +44,20 @@ open class DownLoadTask(
     onTaskSuccess,
     extraData
 ) {
+
+    var saveFullFileName: String? = null
+        private set
+
+    init {
+        // 补全后缀
+        if (!saveFileSuffix.isNullOrBlank() && saveFileSuffix != "." && saveFileSuffix?.startsWith(".") == false) {
+            saveFileSuffix = ".$saveFileSuffix"
+        }
+        if (saveFileName != null && saveFileSuffix != null)
+            saveFullFileName = saveFileName + saveFileSuffix
+        else saveFullFileName = saveFileName
+    }
+
     // 唯一标识
     var itemId: Long? = null
         get() {
@@ -84,12 +96,44 @@ open class DownLoadTask(
         }
 
     /**
+     * 设置保存文件名
+     */
+    fun completeSaveFullFileName(responseFileName: String?) {
+        var newFullName = responseFileName
+        var newName = FileUtil.getFileNameNotSuffix(newFullName)
+        var newSuffix = FileUtil.getFileSuffixAndVerify(newFullName)
+        if (!saveFullFileName.isNullOrBlank()) {
+            if (saveFileSuffix == null && !newSuffix.isNullOrBlank()) {
+                // 后缀名根据responseFileName补全
+                saveFullFileName = saveFileName + newSuffix
+            }
+            return
+        }
+        if (newFullName.isNullOrBlank()) {
+            // 没有默认名，也没有responseFileName，则自动生成名称
+            saveFullFileName = getCurrentTimeMillisFileName(saveFileSuffix)
+            return
+        }
+        if (saveFileSuffix != null && !saveFileSuffix.equals(newSuffix, true)) {
+            // 优先使用自定义的后缀
+            newSuffix = saveFileSuffix
+        }
+        saveFullFileName = newName + newSuffix
+        var rename = 1
+        while (saveFile.exists()) {
+            // 文件名被占用时重命名
+            saveFullFileName = "$newName($rename)$newSuffix"
+            rename++
+        }
+    }
+
+    /**
      * 设置当前进度
      */
     fun updateProgress(contentLength: Long, progress: Long): NetworkTaskProgress =
         NetworkTaskProgress(contentLength, progress).apply {
             currentProgress = this
-            onDownloadProgressUpdate?.invoke(this@DownLoadTask, this)
+            onDownloadProgressUpdate?.invoke(this@DownloadTask, this)
         }
 
     /**
@@ -110,7 +154,7 @@ open class DownLoadTask(
         outputStream = null
     }
 
-    val saveFilePath: String get() = FileUtil.splicing(saveDirPath, saveFileName)
+    val saveFilePath: String get() = FileUtil.splicing(saveDirPath, saveFullFileName)
 
     val saveFile: File get() = File(saveFilePath)
 

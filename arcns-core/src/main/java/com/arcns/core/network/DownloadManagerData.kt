@@ -1,6 +1,5 @@
 package com.arcns.core.network
 
-import android.app.Notification
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.arcns.core.app.NotificationOptions
@@ -11,41 +10,61 @@ import com.arcns.core.util.reverseForEach
 import java.util.*
 import kotlin.collections.ArrayList
 
-class DownLoadManagerData {
+class DownloadManagerData {
     val uniqueID: String = UUID.randomUUID().toString()
 
     // 任务列表
     private var _tasks =
-        MutableLiveData<ArrayList<DownLoadTask>>().apply { fastValue = ArrayList() }
-    val tasksLiveData: LiveData<ArrayList<DownLoadTask>> = _tasks
-    val tasks: ArrayList<DownLoadTask> get() = _tasks.value ?: arrayListOf()
+        MutableLiveData<ArrayList<DownloadTask>>().apply { fastValue = ArrayList() }
+    val tasksLiveData: LiveData<ArrayList<DownloadTask>> = _tasks
+    val tasks: ArrayList<DownloadTask> get() = _tasks.value ?: arrayListOf()
 
     // 任务更新事件
-    private var _eventTaskUpdate = MutableLiveData<Event<DownLoadTask>>()
-    var eventTaskUpdate: LiveData<Event<DownLoadTask>> = _eventTaskUpdate
-    fun onEventTaskUpdateByState(task: DownLoadTask) {
+    private var _eventTaskUpdate = MutableLiveData<Event<DownloadTask>>()
+    var eventTaskUpdate: LiveData<Event<DownloadTask>> = _eventTaskUpdate
+    fun onEventTaskUpdateByState(task: DownloadTask) {
         _tasks.fastValue = tasks
         _eventTaskUpdate.fastValue = Event(task)
     }
 
-    fun onEventTaskUpdateByProgress(task: DownLoadTask) {
+    fun onEventTaskUpdateByProgress(task: DownloadTask) {
         _tasks.fastValue = tasks
         _eventTaskUpdate.fastValue = Event(task)
     }
 
     // 添加任务
-    private var _eventNotifyManagerDownload = MutableLiveData<Event<DownLoadTask>>()
-    var eventNotifyManagerDownload: LiveData<Event<DownLoadTask>> = _eventNotifyManagerDownload
-    fun download(task: DownLoadTask): Boolean {
-        if (!tasks.addDownloadTask(task)) return false
+    private var _eventNotifyManagerDownload = MutableLiveData<Event<DownloadTask>>()
+    var eventNotifyManagerDownload: LiveData<Event<DownloadTask>> = _eventNotifyManagerDownload
+    fun download(task: DownloadTask): Boolean {
+        if (!addTask(task)) return false
         _eventNotifyManagerDownload.fastValue = Event(task)
         onEventTaskUpdateByState(task)
         return true
     }
 
+    private fun addTask(task:DownloadTask):Boolean{
+        tasks.forEachIndexed { index, it ->
+            // 任务已存在
+            if (it == task || it.id == task.id) {
+                if (it.isStop) {
+                    tasks.removeAt(index)
+                    tasks.add(index, task)
+                    return true
+                }
+                return false
+            }
+            // 任务保存路径正在被使用
+            if (!it.isStop && it.saveFilePath == task.saveFilePath) {
+                return false
+            }
+        }
+        tasks.add(task)
+        return true
+    }
+
     // 删除任务
     fun removeTask(
-        task: DownLoadTask?,
+        task: DownloadTask?,
         isCancelTask: Boolean = true,
         isClearNotification: Boolean = true
     ): Boolean {
@@ -54,9 +73,9 @@ class DownLoadManagerData {
                 if (task.isStop) task.notificationID.cancelNotification()
                 else task.notificationOptions = NotificationOptions.DISABLE
             }
-            if (isCancelTask && task.isRunning) task.cancel()
             tasks.remove(task)
-            onEventTaskUpdateByState(task)
+            if (isCancelTask && task.isRunning) task.cancel()
+//            onEventTaskUpdateByState(task)
             return true
         }
         return false
@@ -87,47 +106,15 @@ class DownLoadManagerData {
     /**
      * 根据url查找任务
      */
-    fun findTaskByUrl(url: String): DownLoadTask? = tasks.firstOrNull { it.url == url }
+    fun findTaskByUrl(url: String): DownloadTask? = tasks.firstOrNull { it.url == url }
 
     /**
      * 根据id查找任务
      */
-    fun findTaskByID(id: String): DownLoadTask? = tasks.firstOrNull { it.id == id }
-}
+    fun findTaskByID(id: String): DownloadTask? = tasks.firstOrNull { it.id == id }
 
-/**
- * 查找合适的位置
- */
-fun ArrayList<DownLoadTask>.findDownloadTaskAppropriateIndex(addTask: DownLoadTask): Int? {
-    forEachIndexed { index, it ->
-        // 任务已存在
-        if (it == addTask || it.id == addTask.id) {
-            if (it.isStop) {
-                return index
-            }
-            return null
-        }
-        // 任务保存路径正在被使用
-        if (!it.isStop && it.saveFilePath == addTask.saveFilePath) {
-            return null
-        }
-    }
-    return -1
-}
-
-/**
- * 添加任务
- */
-@Synchronized
-fun ArrayList<DownLoadTask>.addDownloadTask(addTask: DownLoadTask): Boolean {
-    findDownloadTaskAppropriateIndex(addTask)?.run {
-        if (this == -1) {
-            add(addTask)
-        } else {
-            removeAt(this)
-            add(this, addTask)
-        }
-        return true
-    }
-    return false
+    /**
+     * 是否包含指定任务
+     */
+    fun containsTask(task:DownloadTask):Boolean = tasks.contains(task)
 }

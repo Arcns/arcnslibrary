@@ -54,6 +54,15 @@ public class FileUtil {
     }
 
     /**
+     * 获取文件后缀名(带.)，并排除仅为.的清空
+     */
+    public static String getFileSuffixAndVerify(String filePath) {
+        String value = getFileSuffix(filePath);
+        if (value.equals(".")) value = null;
+        return value;
+    }
+
+    /**
      * 获取文件的目录部分（结尾带/）
      */
     public static String getFileDirectory(String filePath) {
@@ -67,6 +76,7 @@ public class FileUtil {
      * 获取文件名（不带后缀名）
      */
     public static String getFileNameNotSuffix(String filePath) {
+        if (filePath == null) return null;
         filePath = getFileName(filePath);
         if (filePath.contains(".")) {
             return filePath.substring(0, filePath.lastIndexOf('.'));

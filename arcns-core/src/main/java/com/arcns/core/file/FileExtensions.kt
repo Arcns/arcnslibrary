@@ -214,17 +214,17 @@ fun getRandomCacheFilePath(suffixName: String): String =
         suffixName
     )
 
-fun getCurrentTimeMillisFileName(suffixName: String): String =
-    System.currentTimeMillis().toString() + suffixName
+fun getCurrentTimeMillisFileName(suffixName: String? = null): String =
+    System.currentTimeMillis().toString() + (suffixName ?: "")
 
 fun getCurrentDateTimeFileName(
-    suffixName: String,
+    suffixName: String? = null,
     dateTimeFormat: String = "yyyyMMddHHmmss"
 ): String =
     SimpleDateFormat(
         dateTimeFormat,
         Locale.CHINA
-    ).format(Date(System.currentTimeMillis())) + suffixName
+    ).format(Date(System.currentTimeMillis())) + (suffixName ?: "")
 
 
 val DEFAULT_DAPTIVE_FILE_LENGTH_UNITS = arrayOf("BYTE", "KB", "MB", "GB", "TB")

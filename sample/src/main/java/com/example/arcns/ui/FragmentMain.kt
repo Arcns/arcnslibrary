@@ -1,45 +1,30 @@
 package com.example.arcns.ui
 
-import android.app.NotificationManager
 import android.os.Bundle
-import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
-import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import com.arcns.core.app.NotificationOptions
-import com.arcns.core.app.NotificationProgressOptions
-import com.arcns.core.app.cancelNotification
-import com.arcns.core.app.show
 import com.arcns.core.file.cacheDirPath
 import com.arcns.core.file.getCurrentTimeMillisFileName
-import com.arcns.core.file.getRandomCacheFilePath
-import com.arcns.core.network.DownLoadManager
-import com.arcns.core.network.DownLoadTask
+import com.arcns.core.network.DownloadManager
+import com.arcns.core.network.DownloadTask
 import com.arcns.core.network.DownloadNotificationOptions
 import com.arcns.core.util.*
 import com.arcns.media.audio.MediaAudioRecorderPlayerUtil
 import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.runtime.Permission
-import com.example.arcns.MainActivity
 import com.example.arcns.R
 import com.example.arcns.databinding.FragmentMainBinding
 import com.example.arcns.util.openPermission
 import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelMain
-import kotlinx.android.synthetic.main.fragment_empty.*
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
 import kotlinx.android.synthetic.main.fragment_main.*
-import kotlin.math.max
 
 
 /**
@@ -50,7 +35,7 @@ class FragmentMain : Fragment() {
     private val viewModel by viewModels<ViewModelMain>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
     private lateinit var audioRecorderPlayerUtil: MediaAudioRecorderPlayerUtil
-    private var downLoadManager = DownLoadManager()
+    private var downLoadManager = DownloadManager()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -133,11 +118,11 @@ class FragmentMain : Fragment() {
             smallIcon = R.drawable.ic_download,
             defaultIsOngoing = false
         )
-        val task = DownLoadTask(
+        val task = DownloadTask(
             url = "https://dldir1.qq.com/weixin/android/weixin7016android1700_arm64.apk",
 //            url = "https://6c0fee503ddb187fc6bd1ce48124b314.dd.cdntips.com/imtt.dd.qq.com/16891/apk/B63F493587B17E6AD41B8E6844E6CE99.apk?mkey=5f069da3b7ed4490&f=1806&cip=183.237.98.101&proto=https",
             saveDirPath = cacheDirPath,
-            saveFileName = getCurrentTimeMillisFileName(".apk"),
+            saveFileName = getCurrentTimeMillisFileName(),
             isBreakpointResume = false
         )
         btnDownloadTest.setOnClickListener {

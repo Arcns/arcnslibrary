@@ -13,33 +13,29 @@ import java.io.IOException
 import java.io.InputStream
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
 
 // 下载任务进度更新回调
-typealias OnDownloadProgressUpdate = (DownLoadTask, NetworkTaskProgress) -> Unit
+typealias OnDownloadProgressUpdate = (DownloadTask, NetworkTaskProgress) -> Unit
 
 
 /**
  * 下载管理器
  */
-class DownLoadManager {
+class DownloadManager {
 
     // OkHttpClient
     var httpClient: OkHttpClient
         private set
 
-    // 当前运行中的下载任务列表
-    private val currentTasks = ArrayList<DownLoadTask>()
-
     // 每次下载的字节数
     var perByteCount = 2048
 
     // 下载任务成功回调
-    var onTaskSuccess: OnTaskSuccess<DownLoadTask>? = null
+    var onTaskSuccess: OnTaskSuccess<DownloadTask>? = null
 
     //下载任务失败回调
-    var onTaskFailure: OnTaskFailure<DownLoadTask>? = null
+    var onTaskFailure: OnTaskFailure<DownloadTask>? = null
 
     // 下载任务的文件进度回调
     var onProgressUpdate: OnDownloadProgressUpdate? = null
@@ -51,83 +47,72 @@ class DownLoadManager {
     var notificationOptions: NotificationOptions? = null
 
     // 自定义Request回调
-    var onCustomRequest: ((DownLoadTask, Request.Builder) -> Unit)? = null
+    var onCustomRequest: ((DownloadTask, Request.Builder) -> Unit)? = null
 
     // 地图管理器绑定的数据
-    var managerData: DownLoadManagerData? = null
+    var managerData: DownloadManagerData
         private set
 
     // 无生命周期管理时与managerdata连接的对象
-    var eventNotifyManagerDownloadObserver: EventObserver<DownLoadTask>? = null
+    var eventNotifyManagerDownloadObserver: EventObserver<DownloadTask>? = null
         private set
 
-
-    constructor(httpClient: OkHttpClient? = null) {
-        this.httpClient =
-            httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
-    }
+    constructor(httpClient: OkHttpClient? = null) : this(DownloadManagerData(), httpClient)
 
     constructor(
-        managerData: DownLoadManagerData,
-        lifecycleOwner: LifecycleOwner? = null,
+        managerData: DownloadManagerData,
         httpClient: OkHttpClient? = null
     ) {
         this.httpClient =
             httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
         this.managerData = managerData
-        if (lifecycleOwner != null) {
-            // 拥有生命周期管理
-            managerData.eventNotifyManagerDownload.observe(lifecycleOwner, EventObserver {
-                downLoad(it, true)
-            })
-            lifecycleOwner.lifecycle.addObserver(object : LifecycleObserver {
-                @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-                fun onDestroy() {
-                    lifecycleOwner.lifecycle.removeObserver(this)
-                    releaseManagerData()
-                }
-            })
-        } else {
-            // 无生命周期管理
-            eventNotifyManagerDownloadObserver =
-                EventObserver<DownLoadTask> {
-                    downLoad(it, true)
-                }
-            managerData.eventNotifyManagerDownload.observeForever(eventNotifyManagerDownloadObserver!!)
-        }
-    }
-
-    @Synchronized
-    fun downLoad(
-        tasks: List<DownLoadTask>
-    ) = tasks.forEach {
-        downLoad(it)
-    }
-
-    @Synchronized
-    fun downLoad(
-        task: DownLoadTask
-    ): Boolean = downLoad(task, false)
-
-    @Synchronized
-    private fun downLoad(
-        task: DownLoadTask,
-        isManagerDataTask: Boolean,
-        isBreakpointRetry: Boolean = false
-    ): Boolean {
-        if (isManagerDataTask) {
-            // 来自managerData的任务
-            if (currentTasks.findDownloadTaskAppropriateIndex(task) == null) {
-                // 任务已存在管理器自己管理的列表中
-                task.stop(TaskState.Failure)
-                return false
+        // 无生命周期管理
+        eventNotifyManagerDownloadObserver =
+            EventObserver<DownloadTask> {
+                download(it, true)
             }
-        } else {
-            // 有managerData时，任务由managerData管理
-            if (managerData != null) return managerData!!.download(task)
-            // 没有managerData时，任务由管理器自己管理
-            else if (!currentTasks.addDownloadTask(task)) return false  // 确保任务不重复
-        }
+        managerData.eventNotifyManagerDownload.observeForever(eventNotifyManagerDownloadObserver!!)
+    }
+
+    constructor(
+        lifecycleOwner: LifecycleOwner,
+        managerData: DownloadManagerData,
+        httpClient: OkHttpClient? = null
+    ) {
+        this.httpClient =
+            httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
+        this.managerData = managerData
+        // 拥有生命周期管理
+        managerData.eventNotifyManagerDownload.observe(lifecycleOwner, EventObserver {
+            download(it, false)
+        })
+        lifecycleOwner.lifecycle.addObserver(object : LifecycleObserver {
+            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+            fun onDestroy() {
+                lifecycleOwner.lifecycle.removeObserver(this)
+                releaseManagerData()
+            }
+        })
+    }
+
+
+    @Synchronized
+    fun download(
+        tasks: List<DownloadTask>
+    ) = tasks.forEach {
+        download(it)
+    }
+
+    @Synchronized
+    fun download(
+        task: DownloadTask
+    ): Boolean = managerData.download(task)
+
+    @Synchronized
+    private fun download(
+        task: DownloadTask,
+        isBreakpointRetry: Boolean
+    ): Boolean {
         // 开始下载
         var current = 0L
         httpClient.newCall(Request.Builder().apply {
@@ -179,7 +164,8 @@ class DownLoadManager {
                                     total += current
                                 }
                             }
-
+                            task.completeSaveFullFileName(response.fileName)
+                            LOG("DownLoadTask fileName: " + response.fileName)
                             LOG("DownLoadTask:$total  $current")
                             // 开始循环接收数据流
                             var outputStream =
@@ -215,7 +201,7 @@ class DownLoadManager {
 
                     } else {
                         // 若断点继传使用Range头后请求失败，则尝试不使用Range头进行调用（重试）
-                        if (!isBreakpointRetry && task.isBreakpointResume && task.breakpoint > 0) downLoad(
+                        if (!isBreakpointRetry && task.isBreakpointResume && task.breakpoint > 0) download(
                             task,
                             true
                         )
@@ -233,7 +219,6 @@ class DownLoadManager {
                     onTaskSuccess?.invoke(task, response)
                     // 更新到通知栏
                     updateNotification()
-                    currentTasks.remove(task)
                     managerData?.onEventTaskUpdateByState(task)
                 }
 
@@ -246,7 +231,6 @@ class DownLoadManager {
                     onTaskFailure?.invoke(task, e, response)
                     // 更新到通知栏
                     updateNotification()
-                    currentTasks.remove(task)
                     managerData?.onEventTaskUpdateByState(task)
                 }
 
@@ -278,7 +262,9 @@ class DownLoadManager {
                     // 判断是否允许自动格式化内容
                     if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
                         notificationOptions.contentTitle =
-                            formatTaskNotificationPlaceholderContent(notificationOptions.notificationTitle)
+                            formatTaskNotificationPlaceholderContent(notificationOptions.notificationTitle).getAbbreviatedText(
+                                20
+                            )
                         if (task.isRunning) {
                             notificationOptions.contentText =
                                 formatTaskNotificationPlaceholderContent(notificationOptions.progressContentText)
@@ -334,8 +320,14 @@ class DownLoadManager {
 
                 // 填充占位符
                 private fun formatTaskNotificationPlaceholderContent(content: String): String =
-                    content.replace(TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME, task.saveFileName)
-                        .replace(TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME, task.showName)
+                    content.replace(
+                        TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME,
+                        task.saveFullFileName ?: ""
+                    )
+                        .replace(
+                            TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME,
+                            task.showName ?: task.saveFullFileName ?: ""
+                        )
                         .replace(
                             TASK_NOTIFICATION_PLACEHOLDER_LENGTH,
                             task.currentProgress?.getLengthToString() ?: ""
@@ -349,42 +341,16 @@ class DownLoadManager {
         return true
     }
 
-
-    /**
-     * 取消所有任务
-     */
-    fun cancelAllTask(isClearNotification: Boolean = true) {
-        currentTasks.forEach {
-            if (isClearNotification) {
-                if (it.isStop) it.notificationID.cancelNotification()
-                else it.notificationOptions = NotificationOptions.DISABLE
-            }
-            if (it.isRunning) it.cancel()
-        }
-        managerData?.cancelAllTask(isClearNotification)
-    }
-
     /**
      * 释放ManagerData
      */
     fun releaseManagerData() {
         eventNotifyManagerDownloadObserver?.run {
-            managerData?.eventNotifyManagerDownload?.removeObserver(this)
+            managerData.eventNotifyManagerDownload.removeObserver(this)
             eventNotifyManagerDownloadObserver = null
         }
-        managerData?.cancelAllTask()
-        managerData = null
+        managerData.cancelAllTask()
     }
-
-    /**
-     * 根据url查找任务
-     */
-    fun findTaskByUrl(url: String): DownLoadTask? = currentTasks.firstOrNull { it.url == url }
-
-    /**
-     * 根据id查找任务
-     */
-    fun findTaskByID(id: String): DownLoadTask? = currentTasks.firstOrNull { it.id == id }
 }
 
 
