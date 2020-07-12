@@ -18,6 +18,7 @@ import com.arcns.core.file.tryClose
 import com.arcns.core.util.string
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okio.Okio
 import okio.Source
 import java.io.File
@@ -32,6 +33,7 @@ import java.util.*
 open class UploadTask(
     url: String,
     var parameters: List<UploadTaskBaseParameter>,
+    var onCustomRequest: ((UploadTask, Request.Builder) -> Unit)? = null, // 自定义Request回调
     notificationOptions: NotificationOptions? = null, // 建议使用UploadNotificationOptions
     okHttpClient: OkHttpClient? = null,
     progressUpdateInterval: Long? = null,
@@ -72,7 +74,7 @@ open class UploadTaskParameter(
 /**
  * 上传参数（文件格式）
  */
-open class UploadFileParameter : UploadTaskBaseParameter {
+open class UploadTaskFileParameter : UploadTaskBaseParameter {
     private var source: Source? = null
     private var inputStream: InputStream? = null
     private var uri: Uri? = null
@@ -268,7 +270,15 @@ open class UploadFileParameter : UploadTaskBaseParameter {
     /**
      * 当前任务是否支持断点续传
      */
-    val isSupportBreakpointResume get() = breakpoint > 0 && getBreakpointResumeSource() != null
+    val isSupportBreakpointResume
+        get() = breakpoint > 0 &&
+                (breakpointResumeSource != null
+                        || (file ?: filePath?.let { File(it) })?.exists() == true)
+
+    /**
+     * 上传文件的目录
+     */
+    val uploadFilePath: String? get() = file?.absolutePath ?: filePath
 
 
     /**
@@ -310,7 +320,7 @@ open class UploadNotificationOptions(
     largeIcon: Bitmap? = null,
     defaults: Int? = null, //默认通知选项
     priority: Int? = null, // 通知优先级
-    progress: NotificationProgressOptions,//进度
+    progress: NotificationProgressOptions? = null,//进度
     var defaultIsOngoing: Boolean? = null,// 是否禁用滑动删除
     var defaultIsAutoCancel: Boolean? = null,//是否点击时自动取消
     isOnlyAlertOnce: Boolean? = true,//是否只提示一次声音

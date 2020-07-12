@@ -33,35 +33,61 @@ abstract class NetworkTask<T>(
     // 任务是否已经成功完成
     val isSuccess: Boolean get() = state == TaskState.Success
 
+    // 任务是否正在等待
+    val isWait: Boolean get() = state == TaskState.Wait
+
     // 任务是否正在运行中
     val isRunning: Boolean get() = state == TaskState.Running
 
     // 任务是否已经停止
-    val isStop: Boolean get() = !(isRunning || state == TaskState.None)
+    val isStop: Boolean get() = !(isRunning || state == TaskState.None || state == TaskState.Wait)
 
+    // 停止原因
+    var stopReason = NetworkTaskStopReason.Normal
+        private set
 
     /**
-     * 停止任务
+     * 强制停止任务（注意此方法通常由管理器中调用，请勿随意调用）
      */
-    fun stop(state: TaskState) {
+    fun forceStop(
+        state: TaskState,
+        reason: NetworkTaskStopReason = NetworkTaskStopReason.Human
+    ) {
         this.state = state
+        this.stopReason = reason
         call?.cancel()
         call = null
     }
 
     /**
-     * 取消任务
+     * 停止任务（仅当任务在运行中有效）
      */
-    fun cancel(state: TaskState = TaskState.Cancel) = stop(TaskState.Cancel)
+    fun stop(
+        state: TaskState,
+        reason: NetworkTaskStopReason = NetworkTaskStopReason.Human
+    ): Boolean {
+        if (!isRunning) return false
+        forceStop(state, reason)
+        return true
+    }
 
     /**
-     * 暂停任务
+     * 取消任务（仅当任务在运行中有效）
      */
-    fun pause() {
-        state = TaskState.Pause
-        call?.cancel()
-        call = null
-    }
+    fun cancel(reason: NetworkTaskStopReason = NetworkTaskStopReason.Human): Boolean =
+        stop(TaskState.Cancel, reason)
+
+    /**
+     * 暂停任务（仅当任务在运行中有效）
+     */
+    fun pause(reason: NetworkTaskStopReason = NetworkTaskStopReason.Human): Boolean =
+        stop(TaskState.Pause, reason)
+
+    /**
+     * 手动使任务错误失败（仅当任务在运行中有效）
+     */
+    fun failure(reason: NetworkTaskStopReason = NetworkTaskStopReason.Human): Boolean =
+        stop(TaskState.Failure, reason)
 
     /**
      * 更新任务状态为运行中（注意此方法通常由管理器中调用，请勿随意调用）
@@ -93,13 +119,27 @@ abstract class NetworkTask<T>(
         state = TaskState.Success
         call = null
     }
+
+    /**
+     * 更新任务状态为等待（注意此方法通常由管理器中调用，请勿随意调用）
+     */
+    fun onChangeStateToWait() {
+        state = TaskState.Wait
+    }
+
+    /**
+     * 更新任务状态为空（注意此方法通常由管理器中调用，请勿随意调用）
+     */
+    fun onChangeStateToNone() {
+        state = TaskState.None
+    }
 }
 
 /**
  * 任务状态
  */
 enum class TaskState {
-    None, Running, Pause, Cancel, Failure, Success
+    None, Wait, Running, Pause, Cancel, Failure, Success
 }
 
 
@@ -138,4 +178,13 @@ data class NetworkTaskProgress(
     // 长度是否不确定性
     val indeterminate: Boolean get() = total <= 0
 
+}
+
+/**
+ * 任务停止原因
+ */
+enum class NetworkTaskStopReason {
+    Normal, // 正常留下的成功或失败
+    Human, // 人为干预某个任务导致的
+    HumanAll // 人为干预全部任务导致的
 }

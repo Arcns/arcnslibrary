@@ -14,11 +14,11 @@ import kotlin.collections.ArrayList
 
 
 // 上传任务的文件成功回调
-typealias OnUploadFileSuccess = (UploadTask, UploadFileParameter) -> Unit
+typealias OnUploadFileSuccess = (UploadTask, UploadTaskFileParameter) -> Unit
 // 上传任务的文件失败回调
-typealias OnUploadFileFailure = (UploadTask, UploadFileParameter, Exception?) -> Unit
+typealias OnUploadFileFailure = (UploadTask, UploadTaskFileParameter, Exception?) -> Unit
 // 上传任务的文件进度更新回调
-typealias OnUploadFileProgressUpdate = (UploadTask, UploadFileParameter, NetworkTaskProgress) -> Unit
+typealias OnUploadFileProgressUpdate = (UploadTask, UploadTaskFileParameter, NetworkTaskProgress) -> Unit
 
 /**
  * 上传管理器
@@ -62,7 +62,8 @@ class UploadManager {
 
     constructor(httpClient: OkHttpClient? = null) {
         this.httpClient =
-            httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
+            httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(false).build()
     }
 
     /**
@@ -74,12 +75,17 @@ class UploadManager {
         currentTasks.removeAll {
             it.isStop// 从列表中删除已结束的任务
         }
-        if (currentTasks.contains(task)) {
-            return false// 不能重复添加任务
-        }
+        val taskUploadFilePaths =
+            task.parameters.filter { it is UploadTaskFileParameter && !it.uploadFilePath.isNullOrBlank() }
+                .map { (it as UploadTaskFileParameter).uploadFilePath }
         currentTasks.forEach {
-            if (it.id == task.id) {
-                return false // 任务id已存在
+            if (it == task || it.id == task.id) {
+                return false // 任务已存在
+            }
+            it.parameters.forEach {
+                if (it is UploadTaskFileParameter && taskUploadFilePaths.contains(it.uploadFilePath)) {
+                    return false // 上传的文件已被占用
+                }
             }
         }
         currentTasks.add(task)
@@ -89,7 +95,7 @@ class UploadManager {
         task.parameters.forEach {
             when (it) {
                 is UploadTaskParameter -> bodyBuilder.addFormDataPart(it.name, it.value) // 普通参数
-                is UploadFileParameter -> bodyBuilder.addFormDataPart( //文件参数
+                is UploadTaskFileParameter -> bodyBuilder.addFormDataPart( //文件参数
                     it.name,
                     it.fileName,
                     createUploadFileRequestBody( // 创建文件RequestBody
@@ -104,6 +110,7 @@ class UploadManager {
         // 自定义MultipartBody回调
         onCustomMultipartBody?.invoke(task, bodyBuilder)
         //
+        LOG("UploadManager ${task.id} start")
         (task.okHttpClient ?: httpClient).newCall(
             Request.Builder().apply {
                 // 设置下载路径
@@ -111,7 +118,7 @@ class UploadManager {
                 // 设置MultipartBody
                 post(bodyBuilder.build())
                 // 自定义Request回调
-                onCustomRequest?.invoke(task, this)
+                (task.onCustomRequest ?: onCustomRequest)?.invoke(task, this)
             }.build()
         ).apply {
             // 更新任务状态为运行中
@@ -119,7 +126,7 @@ class UploadManager {
             // 封装请求回调处理
             enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    LOG("UploadManager task onFailure")
+                    LOG("UploadManager ${task.id} task error " + e.message)
                     // 更新状态
                     task.onChangeStateToFailureIfNotStop()
                     // 失败回调
@@ -129,14 +136,14 @@ class UploadManager {
 
                 override fun onResponse(call: Call, response: Response) {
                     if (response.isSuccessful) {
-                        LOG("UploadManager task onResponse isSuccessful")
+                        LOG("UploadManager ${task.id} task ok")
                         // 更新状态
                         task.onChangeStateToSuccess()
                         // 成功回调
                         task.onTaskSuccess?.invoke(task, response)
                         onTaskSuccess?.invoke(task, response)
                     } else {
-                        LOG("UploadManager task onResponse not Successful")
+                        LOG("UploadManager ${task.id} task not ok ")
                         // 更新状态
                         task.onChangeStateToFailureIfNotStop()
                         // 失败回调
@@ -154,11 +161,16 @@ class UploadManager {
      */
     private fun createUploadFileRequestBody(
         task: UploadTask,
-        parameter: UploadFileParameter,
+        parameter: UploadTaskFileParameter,
         uploadPerByteCount: Int,
         updateInterval: Long
     ) =
         object : RequestBody() {
+
+            init {
+                LOG("UploadManager ${task.id} parameter init ")
+            }
+
             private var lastProgressUpdateTime: Long = 0
 
             override fun contentType(): MediaType? = parameter.fileMediaType
@@ -166,6 +178,7 @@ class UploadManager {
             override fun contentLength(): Long = parameter.contentLength
 
             override fun writeTo(sink: BufferedSink) {
+                LOG("UploadManager ${task.id} writeTo")
                 var current: Long = 0
                 try {
                     if (parameter.isSupportBreakpointResume) {
@@ -177,6 +190,7 @@ class UploadManager {
                         // 开始循环上传
                         val bytes = ByteArray(uploadPerByteCount)
                         var len: Int
+                        updateProgress(current)
                         while (source.read(bytes).also { len = it } != -1) {
                             if (task.isStop) {
                                 throw Exception("task is stop")
@@ -193,6 +207,7 @@ class UploadManager {
                         // 开始循环上传
                         val buf = Buffer()
                         var len: Long
+                        updateProgress(current)
                         while (source.read(buf, uploadPerByteCount.toLong())
                                 .also { len = it } != -1L
                         ) {
@@ -222,7 +237,8 @@ class UploadManager {
                 task.onUploadFileSuccess?.invoke(task, parameter)
                 onUploadFileSuccess?.invoke(task, parameter)
                 // 更新到通知栏
-                updateNotification()
+                LOG("UploadManager ${task.id} parameter ok ")
+                updateNotification(TaskState.Success)
             }
 
             //上传任务的文件失败回调
@@ -231,7 +247,8 @@ class UploadManager {
                 task.onUploadFileFailure?.invoke(task, parameter, e)
                 onUploadFileFailure?.invoke(task, parameter, e)
                 // 更新到通知栏
-                updateNotification()
+                LOG("UploadManager ${task.id} parameter error " + e.message)
+                updateNotification(if (task.isStop) task.state else TaskState.Failure)
             }
 
 
@@ -256,17 +273,17 @@ class UploadManager {
             /**
              * 更新通知栏
              */
-            private fun updateNotification() {
+            private fun updateNotification(progressState: TaskState = TaskState.Running) {
                 val notificationOptions = getNotificationOptions() ?: return
                 if (notificationOptions.cancelIfDisable(parameter.notificationID)) return
                 // 判断是否允许自动格式化内容
-                if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
+                if (notificationOptions is UploadNotificationOptions && notificationOptions.isFormatContent) {
                     notificationOptions.contentTitle =
                         formatTaskNotificationPlaceholderContent(
                             notificationOptions.notificationTitle,
                             parameter
                         )
-                    if (task.isRunning) {
+                    if (progressState == TaskState.Running) {
                         notificationOptions.contentText =
                             formatTaskNotificationPlaceholderContent(
                                 notificationOptions.progressContentText,
@@ -278,7 +295,8 @@ class UploadManager {
                         notificationOptions.isAutoCancel =
                             notificationOptions.defaultIsAutoCancel ?: false
                     } else {
-                        when (task.state) {
+                        LOG("UploadManager ${task.id} updateNotification " + progressState)
+                        when (progressState) {
                             TaskState.Success -> {
                                 notificationOptions.contentText =
                                     notificationOptions.successContentText
@@ -325,7 +343,7 @@ class UploadManager {
             // 填充占位符
             private fun formatTaskNotificationPlaceholderContent(
                 content: String,
-                parameter: UploadFileParameter
+                parameter: UploadTaskFileParameter
             ): String = content.replace(TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME, parameter.fileName)
                 .replace(TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME, parameter.showName)
                 .replace(

@@ -54,11 +54,13 @@ public class FileUtil {
     }
 
     /**
-     * 获取文件后缀名(带.)，并排除仅为.的清空
+     * 获取文件后缀名(带.)，并排除仅为.的情况
      */
     public static String getFileSuffixAndVerify(String filePath) {
         String value = getFileSuffix(filePath);
-        if (value.equals(".")) value = null;
+        if (".".equals(value)) {
+            value = null;
+        }
         return value;
     }
 

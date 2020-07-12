@@ -12,7 +12,6 @@ import okhttp3.*
 import java.io.IOException
 import java.io.InputStream
 import java.lang.Exception
-import java.util.concurrent.TimeUnit
 
 
 // 下载任务进度更新回调
@@ -24,67 +23,33 @@ typealias OnDownloadProgressUpdate = (DownloadTask, NetworkTaskProgress) -> Unit
  */
 class DownloadManager {
 
-    // OkHttpClient
-    var httpClient: OkHttpClient
-        private set
-
-    // 每次下载的字节数
-    var perByteCount = 2048
-
-    // 下载任务成功回调
-    var onTaskSuccess: OnTaskSuccess<DownloadTask>? = null
-
-    //下载任务失败回调
-    var onTaskFailure: OnTaskFailure<DownloadTask>? = null
-
-    // 下载任务的文件进度回调
-    var onProgressUpdate: OnDownloadProgressUpdate? = null
-
-    // 下载时间间隔
-    var progressUpdateInterval: Long = 1000
-
-    // 上传通知配置（内容优先级低于任务配置）
-    var notificationOptions: NotificationOptions? = null
-
-    // 自定义Request回调
-    var onCustomRequest: ((DownloadTask, Request.Builder) -> Unit)? = null
-
     // 地图管理器绑定的数据
     var managerData: DownloadManagerData
         private set
 
     // 无生命周期管理时与managerdata连接的对象
-    var eventNotifyManagerDownloadObserver: EventObserver<DownloadTask>? = null
+    var eventDownloadManagerNotifyObserver: EventObserver<DownloadManagerNotify>? = null
         private set
 
-    constructor(httpClient: OkHttpClient? = null) : this(DownloadManagerData(), httpClient)
-
     constructor(
-        managerData: DownloadManagerData,
-        httpClient: OkHttpClient? = null
+        managerData: DownloadManagerData
     ) {
-        this.httpClient =
-            httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
         this.managerData = managerData
         // 无生命周期管理
-        eventNotifyManagerDownloadObserver =
-            EventObserver<DownloadTask> {
-                download(it, true)
-            }
-        managerData.eventNotifyManagerDownload.observeForever(eventNotifyManagerDownloadObserver!!)
+        eventDownloadManagerNotifyObserver = EventObserver {
+            handleDownloadManagerNotify(it)
+        }
+        managerData.eventDownloadManagerNotify.observeForever(eventDownloadManagerNotifyObserver!!)
     }
 
     constructor(
         lifecycleOwner: LifecycleOwner,
-        managerData: DownloadManagerData,
-        httpClient: OkHttpClient? = null
+        managerData: DownloadManagerData
     ) {
-        this.httpClient =
-            httpClient ?: OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
         this.managerData = managerData
         // 拥有生命周期管理
-        managerData.eventNotifyManagerDownload.observe(lifecycleOwner, EventObserver {
-            download(it, false)
+        managerData.eventDownloadManagerNotify.observe(lifecycleOwner, EventObserver {
+            handleDownloadManagerNotify(it)
         })
         lifecycleOwner.lifecycle.addObserver(object : LifecycleObserver {
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
@@ -93,6 +58,13 @@ class DownloadManager {
                 releaseManagerData()
             }
         })
+    }
+
+    private fun handleDownloadManagerNotify(notify: DownloadManagerNotify) {
+        when (notify.type) {
+            DownloadManagerNotifyType.Download -> download(notify.task, false)
+            DownloadManagerNotifyType.UpdateNotification -> updateNotification(notify.task)
+        }
     }
 
 
@@ -113,9 +85,10 @@ class DownloadManager {
         task: DownloadTask,
         isBreakpointRetry: Boolean
     ): Boolean {
+        if (task.isRunning) return false
         // 开始下载
         var current = 0L
-        httpClient.newCall(Request.Builder().apply {
+        managerData.httpClient.newCall(Request.Builder().apply {
             // 断点续传
             if (task.isBreakpointResume && !isBreakpointRetry && task.breakpoint > 0) {
                 header("Range", "bytes=${task.breakpoint}-") // 设置断点续传
@@ -124,8 +97,9 @@ class DownloadManager {
             // 设置下载路径
             url(task.url)
             // 自定义Request回调
-            onCustomRequest?.invoke(task, this)
+            (task?.onCustomRequest ?: managerData.onCustomRequest)?.invoke(task, this)
         }.build()).apply {
+            if (task.isRunning) return false
             // 更新任务状态为运行中
             task.onChangeStateToRunning(this)
             // 封装请求回调处理
@@ -134,7 +108,8 @@ class DownloadManager {
                 private var lastProgressUpdateTime: Long = 0
 
                 // 更新间隔
-                private val updateInterval = task.progressUpdateInterval ?: progressUpdateInterval
+                private val updateInterval =
+                    task.progressUpdateInterval ?: managerData.progressUpdateInterval
 
                 override fun onFailure(call: Call, e: IOException) {
                     // 任务失败回调
@@ -157,7 +132,7 @@ class DownloadManager {
                             } else if (task.breakpoint > 0) {
                                 // 不启用或不支持断点续传，则删除之前的文件
                                 if (!task.isBreakpointResume || isBreakpointRetry || !response.isAcceptRange) {
-                                    task.saveFile.deleteOnExit()//删除之前的文件
+                                    task.saveFile?.deleteOnExit()//删除之前的文件
                                     current = 0 // 重置开始位置
                                 } else {
                                     // 确认启动断点续传，重新计算断点续传的文件长度（因为使用Range头后，responseBody.contentLength只会返回剩余的大小）
@@ -173,7 +148,8 @@ class DownloadManager {
                                     ?: throw Exception("download task save file output stream not empty")
                             inputStream = responseBody.byteStream()
                             var len = 0
-                            val buf = ByteArray(perByteCount)
+                            val buf = ByteArray(managerData.perByteCount)
+                            updateProgress(total, current)
                             while (inputStream.read(buf).also { len = it } != -1) {
                                 if (task.isStop) {
                                     throw Exception("task is stop")
@@ -192,6 +168,7 @@ class DownloadManager {
                         } catch (e: Exception) {
                             // 任务失败回调
                             downloadFailure(e, response)
+                            LOG("DownLoadTask 任务失败回调" + e.message)
                         } finally {
                             LOG("DownLoadTask 释放连接" + task.breakpoint)
                             // 释放连接
@@ -212,13 +189,14 @@ class DownloadManager {
 
                 //下载任务成功回调
                 private fun downloadSuccess(response: Response) {
+                    if (task.isStop) return
                     // 更新状态
                     task.onChangeStateToSuccess()
                     // 回调
                     task.onTaskSuccess?.invoke(task, response)
-                    onTaskSuccess?.invoke(task, response)
+                    managerData.onTaskSuccess?.invoke(task, response)
                     // 更新到通知栏
-                    updateNotification()
+                    updateNotification(task)
                     managerData?.onEventTaskUpdateByState(task)
                 }
 
@@ -228,9 +206,9 @@ class DownloadManager {
                     task.onChangeStateToFailureIfNotStop()
                     // 回调
                     task.onTaskFailure?.invoke(task, e, response)
-                    onTaskFailure?.invoke(task, e, response)
+                    managerData.onTaskFailure?.invoke(task, e, response)
                     // 更新到通知栏
-                    updateNotification()
+                    updateNotification(task)
                     managerData?.onEventTaskUpdateByState(task)
                 }
 
@@ -245,96 +223,13 @@ class DownloadManager {
                     if (task.currentProgress?.current == current) return
                     // 更新到任务中，然后进行回调
                     task.updateProgress(total, current)?.run {
-                        onProgressUpdate?.invoke(task, this)
+                        managerData.onProgressUpdate?.invoke(task, this)
                     }
                     // 更新到通知栏
-                    updateNotification()
+                    updateNotification(task)
                     managerData?.onEventTaskUpdateByProgress(task)
                 }
 
-                /**
-                 * 更新通知栏
-                 */
-                private fun updateNotification() {
-                    val notificationOptions = getNotificationOptions() ?: return
-                    if (notificationOptions.cancelIfDisable(task.notificationID)) return
-                    LOG("updateNotification show " + task.notificationID)
-                    // 判断是否允许自动格式化内容
-                    if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
-                        notificationOptions.contentTitle =
-                            formatTaskNotificationPlaceholderContent(notificationOptions.notificationTitle).getAbbreviatedText(
-                                20
-                            )
-                        if (task.isRunning) {
-                            notificationOptions.contentText =
-                                formatTaskNotificationPlaceholderContent(notificationOptions.progressContentText)
-                            notificationOptions.progress = task.notificationProgress
-                            notificationOptions.isOngoing =
-                                notificationOptions.defaultIsOngoing ?: true
-                            notificationOptions.isAutoCancel =
-                                notificationOptions.defaultIsAutoCancel ?: false
-                        } else {
-                            when (task.state) {
-                                TaskState.Success -> {
-                                    notificationOptions.contentText =
-                                        notificationOptions.successContentText
-                                    notificationOptions.progress =
-                                        NotificationProgressOptions.COMPLETED
-                                }
-                                TaskState.Failure -> {
-                                    notificationOptions.contentText =
-                                        notificationOptions.failureContentText
-                                    if (task.currentProgress?.indeterminate == true)
-                                        notificationOptions.progress =
-                                            NotificationProgressOptions.FAILURE
-                                }
-                                TaskState.Pause -> {
-                                    notificationOptions.contentText =
-                                        notificationOptions.pauseContentText
-                                    if (task.currentProgress?.indeterminate == true)
-                                        notificationOptions.progress =
-                                            NotificationProgressOptions.FAILURE
-                                }
-                                TaskState.Cancel -> {
-                                    notificationOptions.contentText =
-                                        notificationOptions.cancelContentText
-                                    if (task.currentProgress?.indeterminate == true)
-                                        notificationOptions.progress =
-                                            NotificationProgressOptions.FAILURE
-                                }
-                                else -> return
-                            }
-                            notificationOptions.isOngoing =
-                                notificationOptions.defaultIsOngoing ?: false
-                            notificationOptions.isAutoCancel =
-                                notificationOptions.defaultIsAutoCancel ?: true
-                        }
-                    }
-                    notificationOptions.show(task.notificationID)
-                }
-
-                // 返回当前的通知配置
-                private fun getNotificationOptions(): NotificationOptions? {
-                    return task.notificationOptions ?: notificationOptions
-                }
-
-                // 填充占位符
-                private fun formatTaskNotificationPlaceholderContent(content: String): String =
-                    content.replace(
-                        TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME,
-                        task.saveFullFileName ?: ""
-                    )
-                        .replace(
-                            TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME,
-                            task.showName ?: task.saveFullFileName ?: ""
-                        )
-                        .replace(
-                            TASK_NOTIFICATION_PLACEHOLDER_LENGTH,
-                            task.currentProgress?.getLengthToString() ?: ""
-                        ).replace(
-                            TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE,
-                            task.currentProgress?.permissionToString ?: ""
-                        )
 
             })
         }
@@ -342,12 +237,102 @@ class DownloadManager {
     }
 
     /**
+     * 更新通知栏
+     */
+    fun updateNotification(task: DownloadTask) {
+        val notificationOptions =
+            task.notificationOptions ?: managerData.notificationOptions ?: return
+        if (notificationOptions.cancelIfDisable(task.notificationID)) return
+        LOG("updateNotification show " + task.notificationID)
+        // 判断是否允许自动格式化内容
+        if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
+            notificationOptions.contentTitle =
+                formatTaskNotificationPlaceholderContent(
+                    task,
+                    notificationOptions.notificationTitle
+                ).getAbbreviatedText(
+                    20
+                )
+            if (task.isRunning) {
+                notificationOptions.contentText =
+                    formatTaskNotificationPlaceholderContent(
+                        task,
+                        notificationOptions.progressContentText
+                    )
+                notificationOptions.progress = task.notificationProgress
+                notificationOptions.isOngoing =
+                    notificationOptions.defaultIsOngoing ?: true
+                notificationOptions.isAutoCancel =
+                    notificationOptions.defaultIsAutoCancel ?: false
+            } else {
+                when (task.state) {
+                    TaskState.Success -> {
+                        notificationOptions.contentText =
+                            notificationOptions.successContentText
+                        notificationOptions.progress =
+                            NotificationProgressOptions.COMPLETED
+                    }
+                    TaskState.Failure -> {
+                        notificationOptions.contentText =
+                            notificationOptions.failureContentText
+                        if (task.currentProgress?.indeterminate == true)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.FAILURE
+                    }
+                    TaskState.Pause -> {
+                        notificationOptions.contentText =
+                            notificationOptions.pauseContentText
+                        if (task.currentProgress?.indeterminate == true)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.FAILURE
+                    }
+                    TaskState.Cancel -> {
+                        notificationOptions.contentText =
+                            notificationOptions.cancelContentText
+                        if (task.currentProgress?.indeterminate == true)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.FAILURE
+                    }
+                    else -> return
+                }
+                notificationOptions.isOngoing =
+                    notificationOptions.defaultIsOngoing ?: false
+                notificationOptions.isAutoCancel =
+                    notificationOptions.defaultIsAutoCancel ?: true
+            }
+        }
+        notificationOptions.show(task.notificationID)
+    }
+
+    // 填充占位符
+    fun formatTaskNotificationPlaceholderContent(
+        task: DownloadTask,
+        content: String
+    ): String =
+        content.replace(
+            TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME,
+            task.saveFullFileName ?: ""
+        )
+            .replace(
+                TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME,
+                task.showName ?: task.saveFullFileName ?: ""
+            )
+            .replace(
+                TASK_NOTIFICATION_PLACEHOLDER_LENGTH,
+                task.currentProgress?.getLengthToString() ?: ""
+            ).replace(
+                TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE,
+                task.currentProgress?.permissionToString ?: ""
+            )
+
+
+    /**
      * 释放ManagerData
      */
     fun releaseManagerData() {
-        eventNotifyManagerDownloadObserver?.run {
-            managerData.eventNotifyManagerDownload.removeObserver(this)
-            eventNotifyManagerDownloadObserver = null
+        eventDownloadManagerNotifyObserver?.run {
+            managerData.eventDownloadManagerNotify.removeObserver(this)
+            eventDownloadManagerNotifyObserver = null
         }
         managerData.cancelAllTask()
     }

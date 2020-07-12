@@ -14,6 +14,7 @@ import com.arcns.core.file.tryClose
 import com.arcns.core.util.LOG
 import com.arcns.core.util.string
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -28,6 +29,7 @@ open class DownloadTask(
     var saveFileSuffix: String? = null,
     var showName: String? = null,
     var isBreakpointResume: Boolean = true, //是否开启断点续传
+    var onCustomRequest: ((DownloadTask, Request.Builder) -> Unit)? = null, // 自定义Request回调
     notificationOptions: NotificationOptions? = null, // 建议使用DownloadNotificationOptions
     okHttpClient: OkHttpClient? = null,
     progressUpdateInterval: Long? = null,
@@ -120,7 +122,7 @@ open class DownloadTask(
         }
         saveFullFileName = newName + newSuffix
         var rename = 1
-        while (saveFile.exists()) {
+        while (saveFile?.exists() == true) {
             // 文件名被占用时重命名
             saveFullFileName = "$newName($rename)$newSuffix"
             rename++
@@ -154,14 +156,18 @@ open class DownloadTask(
         outputStream = null
     }
 
-    val saveFilePath: String get() = FileUtil.splicing(saveDirPath, saveFullFileName)
+    val saveFilePath: String?
+        get() = if (saveFullFileName == null) null else FileUtil.splicing(
+            saveDirPath,
+            saveFullFileName
+        )
 
-    val saveFile: File get() = File(saveFilePath)
+    val saveFile: File? get() = if (saveFilePath.isNullOrBlank()) null else File(saveFilePath)
 
     val breakpoint: Long
         get() {
-            LOG("DownLoadTask断点长度：" + saveFile.length())
-            return if (saveFile.exists()) saveFile.length()
+            LOG("DownLoadTask断点长度：" + saveFile?.length())
+            return if (saveFile?.exists() == true) saveFile?.length() ?: 0
             else 0
         }
 }

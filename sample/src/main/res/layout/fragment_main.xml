@@ -87,11 +87,18 @@
             app:layout_constraintTop_toBottomOf="@id/btnAudioTest" />
 
         <Button
-            android:id="@+id/btnPauseDownloadTest"
+            android:id="@+id/btnUploadTest"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="暂停下载"
+            android:text="上传测试"
             app:layout_constraintTop_toBottomOf="@id/btnDownloadTest" />
+
+        <Button
+            android:id="@+id/btnUploadTest2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="取消上传"
+            app:layout_constraintTop_toBottomOf="@id/btnUploadTest" />
 
 
         <!--        <TextView-->

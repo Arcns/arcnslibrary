@@ -59,7 +59,7 @@ class FragmentDownload : Fragment() {
         downloadManager = DownloadManager(viewLifecycleOwner, viewModel.downloadManagerData)
 //        downLoadManager = DownLoadManager(viewModel.downloadManagerData)
 //        downloadManager = DownloadManager()
-        downloadManager.notificationOptions = DownloadNotificationOptions(
+        downloadManager.managerData.notificationOptions = DownloadNotificationOptions(
             smallIcon = R.drawable.ic_download//,
 //            defaultIsOngoing = false
         )
@@ -91,6 +91,7 @@ class FragmentDownload : Fragment() {
 //                url = "https://codeload.github.com/Arcns/arcnslibrary/tar.gz/0.1.20-3",
 //                url = "http://rtu.earth123.net:10008/uploads/apk/202007061123414530346.apk",
 //                url = "https://dldir1.qq.com/weixin/android/weixin7016android1700_arm64.apk",
+//                    url="http://vfx.mtime.cn/Video/2019/02/04/mp4/190204084208765161.mp4",
                     url = "https://6c0fee503ddb187fc6bd1ce48124b314.dd.cdntips.com/imtt.dd.qq.com/16891/apk/B63F493587B17E6AD41B8E6844E6CE99.apk?mkey=5f069da3b7ed4490&f=1806&cip=183.237.98.101&proto=https",
                     saveDirPath = cacheDirPath,
                     saveFileSuffix = ".dk",

@@ -1,6 +1,7 @@
 package com.example.arcns.ui
 
 import android.os.Bundle
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,22 +10,27 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.arcns.core.app.NotificationOptions
+import com.arcns.core.file.FileUtil
 import com.arcns.core.file.cacheDirPath
-import com.arcns.core.file.getCurrentTimeMillisFileName
-import com.arcns.core.network.DownloadManager
-import com.arcns.core.network.DownloadTask
-import com.arcns.core.network.DownloadNotificationOptions
+import com.arcns.core.file.getCurrentDateTimeFileName
+import com.arcns.core.network.*
 import com.arcns.core.util.*
 import com.arcns.media.audio.MediaAudioRecorderPlayerUtil
-import com.yanzhenjie.permission.AndPermission
-import com.yanzhenjie.permission.runtime.Permission
 import com.example.arcns.R
 import com.example.arcns.databinding.FragmentMainBinding
 import com.example.arcns.util.openPermission
 import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelMain
+import com.yanzhenjie.permission.AndPermission
+import com.yanzhenjie.permission.runtime.Permission
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
 import kotlinx.android.synthetic.main.fragment_main.*
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.IOException
 
 
 /**
@@ -35,7 +41,6 @@ class FragmentMain : Fragment() {
     private val viewModel by viewModels<ViewModelMain>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
     private lateinit var audioRecorderPlayerUtil: MediaAudioRecorderPlayerUtil
-    private var downLoadManager = DownloadManager()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -114,45 +119,87 @@ class FragmentMain : Fragment() {
                     ).show()
                 }.start()
         }
-        downLoadManager.notificationOptions = DownloadNotificationOptions(
-            smallIcon = R.drawable.ic_download,
-            defaultIsOngoing = false
-        )
-        val task = DownloadTask(
-            url = "https://dldir1.qq.com/weixin/android/weixin7016android1700_arm64.apk",
-//            url = "https://6c0fee503ddb187fc6bd1ce48124b314.dd.cdntips.com/imtt.dd.qq.com/16891/apk/B63F493587B17E6AD41B8E6844E6CE99.apk?mkey=5f069da3b7ed4490&f=1806&cip=183.237.98.101&proto=https",
-            saveDirPath = cacheDirPath,
-            saveFileName = getCurrentTimeMillisFileName(),
-            isBreakpointResume = false
-        )
         btnDownloadTest.setOnClickListener {
             findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentDownload())
-//            NotificationOptions(
-//                channelName = "test",
-//                channelImportance = NotificationManager.IMPORTANCE_HIGH,
-//                contentTitle = "test",
-//                contentText = "test",
-//                smallIcon = R.drawable.ic_download
-//            ).show()
-
-//            task.notificationOptions = null
-//            downLoadManager.downLoad(task)
-
-
-//            downLoadManager.downLoad(
-//                DownLoadTask(
-////                url = "https://dldir1.qq.com/weixin/android/weixin7016android1700_arm64.apk",
-//                    url = "https://6c0fee503ddb187fc6bd1ce48124b314.dd.cdntips.com/imtt.dd.qq.com/16891/apk/B63F493587B17E6AD41B8E6844E6CE99.apk?mkey=5f069da3b7ed4490&f=1806&cip=183.237.98.101&proto=https",
-//                    saveDirPath = cacheDirPath,
-//                    saveFileName = getCurrentTimeMillisFileName(".apk"),
-//                    isBreakpointResume = false
-//                )
-//            )
         }
-//        btnPauseDownloadTest.setOnClickListener {
-//            task.notificationOptions = NotificationOptions.DISABLE
-//            task.pause()
-//        }
+        val uploadManager = UploadManager()
+        var task: UploadTask? = null
+        btnUploadTest.setOnClickListener {
+
+//            val fileName1 = "test.mp4"
+            val fileName1 = getCurrentDateTimeFileName(".mp4")
+            val file1 = File(cacheDirPath + File.separator + fileName1)
+            if (!file1.exists()) {
+                FileUtil.copyFile(requireActivity().assets.open("test.mp4"), cacheDirPath, fileName1)
+                LOG("UploadTest source1 copy ok " + file1.length())
+            } else {
+                LOG("UploadTest source1 file exists " + file1.length())
+            }
+
+            val fileName2 = "test.jpg"
+            val file2 = File(cacheDirPath + File.separator + fileName2)
+            if (!file2.exists()) {
+                FileUtil.copyFile(requireActivity().assets.open(fileName2), cacheDirPath, fileName2)
+                LOG("UploadTest source2 copy ok " + file2.length())
+            } else {
+                LOG("UploadTest source2 file exists " + file2.length())
+            }
+
+            task = UploadTask(
+                url = "https://api.imgur.com/3/upload",
+                parameters = arrayListOf(
+                    UploadTaskFileParameter(
+                        name = "video",
+                        fileName = "test.mp4",
+                        filePath = file1.absolutePath
+                    )
+                ),
+                onCustomRequest = { task, requestBuilder ->
+                    requestBuilder.addHeader("Authorization", "Client-ID {{16070e7eb7aa4d6}}")
+                },
+                notificationOptions = UploadNotificationOptions(
+                    smallIcon = R.drawable.ic_download
+                )
+            )
+            uploadManager.upLoad(task!!)
+
+            return@setOnClickListener
+
+            val client = OkHttpClient().newBuilder()
+                .build()
+            val mediaType = "text/plain".toMediaTypeOrNull()
+            val body = MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "image",
+                    fileName2,
+                    file2.asRequestBody()
+                )
+//                .addFormDataPart(
+//                    "video",
+//                    fileName1,
+//                    file1.asRequestBody()
+//                )
+                .build()
+            val request = Request.Builder()
+                .url("https://api.imgur.com/3/upload")
+                .method("POST", body)
+                .addHeader("Authorization", "Client-ID {{16070e7eb7aa4d6}}")
+                .build()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    LOG("UploadTest error " + e.message)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    LOG("UploadTest " + response.isSuccessful + "  " + response.body?.string())
+                }
+
+            })
+
+        }
+        btnUploadTest2.setOnClickListener {
+            task?.pause()
+        }
     }
 
     private fun openBluetoothAndPermission() {
