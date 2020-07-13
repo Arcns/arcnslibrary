@@ -9,6 +9,7 @@
     <string name="text_foreground_service_notification_default_content_title">后台服务</string>
     <string name="text_foreground_service_notification_default_content_text">后台服务运行中</string>
     <string name="text_download_progress_notification_default_channel_name">下载进度通知</string>
+    <string name="text_download_progress_notification_default_show_name_when_empty">未知文件</string>
     <string name="text_download_progress_notification_default_task_wait">准备下载</string>
     <string name="text_download_progress_notification_default_task_success">下载成功</string>
     <string name="text_download_progress_notification_default_task_failure">下载失败</string>

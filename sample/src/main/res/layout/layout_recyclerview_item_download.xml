@@ -28,7 +28,7 @@
             android:id="@+id/tvName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@{item.saveFullFileName +' '+item.state+'\n'+item.currentProgress.getLengthToString(2,true)+' '+item.currentProgress.permissionToString}"
+            android:text="@{item.saveFullShowName +' '+item.state+'\n'+item.currentProgress.getLengthToString(2,true)+' '+item.currentProgress.permissionToString}"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

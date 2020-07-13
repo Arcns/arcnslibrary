@@ -26,11 +26,11 @@ class DownloadManagerData(
     var onProgressUpdate: OnDownloadProgressUpdate? = null,
     // 下载时间间隔
     var progressUpdateInterval: Long = 1000,
-    // 上传通知配置（内容优先级低于任务配置）
+    // 上传通知配置（禁用优先级高于任务配置，但内容优先级低于任务配置）
     var notificationOptions: NotificationOptions? = null,
-    // 自定义Request回调
+    // 自定义请求（Request）回调，能够使用该回调对请求进行操作
     var onCustomRequest: ((DownloadTask, Request.Builder) -> Unit)? = null,
-    // 下载通道数量，0为无限制
+    // 下载通道数量，0为无限制，若当前下载数量超过通道数量，则超过的任务会排队等待
     var lanes: Int = 3
 ) {
     val uniqueID: String = UUID.randomUUID().toString()
@@ -44,6 +44,8 @@ class DownloadManagerData(
     // 任务更新事件
     private var _eventTaskUpdate = MutableLiveData<Event<DownloadTask>>()
     var eventTaskUpdate: LiveData<Event<DownloadTask>> = _eventTaskUpdate
+
+    // 任务状态更新通知
     fun onEventTaskUpdateByState(task: DownloadTask) {
         _tasks.fastValue = tasks
         _eventTaskUpdate.fastValue = Event(task)
@@ -52,6 +54,13 @@ class DownloadManagerData(
         }
     }
 
+    // 任务进度更新通知
+    fun onEventTaskUpdateByProgress(task: DownloadTask) {
+        _tasks.fastValue = tasks
+        _eventTaskUpdate.fastValue = Event(task)
+    }
+
+    // 下载排队等待中的任务
     private fun downloadWaitTasks() {
         val quota = if (lanes < 0) null else lanes - tasks.count { it.isRunning }
         if (quota != null && quota <= 0) return
@@ -71,12 +80,8 @@ class DownloadManagerData(
         }
     }
 
-    fun onEventTaskUpdateByProgress(task: DownloadTask) {
-        _tasks.fastValue = tasks
-        _eventTaskUpdate.fastValue = Event(task)
-    }
 
-    // 添加任务
+    // 下发任务管理器操作指令
     private var _eventDownloadManagerNotify = MutableLiveData<Event<DownloadManagerNotify>>()
     var eventDownloadManagerNotify: LiveData<Event<DownloadManagerNotify>> =
         _eventDownloadManagerNotify
@@ -85,15 +90,20 @@ class DownloadManagerData(
     fun download(task: DownloadTask): Boolean {
         if (!addTask(task)) return false
         if (lanes <= 0 || tasks.count { it.isRunning } < lanes) {
+            // 下发任务管理器下载指令
             _eventDownloadManagerNotify.fastEventValue =
                 DownloadManagerNotify(DownloadManagerNotifyType.Download, task)
         } else {
+            // 若当前下载数量超过通道数量，则超过的任务会排队等待
             task.onChangeStateToWait()
         }
         onEventTaskUpdateByState(task)
         return true
     }
 
+    /**
+     * 添加任务到任务列表
+     */
     private fun addTask(task: DownloadTask): Boolean {
         tasks.forEachIndexed { index, it ->
             // 任务已存在
@@ -116,7 +126,9 @@ class DownloadManagerData(
         return true
     }
 
-    // 删除任务
+    /**
+     * 删除任务
+     */
     fun removeTask(
         task: DownloadTask?,
         isCancelTask: Boolean = true,
@@ -125,8 +137,8 @@ class DownloadManagerData(
     ): Boolean {
         if (task != null && tasks.contains(task)) {
             if (isClearNotification) {
+                task.notificationOptions = NotificationOptions.DISABLE
                 if (task.isStop) task.notificationID.cancelNotification()
-                else task.notificationOptions = NotificationOptions.DISABLE
             }
             tasks.remove(task)
             if (isCancelTask && !task.isStop) cancel(task, cancelReason)
@@ -159,8 +171,10 @@ class DownloadManagerData(
     ) {
         tasks.forEach {
             if (isClearNotification) {
-                if (it.isStop) it.notificationID.cancelNotification()
-                else it.notificationOptions = NotificationOptions.DISABLE
+                it.notificationOptions = NotificationOptions.DISABLE
+                if (isContainsStop && it.isStop) {
+                    it.notificationID.cancelNotification()
+                }
             }
             if (isContainsStop || !it.isStop) cancel(it, cancelReason)
         }
@@ -188,6 +202,11 @@ class DownloadManagerData(
             onEventTaskUpdateByState(task)
         }
     }
+
+    /**
+     * 更新通知栏
+     */
+    fun updateNotification(task: DownloadTask) = task.updateNotification(notificationOptions)
 
     /**
      * 取消任务
@@ -223,10 +242,12 @@ class DownloadManagerData(
     fun containsTask(task: DownloadTask): Boolean = tasks.contains(task)
 }
 
+// 下发任务管理器的操作指令类型
 enum class DownloadManagerNotifyType {
     Download, UpdateNotification
 }
 
+// 下发任务管理器的操作指令
 data class DownloadManagerNotify(
     val type: DownloadManagerNotifyType,
     val task: DownloadTask

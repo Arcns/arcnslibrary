@@ -63,7 +63,7 @@ class DownloadManager {
     private fun handleDownloadManagerNotify(notify: DownloadManagerNotify) {
         when (notify.type) {
             DownloadManagerNotifyType.Download -> download(notify.task, false)
-            DownloadManagerNotifyType.UpdateNotification -> updateNotification(notify.task)
+            DownloadManagerNotifyType.UpdateNotification -> managerData.updateNotification(notify.task)
         }
     }
 
@@ -196,8 +196,8 @@ class DownloadManager {
                     task.onTaskSuccess?.invoke(task, response)
                     managerData.onTaskSuccess?.invoke(task, response)
                     // 更新到通知栏
-                    updateNotification(task)
-                    managerData?.onEventTaskUpdateByState(task)
+                    managerData.updateNotification(task)
+                    managerData.onEventTaskUpdateByState(task)
                 }
 
                 //下载任务失败（含取消、暂停）回调
@@ -208,8 +208,8 @@ class DownloadManager {
                     task.onTaskFailure?.invoke(task, e, response)
                     managerData.onTaskFailure?.invoke(task, e, response)
                     // 更新到通知栏
-                    updateNotification(task)
-                    managerData?.onEventTaskUpdateByState(task)
+                    managerData.updateNotification(task)
+                    managerData.onEventTaskUpdateByState(task)
                 }
 
                 /**
@@ -226,8 +226,8 @@ class DownloadManager {
                         managerData.onProgressUpdate?.invoke(task, this)
                     }
                     // 更新到通知栏
-                    updateNotification(task)
-                    managerData?.onEventTaskUpdateByProgress(task)
+                    managerData.updateNotification(task)
+                    managerData.onEventTaskUpdateByProgress(task)
                 }
 
 
@@ -235,95 +235,6 @@ class DownloadManager {
         }
         return true
     }
-
-    /**
-     * 更新通知栏
-     */
-    fun updateNotification(task: DownloadTask) {
-        val notificationOptions =
-            task.notificationOptions ?: managerData.notificationOptions ?: return
-        if (notificationOptions.cancelIfDisable(task.notificationID)) return
-        LOG("updateNotification show " + task.notificationID)
-        // 判断是否允许自动格式化内容
-        if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
-            notificationOptions.contentTitle =
-                formatTaskNotificationPlaceholderContent(
-                    task,
-                    notificationOptions.notificationTitle
-                ).getAbbreviatedText(
-                    20
-                )
-            if (task.isRunning) {
-                notificationOptions.contentText =
-                    formatTaskNotificationPlaceholderContent(
-                        task,
-                        notificationOptions.progressContentText
-                    )
-                notificationOptions.progress = task.notificationProgress
-                notificationOptions.isOngoing =
-                    notificationOptions.defaultIsOngoing ?: true
-                notificationOptions.isAutoCancel =
-                    notificationOptions.defaultIsAutoCancel ?: false
-            } else {
-                when (task.state) {
-                    TaskState.Success -> {
-                        notificationOptions.contentText =
-                            notificationOptions.successContentText
-                        notificationOptions.progress =
-                            NotificationProgressOptions.COMPLETED
-                    }
-                    TaskState.Failure -> {
-                        notificationOptions.contentText =
-                            notificationOptions.failureContentText
-                        if (task.currentProgress?.indeterminate == true)
-                            notificationOptions.progress =
-                                NotificationProgressOptions.FAILURE
-                    }
-                    TaskState.Pause -> {
-                        notificationOptions.contentText =
-                            notificationOptions.pauseContentText
-                        if (task.currentProgress?.indeterminate == true)
-                            notificationOptions.progress =
-                                NotificationProgressOptions.FAILURE
-                    }
-                    TaskState.Cancel -> {
-                        notificationOptions.contentText =
-                            notificationOptions.cancelContentText
-                        if (task.currentProgress?.indeterminate == true)
-                            notificationOptions.progress =
-                                NotificationProgressOptions.FAILURE
-                    }
-                    else -> return
-                }
-                notificationOptions.isOngoing =
-                    notificationOptions.defaultIsOngoing ?: false
-                notificationOptions.isAutoCancel =
-                    notificationOptions.defaultIsAutoCancel ?: true
-            }
-        }
-        notificationOptions.show(task.notificationID)
-    }
-
-    // 填充占位符
-    fun formatTaskNotificationPlaceholderContent(
-        task: DownloadTask,
-        content: String
-    ): String =
-        content.replace(
-            TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME,
-            task.saveFullFileName ?: ""
-        )
-            .replace(
-                TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME,
-                task.showName ?: task.saveFullFileName ?: ""
-            )
-            .replace(
-                TASK_NOTIFICATION_PLACEHOLDER_LENGTH,
-                task.currentProgress?.getLengthToString() ?: ""
-            ).replace(
-                TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE,
-                task.currentProgress?.permissionToString ?: ""
-            )
 
 
     /**

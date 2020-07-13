@@ -5,9 +5,7 @@ import android.app.PendingIntent
 import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import com.arcns.core.R
-import com.arcns.core.app.NotificationOptions
-import com.arcns.core.app.NotificationProgressOptions
-import com.arcns.core.app.randomNotificationID
+import com.arcns.core.app.*
 import com.arcns.core.file.FileUtil
 import com.arcns.core.file.getCurrentTimeMillisFileName
 import com.arcns.core.file.tryClose
@@ -23,20 +21,21 @@ import java.io.OutputStream
  * 下载任务类
  */
 open class DownloadTask(
-    url: String,
-    var saveDirPath: String,
-    var saveFileName: String? = null,
-    var saveFileSuffix: String? = null,
-    var showName: String? = null,
-    var isBreakpointResume: Boolean = true, //是否开启断点续传
-    var onCustomRequest: ((DownloadTask, Request.Builder) -> Unit)? = null, // 自定义Request回调
-    notificationOptions: NotificationOptions? = null, // 建议使用DownloadNotificationOptions
-    okHttpClient: OkHttpClient? = null,
-    progressUpdateInterval: Long? = null,
-    var onDownloadProgressUpdate: OnDownloadProgressUpdate? = null,
-    onTaskFailure: OnTaskFailure<DownloadTask>? = null,
-    onTaskSuccess: OnTaskSuccess<DownloadTask>? = null,
-    extraData: Any? = null
+    url: String, // 下载文件的地址
+    var saveDirPath: String, //下载文件保存的目录
+    var saveFileName: String? = null,//下载文件保存的文件名（若为null，则根据下载地址进行获取，若获取不到，则自动生成一个文件名）
+    var saveFileSuffix: String? = null,//下载文件保存的后缀名（若为null，则根据下载地址进行获取，若获取不到，则文件保存后不包含后缀）
+    var showName: String? = null,// 在通知栏中显示的名称（若为null，则显示saveFullShowName，若saveFullShowName也为空，则显示showNameWhenEmpty）
+    var showNameWhenEmpty: String? = R.string.text_download_progress_notification_default_show_name_when_empty.string,// 当showName、saveFullShowName为null时在通知栏中显示的名称
+    var isBreakpointResume: Boolean = true, //是否开启断点续传（若服务器无该功能，则会自动重新开始下载）
+    var onCustomRequest: ((DownloadTask, Request.Builder) -> Unit)? = null, // 自定义请求（Request）回调，能够使用该回调对请求进行操作
+    notificationOptions: NotificationOptions? = null, // 通知栏配置（建议使用DownloadNotificationOptions，若不需要通知栏可使用NotificationOptions.DISABLE）
+    okHttpClient: OkHttpClient? = null,// 使用自定义的OkHttpClient（若为null，则使用管理器的OkHttpClient）
+    progressUpdateInterval: Long? = null,// 进度更新间隔（若为null，则使用管理器的progressUpdateInterval）
+    var onDownloadProgressUpdate: OnDownloadProgressUpdate? = null,// 进度更新回调
+    onTaskFailure: OnTaskFailure<DownloadTask>? = null,// 任务失败回调（包含取消、暂停、失败）
+    onTaskSuccess: OnTaskSuccess<DownloadTask>? = null,// 任务成功回调
+    extraData: Any? = null // 任务中可携带的自定义数据
 ) : NetworkTask<DownloadTask>(
     url,
     notificationOptions,
@@ -46,15 +45,19 @@ open class DownloadTask(
     onTaskSuccess,
     extraData
 ) {
-
+    // 完整保存的文件名称（若任务需要根据下载地址进行获取时，那在任务未运行时，该值为空）
     var saveFullFileName: String? = null
         private set
 
+    // 完整的显示名称（优先级依次为showName、saveFullFileName、showNameWhenEmpty）
+    val saveFullShowName: String get() = showName ?: saveFullFileName ?: showNameWhenEmpty ?: ""
+
     init {
-        // 补全后缀
+        // 自动补全saveFileSuffix
         if (!saveFileSuffix.isNullOrBlank() && saveFileSuffix != "." && saveFileSuffix?.startsWith(".") == false) {
             saveFileSuffix = ".$saveFileSuffix"
         }
+        // 自动拼接saveFullFileName
         if (saveFileName != null && saveFileSuffix != null)
             saveFullFileName = saveFileName + saveFileSuffix
         else saveFullFileName = saveFileName
@@ -73,7 +76,7 @@ open class DownloadTask(
     var currentProgress: NetworkTaskProgress? = null
         private set
 
-    // 文件流
+    // 保存的文件流
     private var outputStream: OutputStream? = null
 
     // 上传通知
@@ -156,20 +159,110 @@ open class DownloadTask(
         outputStream = null
     }
 
+    /**
+     * 保存的文件路径
+     */
     val saveFilePath: String?
         get() = if (saveFullFileName == null) null else FileUtil.splicing(
             saveDirPath,
             saveFullFileName
         )
 
+    /**
+     * 保存的文件
+     */
     val saveFile: File? get() = if (saveFilePath.isNullOrBlank()) null else File(saveFilePath)
 
+    /**
+     * 断点
+     */
     val breakpoint: Long
         get() {
             LOG("DownLoadTask断点长度：" + saveFile?.length())
             return if (saveFile?.exists() == true) saveFile?.length() ?: 0
             else 0
         }
+
+
+    /**
+     * 更新通知栏
+     */
+    fun updateNotification(backupNotificationOptions: NotificationOptions? = null) {
+        val notificationOptions =
+            notificationOptions ?: backupNotificationOptions ?: return
+        if (notificationOptions.cancelIfDisable(notificationID)) return
+        LOG("updateNotification show $notificationID")
+        // 判断是否允许自动格式化内容
+        if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
+            notificationOptions.contentTitle =
+                formatTaskNotificationPlaceholderContent(
+                    notificationOptions.notificationTitle
+                ).getAbbreviatedText(
+                    20
+                )
+            if (isRunning) {
+                notificationOptions.contentText =
+                    formatTaskNotificationPlaceholderContent(
+                        notificationOptions.progressContentText
+                    )
+                notificationOptions.progress = notificationProgress
+                notificationOptions.isOngoing =
+                    notificationOptions.defaultIsOngoing ?: true
+                notificationOptions.isAutoCancel =
+                    notificationOptions.defaultIsAutoCancel ?: false
+            } else {
+                when (state) {
+                    TaskState.Success -> {
+                        notificationOptions.contentText =
+                            notificationOptions.successContentText
+                        notificationOptions.progress =
+                            NotificationProgressOptions.COMPLETED
+                    }
+                    TaskState.Failure -> {
+                        notificationOptions.contentText =
+                            notificationOptions.failureContentText
+                        if (currentProgress?.indeterminate != false)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.FAILURE
+                    }
+                    TaskState.Pause -> {
+                        notificationOptions.contentText =
+                            notificationOptions.pauseContentText
+                        if (currentProgress?.indeterminate != false)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.FAILURE
+                    }
+                    TaskState.Cancel -> {
+                        notificationOptions.contentText =
+                            notificationOptions.cancelContentText
+                        if (currentProgress?.indeterminate != false)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.FAILURE
+                    }
+                    else -> return
+                }
+                notificationOptions.isOngoing =
+                    notificationOptions.defaultIsOngoing ?: false
+                notificationOptions.isAutoCancel =
+                    notificationOptions.defaultIsAutoCancel ?: true
+            }
+        }
+        notificationOptions.show(notificationID)
+    }
+
+    // 填充占位符
+    fun formatTaskNotificationPlaceholderContent(
+        content: String
+    ): String =
+        content.replace(
+            TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME, saveFullFileName ?: ""
+        ).replace(
+            TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME, saveFullShowName
+        ).replace(
+            TASK_NOTIFICATION_PLACEHOLDER_LENGTH, currentProgress?.getLengthToString() ?: ""
+        ).replace(
+            TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE, currentProgress?.permissionToString ?: ""
+        )
 }
 
 
