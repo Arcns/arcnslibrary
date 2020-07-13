@@ -67,7 +67,7 @@ data class NotificationProgressOptions(
 ) {
     companion object {
         val COMPLETED = NotificationProgressOptions(100, 100)
-        val FAILURE = NotificationProgressOptions(100, 0)
+        val NONE = NotificationProgressOptions(100, 0)
     }
 }
 

@@ -238,7 +238,7 @@ class UploadManager {
                 onUploadFileSuccess?.invoke(task, parameter)
                 // 更新到通知栏
                 LOG("UploadManager ${task.id} parameter ok ")
-                updateNotification(TaskState.Success)
+                parameter.updateNotification(TaskState.Success, task.notificationOptions)
             }
 
             //上传任务的文件失败回调
@@ -248,7 +248,10 @@ class UploadManager {
                 onUploadFileFailure?.invoke(task, parameter, e)
                 // 更新到通知栏
                 LOG("UploadManager ${task.id} parameter error " + e.message)
-                updateNotification(if (task.isStop) task.state else TaskState.Failure)
+                parameter.updateNotification(
+                    if (task.isStop) task.state else TaskState.Failure,
+                    task.notificationOptions
+                )
             }
 
 
@@ -267,92 +270,8 @@ class UploadManager {
                     onProgressUpdate?.invoke(task, parameter, this)
                 }
                 // 更新到通知栏
-                updateNotification()
+                parameter.updateNotification(backupNotificationOptions = task.notificationOptions)
             }
-
-            /**
-             * 更新通知栏
-             */
-            private fun updateNotification(progressState: TaskState = TaskState.Running) {
-                val notificationOptions = getNotificationOptions() ?: return
-                if (notificationOptions.cancelIfDisable(parameter.notificationID)) return
-                // 判断是否允许自动格式化内容
-                if (notificationOptions is UploadNotificationOptions && notificationOptions.isFormatContent) {
-                    notificationOptions.contentTitle =
-                        formatTaskNotificationPlaceholderContent(
-                            notificationOptions.notificationTitle,
-                            parameter
-                        )
-                    if (progressState == TaskState.Running) {
-                        notificationOptions.contentText =
-                            formatTaskNotificationPlaceholderContent(
-                                notificationOptions.progressContentText,
-                                parameter
-                            )
-                        notificationOptions.progress = parameter.notificationProgress
-                        notificationOptions.isOngoing =
-                            notificationOptions.defaultIsOngoing ?: true
-                        notificationOptions.isAutoCancel =
-                            notificationOptions.defaultIsAutoCancel ?: false
-                    } else {
-                        LOG("UploadManager ${task.id} updateNotification " + progressState)
-                        when (progressState) {
-                            TaskState.Success -> {
-                                notificationOptions.contentText =
-                                    notificationOptions.successContentText
-                                notificationOptions.progress =
-                                    NotificationProgressOptions.COMPLETED
-                            }
-                            TaskState.Failure -> {
-                                notificationOptions.contentText =
-                                    notificationOptions.failureContentText
-                                if (parameter.currentProgress?.indeterminate == true)
-                                    notificationOptions.progress =
-                                        NotificationProgressOptions.FAILURE
-                            }
-                            TaskState.Pause -> {
-                                notificationOptions.contentText =
-                                    notificationOptions.pauseContentText
-                                if (parameter.currentProgress?.indeterminate == true)
-                                    notificationOptions.progress =
-                                        NotificationProgressOptions.FAILURE
-                            }
-                            TaskState.Cancel -> {
-                                notificationOptions.contentText =
-                                    notificationOptions.cancelContentText
-                                if (parameter.currentProgress?.indeterminate == true)
-                                    notificationOptions.progress =
-                                        NotificationProgressOptions.FAILURE
-                            }
-                            else -> return
-                        }
-                        notificationOptions.isOngoing =
-                            notificationOptions.defaultIsOngoing ?: false
-                        notificationOptions.isAutoCancel =
-                            notificationOptions.defaultIsAutoCancel ?: true
-                    }
-                }
-                notificationOptions.show(parameter.notificationID)
-            }
-
-            // 返回当前的通知配置
-            private fun getNotificationOptions(): NotificationOptions? {
-                return parameter.notificationOptions ?: task.notificationOptions
-            }
-
-            // 填充占位符
-            private fun formatTaskNotificationPlaceholderContent(
-                content: String,
-                parameter: UploadTaskFileParameter
-            ): String = content.replace(TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME, parameter.fileName)
-                .replace(TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME, parameter.showName)
-                .replace(
-                    TASK_NOTIFICATION_PLACEHOLDER_LENGTH,
-                    parameter.currentProgress?.getLengthToString() ?: ""
-                ).replace(
-                    TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE,
-                    parameter.currentProgress?.permissionToString ?: ""
-                )
         }
 
     /**

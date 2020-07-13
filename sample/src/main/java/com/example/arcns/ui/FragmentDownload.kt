@@ -14,6 +14,7 @@ import com.arcns.core.file.getCurrentTimeMillisFileName
 import com.arcns.core.network.DownloadTask
 import com.arcns.core.network.DownloadManager
 import com.arcns.core.network.DownloadNotificationOptions
+import com.arcns.core.network.TaskState
 import com.arcns.core.util.setActionBarAsToolbar
 import com.arcns.core.util.EventObserver
 import com.arcns.core.util.autoCleared
@@ -60,8 +61,10 @@ class FragmentDownload : Fragment() {
 //        downLoadManager = DownLoadManager(viewModel.downloadManagerData)
 //        downloadManager = DownloadManager()
         downloadManager.managerData.notificationOptions = DownloadNotificationOptions(
-            smallIcon = R.drawable.ic_download//,
+            smallIcon = R.drawable.ic_download,
+            autoCancelOnState = arrayListOf(TaskState.Wait, TaskState.Success)
 //            defaultIsOngoing = false
+
         )
         viewModel.eventTaskClick.observe(viewLifecycleOwner, EventObserver { task ->
             showDialog {

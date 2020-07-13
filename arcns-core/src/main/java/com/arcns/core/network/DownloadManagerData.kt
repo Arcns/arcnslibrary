@@ -96,6 +96,8 @@ class DownloadManagerData(
         } else {
             // 若当前下载数量超过通道数量，则超过的任务会排队等待
             task.onChangeStateToWait()
+            _eventDownloadManagerNotify.fastEventValue =
+                DownloadManagerNotify(DownloadManagerNotifyType.UpdateNotification, task)
         }
         onEventTaskUpdateByState(task)
         return true

@@ -194,6 +194,10 @@ open class DownloadTask(
         LOG("updateNotification show $notificationID")
         // 判断是否允许自动格式化内容
         if (notificationOptions is DownloadNotificationOptions && notificationOptions.isFormatContent) {
+            if (notificationOptions.autoCancelOnState?.contains(state) == true) {
+                notificationID.cancelNotification()
+                return
+            }
             notificationOptions.contentTitle =
                 formatTaskNotificationPlaceholderContent(
                     notificationOptions.notificationTitle
@@ -212,6 +216,12 @@ open class DownloadTask(
                     notificationOptions.defaultIsAutoCancel ?: false
             } else {
                 when (state) {
+                    TaskState.Wait -> {
+                        notificationOptions.contentText =
+                            notificationOptions.waitContentText
+                        notificationOptions.progress =
+                            NotificationProgressOptions.NONE
+                    }
                     TaskState.Success -> {
                         notificationOptions.contentText =
                             notificationOptions.successContentText
@@ -223,21 +233,21 @@ open class DownloadTask(
                             notificationOptions.failureContentText
                         if (currentProgress?.indeterminate != false)
                             notificationOptions.progress =
-                                NotificationProgressOptions.FAILURE
+                                NotificationProgressOptions.NONE
                     }
                     TaskState.Pause -> {
                         notificationOptions.contentText =
                             notificationOptions.pauseContentText
                         if (currentProgress?.indeterminate != false)
                             notificationOptions.progress =
-                                NotificationProgressOptions.FAILURE
+                                NotificationProgressOptions.NONE
                     }
                     TaskState.Cancel -> {
                         notificationOptions.contentText =
                             notificationOptions.cancelContentText
                         if (currentProgress?.indeterminate != false)
                             notificationOptions.progress =
-                                NotificationProgressOptions.FAILURE
+                                NotificationProgressOptions.NONE
                     }
                     else -> return
                 }
@@ -276,6 +286,8 @@ open class DownloadNotificationOptions(
     notificationID: Int = randomNotificationID,
     var notificationTitle: String = "$TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME",
     var progressContentText: String = "$TASK_NOTIFICATION_PLACEHOLDER_LENGTH | $TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE",//{length} | {percentage}: 1M/2M | 50%
+    var autoCancelOnState: List<TaskState>? = null,// 需要下载任务自动取消通知的状态
+    var waitContentText: String = R.string.text_download_progress_notification_default_task_wait.string,
     var successContentText: String = R.string.text_download_progress_notification_default_task_success.string,
     var failureContentText: String = R.string.text_download_progress_notification_default_task_failure.string,
     var pauseContentText: String = R.string.text_download_progress_notification_default_task_pause.string,

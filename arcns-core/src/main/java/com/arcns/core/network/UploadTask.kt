@@ -1,17 +1,13 @@
 package com.arcns.core.network
 
-import android.app.Notification
 import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import com.arcns.core.APP
 import com.arcns.core.R
-import com.arcns.core.app.NotificationOptions
-import com.arcns.core.app.NotificationProgressOptions
-import com.arcns.core.app.randomNotificationID
+import com.arcns.core.app.*
 import com.arcns.core.file.FileUtil
 import com.arcns.core.file.mimeType
 import com.arcns.core.file.tryClose
@@ -24,7 +20,6 @@ import okio.Source
 import java.io.File
 import java.io.InputStream
 import java.io.RandomAccessFile
-import java.util.*
 
 
 /**
@@ -296,6 +291,84 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
         standardSource = null
         breakpointResumeSource = null
     }
+
+    /**
+     * 更新通知栏
+     */
+    fun updateNotification(
+        progressState: TaskState = TaskState.Running,
+        backupNotificationOptions: NotificationOptions? = null
+    ) {
+        val notificationOptions = notificationOptions ?: backupNotificationOptions ?: return
+        if (notificationOptions.cancelIfDisable(notificationID)) return
+        // 判断是否允许自动格式化内容
+        if (notificationOptions is UploadNotificationOptions && notificationOptions.isFormatContent) {
+            notificationOptions.contentTitle =
+                formatTaskNotificationPlaceholderContent(
+                    notificationOptions.notificationTitle
+                )
+            if (progressState == TaskState.Running) {
+                notificationOptions.contentText =
+                    formatTaskNotificationPlaceholderContent(
+                        notificationOptions.progressContentText
+                    )
+                notificationOptions.progress = notificationProgress
+                notificationOptions.isOngoing =
+                    notificationOptions.defaultIsOngoing ?: true
+                notificationOptions.isAutoCancel =
+                    notificationOptions.defaultIsAutoCancel ?: false
+            } else {
+                when (progressState) {
+                    TaskState.Success -> {
+                        notificationOptions.contentText =
+                            notificationOptions.successContentText
+                        notificationOptions.progress =
+                            NotificationProgressOptions.COMPLETED
+                    }
+                    TaskState.Failure -> {
+                        notificationOptions.contentText =
+                            notificationOptions.failureContentText
+                        if (currentProgress?.indeterminate != false)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.NONE
+                    }
+                    TaskState.Pause -> {
+                        notificationOptions.contentText =
+                            notificationOptions.pauseContentText
+                        if (currentProgress?.indeterminate != false)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.NONE
+                    }
+                    TaskState.Cancel -> {
+                        notificationOptions.contentText =
+                            notificationOptions.cancelContentText
+                        if (currentProgress?.indeterminate != false)
+                            notificationOptions.progress =
+                                NotificationProgressOptions.NONE
+                    }
+                    else -> return
+                }
+                notificationOptions.isOngoing =
+                    notificationOptions.defaultIsOngoing ?: false
+                notificationOptions.isAutoCancel =
+                    notificationOptions.defaultIsAutoCancel ?: true
+            }
+        }
+        notificationOptions.show(notificationID)
+    }
+
+    // 填充占位符
+    fun formatTaskNotificationPlaceholderContent(
+        content: String
+    ): String = content.replace(TASK_NOTIFICATION_PLACEHOLDER_FILE_NAME, fileName)
+        .replace(TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME, showName)
+        .replace(
+            TASK_NOTIFICATION_PLACEHOLDER_LENGTH,
+            currentProgress?.getLengthToString() ?: ""
+        ).replace(
+            TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE,
+            currentProgress?.permissionToString ?: ""
+        )
 
 }
 
