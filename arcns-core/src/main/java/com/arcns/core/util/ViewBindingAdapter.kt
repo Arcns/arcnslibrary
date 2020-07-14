@@ -21,6 +21,7 @@ import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.arcns.core.R
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.textfield.TextInputLayout
 
@@ -524,6 +525,10 @@ fun bindAppBarLayoutAdaptiveScroll(recyclerView: RecyclerView, appBarLayoutChild
                 recyclerView.layoutManager as? LinearLayoutManager ?: return
             var itemCount = (recyclerView.adapter as? ListAdapter<*, *>)?.itemCount
                 ?: (recyclerView.adapter as? RecyclerView.Adapter)?.itemCount ?: return
+            if (recyclerView.getTag(R.string.app_name)?.toString()?.toIntOrNull() == itemCount) {
+                return
+            }
+            recyclerView.setTag(R.string.app_name, itemCount.toString())
             var firstPosition =
                 layoutManager.findFirstCompletelyVisibleItemPosition()
             var lastPosition =
