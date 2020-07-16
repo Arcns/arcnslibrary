@@ -411,6 +411,7 @@ class MediaSelectorViewModel : ViewModel() {
         _saveAsOption.value = null
         _allMedias.value = null
         _selectedMedias.value = null
+        onDetailsFileClickOpenApp = null
     }
 
 }
