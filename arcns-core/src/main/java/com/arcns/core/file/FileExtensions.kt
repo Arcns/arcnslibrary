@@ -94,7 +94,11 @@ const val MIME_TYPE_AUDIO_AAC = "audio/x-aac"
 const val MIME_TYPE_AUDIO_AU = "audio/basic"
 const val MIME_TYPE_AUDIO_ADP = "audio/adp"
 
-
+val Uri.mimeTypeOrNull: String?
+    get() = FileUtil.getFileMimeTypeWithUri(APP.INSTANCE, this)
+        ?: FileUtil.getFileNameWithUri(APP.INSTANCE, this)?.mimeType
+val Uri.mimeType: String
+    get() = mimeTypeOrNull ?: MIME_TYPE_WILDCARD
 val File.mimeType: String get() = absolutePath.mimeType
 val String.isVideoMimeType: Boolean get() = mimeType.startsWith(MIME_TYPE_PREFIX_VIDEO, true)
 val String.isAudioMimeType: Boolean get() = mimeType.startsWith(MIME_TYPE_PREFIX_AUDIO, true)

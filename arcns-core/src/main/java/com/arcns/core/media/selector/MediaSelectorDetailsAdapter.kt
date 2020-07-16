@@ -12,6 +12,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.arcns.core.APP
 import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemDetailsBinding
 import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemDetailsNoPreviewBinding
+import com.arcns.core.file.mimeType
 import com.arcns.core.util.openAppByPath
 import com.arcns.core.util.openAppByUri
 
@@ -163,11 +164,11 @@ fun bindFileClickOpenApp(
             when (currentMedia.value) {
                 is Uri -> view.context.openAppByUri(
                     currentMedia.value,
-                    currentMedia.mimeTypeIfNullGetOfSuffix
+                    currentMedia.mimeType ?: currentMedia.value.mimeType
                 )
                 is String -> view.context.openAppByPath(
                     currentMedia.value,
-                    currentMedia.mimeTypeIfNullGetOfSuffix,
+                    currentMedia.mimeType ?: currentMedia.value.mimeType,
                     APP.fileProviderAuthority ?: return@setOnClickListener
                 )
             }

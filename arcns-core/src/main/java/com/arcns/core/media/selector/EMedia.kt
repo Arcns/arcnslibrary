@@ -136,15 +136,6 @@ data class EMedia(
             }
             return mimeType?.startsWith(MIME_TYPE_PREFIX_AUDIO, true) ?: false
         }
-
-    /**
-     * 获取媒体文件的MimeType，如果为空则根据后缀名来获取MimeType
-     */
-    val mimeTypeIfNullGetOfSuffix: String
-        get() = mimeType ?: if (isImage) "$MIME_TYPE_PREFIX_IMAGE/*"
-        else if (isVideo) "$MIME_TYPE_PREFIX_VIDEO/*"
-        else if (isAudio) "$MIME_TYPE_PREFIX_AUDIO/*"
-        else "*/*"
 }
 
 data class ESelectedMedia(

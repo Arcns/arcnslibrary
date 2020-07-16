@@ -486,14 +486,36 @@ public class FileUtil {
     }
 
     /**
-     * 返回Uri的对应后缀名
+     * 返回Uri的对应MimeType
      */
-    public static String getFileSuffixWithUri(Context context, Uri uri) {
+    public static String getFileMimeTypeWithUri(Context context, Uri uri) {
+        String[] info = getFileInfoWithUri(context, uri);
+        if (info == null || info.length < 2) {
+            return null;
+        }
+        return info[1];
+    }
+
+    /**
+     * 返回Uri的对应文件名
+     */
+    public static String getFileNameWithUri(Context context, Uri uri) {
         String[] info = getFileInfoWithUri(context, uri);
         if (info == null || info.length < 1) {
             return null;
         }
-        return getFileSuffix(info[0]);
+        return info[0];
+    }
+
+    /**
+     * 返回Uri的对应后缀名
+     */
+    public static String getFileSuffixWithUri(Context context, Uri uri) {
+        String name = getFileNameWithUri(context, uri);
+        if (name == null) {
+            return null;
+        }
+        return getFileSuffix(name);
     }
 
     /**
