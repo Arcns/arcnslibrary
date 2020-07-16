@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.arcns.core.app.ForegroundServiceBinder
 import com.arcns.core.app.ForegroundServiceConnection
 import com.arcns.core.map.MapLocator
@@ -13,6 +14,7 @@ import com.arcns.core.map.startMapLocatorService
 import com.arcns.core.util.setActionBarAsToolbar
 import com.arcns.core.util.EventObserver
 import com.arcns.core.util.autoCleared
+import com.example.arcns.NavMainDirections
 import com.example.arcns.databinding.FragmentEmptyBinding
 import com.example.arcns.viewmodel.*
 import kotlinx.android.synthetic.main.fragment_empty.*
@@ -48,5 +50,8 @@ class FragmentEmpty : Fragment() {
         viewModel.toast.observe(this, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
+        btnTest.setOnClickListener {
+            findNavController().navigate(NavMainDirections.actionGlobalFragmentEmpty())
+        }
     }
 }

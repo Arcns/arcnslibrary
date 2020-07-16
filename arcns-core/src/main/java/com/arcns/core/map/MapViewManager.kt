@@ -11,10 +11,23 @@ const val ZINDEX_POLYGON = 9997f
  * 地图管理器基类
  */
 abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygon, LatLng, MoveCameraData, CameraData>(
-    val lifecycleOwner: LifecycleOwner,
-    val mapView: MapView,
+    lifecycleOwner: LifecycleOwner?,
+    mapView: MapView?,
     val viewManagerData: MapViewManagerData
 ) {
+    // 实际的mapView与lifecycleOwner对象，设置为可空对象，在回收时置空，否则会引起内存泄漏
+    private var _lifecycleOwner: LifecycleOwner? = null
+    private var _mapView: MapView? = null
+    init {
+        this._lifecycleOwner = lifecycleOwner
+        this._mapView = mapView
+    }
+
+    // 对外暴露的mapView对象
+    val mapView:MapView get() = _mapView!!
+    // 对外报漏的lifecycleOwner对象
+    val lifecycleOwner: LifecycleOwner get() = _lifecycleOwner!!
+
     // 是否加载完成
     var isMapLoaded = false
 
@@ -38,6 +51,25 @@ abstract class MapViewManager<MapView, MyLocationStyle, Marker, Polyline, Polygo
             field = value
             updateCenterFixedMarker()
         }
+
+    /**
+     * 回收管理器所引用的资源
+     * 注意：该方法用于把_lifecycleOwner、_mapView等引用的对象都置为null或清空，方便系统回收资源，否则可能会引起内存泄漏
+     * 该方法通常由实现类在生命周期onDestroy时调用，请勿在使用管理器过程中调用该方法
+     */
+    open fun onGarbageCollection(){
+        markers.clear()
+        polylines.clear()
+        polygons.clear()
+        groupMarkers.clear()
+        tagGroups.clear()
+        centerFixedMarker = null
+        centerFixedMarkerApplyCustomOptions = null
+        onMapLoaded = null
+        globalApplyCustomOptions = null
+        _lifecycleOwner = null
+        _mapView = null
+    }
 
     /**
      * 地图加载完成后的回调

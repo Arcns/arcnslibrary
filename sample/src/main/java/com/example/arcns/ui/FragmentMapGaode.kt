@@ -46,7 +46,10 @@ class FragmentMapGaode : Fragment() {
     private var binding by autoCleared<FragmentMapGaodeBinding>()
     private val viewModel by viewModels<ViewModelMap>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
-    private lateinit var mapViewManager: GaodeMapViewManager
+//    private var mapViewManager by autoCleared<GaodeMapViewManager>()
+    private lateinit var mapViewManager :GaodeMapViewManager
+
+//    val mapViewManager:GaodeMapViewManager get() = _mapViewManager!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -396,6 +399,12 @@ class FragmentMapGaode : Fragment() {
         super.onSaveInstanceState(outState)
         mapView.onSaveInstanceState(outState)
     }
+//
+//    override fun onDestroyView() {
+////        mapView.onDestroy()
+//        _mapViewManager = null
+//        super.onDestroyView()
+//    }
 }
 
 

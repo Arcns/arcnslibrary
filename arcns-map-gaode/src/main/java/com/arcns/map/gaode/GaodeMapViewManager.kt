@@ -63,10 +63,9 @@ class GaodeMapViewManager(
 
             @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
             fun onDestroy() {
+                lifecycleOwner.lifecycle.removeObserver(this)
                 saveDestroyCamera()
-                stopLocateMyLocation()
-                mapView.onDestroy()
-
+                onGarbageCollection()
             }
 
             @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -80,6 +79,18 @@ class GaodeMapViewManager(
             }
         })
 
+    }
+
+    /**
+     * 回收管理器所引用的资源
+     * 注意：该方法用于把_lifecycleOwner、_mapView等引用的对象都置为null或清空，方便系统回收资源，否则可能会引起内存泄漏
+     * 该方法通常由实现类在生命周期onDestroy时调用，请勿在使用管理器过程中调用该方法
+     */
+    override fun onGarbageCollection(){
+        stopLocateMyLocation()
+        centerFixedMarker?.remove()
+        mapView.onDestroy()
+        super.onGarbageCollection()
     }
 
     /**
