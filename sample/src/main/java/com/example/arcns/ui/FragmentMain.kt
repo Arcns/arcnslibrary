@@ -122,87 +122,8 @@ class FragmentMain : Fragment() {
         btnDownloadTest.setOnClickListener {
             findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentDownload())
         }
-        val uploadManager = UploadManager(viewLifecycleOwner, viewModel.uploadManagerData)
-        var task: UploadTask? = null
         btnUploadTest.setOnClickListener {
-
-//            val fileName1 = "test.mp4"
-            val fileName1 = getCurrentDateTimeFileName(".mp4")
-            val file1 = File(cacheDirPath + File.separator + fileName1)
-            if (!file1.exists()) {
-                FileUtil.copyFile(
-                    requireActivity().assets.open("test.mp4"),
-                    cacheDirPath,
-                    fileName1
-                )
-                LOG("UploadTest source1 copy ok " + file1.length())
-            } else {
-                LOG("UploadTest source1 file exists " + file1.length())
-            }
-
-            val fileName2 = "test.jpg"
-            val file2 = File(cacheDirPath + File.separator + fileName2)
-            if (!file2.exists()) {
-                FileUtil.copyFile(requireActivity().assets.open(fileName2), cacheDirPath, fileName2)
-                LOG("UploadTest source2 copy ok " + file2.length())
-            } else {
-                LOG("UploadTest source2 file exists " + file2.length())
-            }
-
-            task = UploadTask(
-                url = "https://api.imgur.com/3/upload",
-                parameters = arrayListOf(
-                    UploadTaskFileParameter(
-                        name = "video",
-                        fileName = "test.mp4",
-                        filePath = file1.absolutePath
-                    )
-                ),
-                onCustomRequest = { task, requestBuilder ->
-                    requestBuilder.addHeader("Authorization", "Client-ID {{16070e7eb7aa4d6}}")
-                },
-                notificationOptions = UploadNotificationOptions(
-                    smallIcon = R.drawable.ic_download
-                )
-            )
-            uploadManager.upLoad(task!!)
-
-            return@setOnClickListener
-
-            val client = OkHttpClient().newBuilder()
-                .build()
-            val mediaType = "text/plain".toMediaTypeOrNull()
-            val body = MultipartBody.Builder().setType(MultipartBody.FORM)
-                .addFormDataPart(
-                    "image",
-                    fileName2,
-                    file2.asRequestBody()
-                )
-//                .addFormDataPart(
-//                    "video",
-//                    fileName1,
-//                    file1.asRequestBody()
-//                )
-                .build()
-            val request = Request.Builder()
-                .url("https://api.imgur.com/3/upload")
-                .method("POST", body)
-                .addHeader("Authorization", "Client-ID {{16070e7eb7aa4d6}}")
-                .build()
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    LOG("UploadTest error " + e.message)
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    LOG("UploadTest " + response.isSuccessful + "  " + response.body?.string())
-                }
-
-            })
-
-        }
-        btnUploadTest2.setOnClickListener {
-            task?.pause()
+            findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentUpload())
         }
     }
 

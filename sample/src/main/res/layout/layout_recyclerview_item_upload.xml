@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.example.arcns.viewmodel.ViewModelUpload" />
+
+
+        <variable
+            name="item"
+            type="com.arcns.core.network.UploadTask" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foreground="?selectableItemBackground"
+        android:onClick="@{()->viewModel.onEventTaskClick(item)}"
+        android:padding="@dimen/dp_16">
+
+        <TextView
+            android:id="@+id/tvTask"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{item.url+' '+item.state}"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{item.fileParameters.get(0).fileName +' '+item.fileParameters.get(0).state+'\n'+item.fileParameters.get(0).currentProgress.getLengthToString(2,true)+' '+item.fileParameters.get(0).currentProgress.permissionToString}"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTask" />
+
+        <ProgressBar
+            style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_6"
+            android:indeterminate="@{item.isStop?false:item.fileParameters.get(0).currentProgress.indeterminate}"
+            android:max="100"
+            android:progress="@{item.fileParameters.get(0).currentProgress.percentage}"
+            app:layout_constraintTop_toBottomOf="@id/tvName" />
+        <!--        android:progressDrawable="@drawable/main_pb_bg"-->
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

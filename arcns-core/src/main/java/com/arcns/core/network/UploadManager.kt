@@ -131,6 +131,9 @@ class UploadManager {
                     // 失败回调
                     task.onTaskFailure?.invoke(task, e, null)
                     managerData.onTaskFailure?.invoke(task, e, null)
+                    // 更新到通知栏
+                    managerData.updateNotification(task)
+                    managerData.onEventTaskUpdateByState(task)
                 }
 
                 override fun onResponse(call: Call, response: Response) {
@@ -141,6 +144,9 @@ class UploadManager {
                         // 成功回调
                         task.onTaskSuccess?.invoke(task, response)
                         managerData.onTaskSuccess?.invoke(task, response)
+                        // 更新到通知栏
+                        managerData.updateNotification(task)
+                        managerData.onEventTaskUpdateByState(task)
                     } else {
                         LOG("UploadManager ${task.id} task not ok ")
                         // 更新状态
@@ -148,6 +154,9 @@ class UploadManager {
                         // 失败回调
                         task.onTaskSuccess?.invoke(task, response)
                         managerData.onTaskFailure?.invoke(task, null, response)
+                        // 更新到通知栏
+                        managerData.updateNotification(task)
+                        managerData.onEventTaskUpdateByState(task)
                     }
                 }
             })
@@ -179,6 +188,8 @@ class UploadManager {
             override fun writeTo(sink: BufferedSink) {
                 LOG("UploadManager ${task.id} writeTo")
                 var current: Long = 0
+                parameter.state = TaskState.Running
+                updateProgress(current)
                 try {
                     if (parameter.isSupportBreakpointResume) {
                         // 断点续传
@@ -242,7 +253,14 @@ class UploadManager {
                 )
                 // 更新到通知栏
                 LOG("UploadManager ${task.id} parameter ok ")
-                parameter.updateNotification(TaskState.Success, task.notificationOptions)
+                parameter.state = TaskState.Success
+                parameter.updateNotification(task.notificationOptions)
+                managerData.onEventTaskUpdateByProgress(
+                    UploadTaskFileParameterUpdate(
+                        task,
+                        parameter
+                    )
+                )
             }
 
             //上传任务的文件失败回调
@@ -257,9 +275,15 @@ class UploadManager {
                 )
                 // 更新到通知栏
                 LOG("UploadManager ${task.id} parameter error " + e.message)
+                parameter.state = if (task.isStop) task.state else TaskState.Failure
                 parameter.updateNotification(
-                    if (task.isStop) task.state else TaskState.Failure,
                     task.notificationOptions
+                )
+                managerData.onEventTaskUpdateByProgress(
+                    UploadTaskFileParameterUpdate(
+                        task,
+                        parameter
+                    )
                 )
             }
 
@@ -290,6 +314,12 @@ class UploadManager {
                 }
                 // 更新到通知栏
                 parameter.updateNotification(backupNotificationOptions = task.notificationOptions)
+                managerData.onEventTaskUpdateByProgress(
+                    UploadTaskFileParameterUpdate(
+                        task,
+                        parameter
+                    )
+                )
             }
         }
 

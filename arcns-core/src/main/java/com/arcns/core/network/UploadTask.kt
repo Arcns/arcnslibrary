@@ -48,6 +48,20 @@ open class UploadTask(
     extraData
 ) {
 
+    // 唯一标识
+    var itemId: Long? = null
+        get() {
+            if (field == null) {
+                field = System.currentTimeMillis()
+            }
+            return field
+        }
+
+    val fileParameters: List<UploadTaskFileParameter>
+        get() = parameters.filter {
+            it is UploadTaskFileParameter
+        }.map { it as UploadTaskFileParameter }
+
     /**
      * 取消通知栏
      */
@@ -65,7 +79,7 @@ open class UploadTask(
     ) {
         parameters.forEach {
             if (it is UploadTaskFileParameter) it.updateNotification(
-                state,
+                notificationOptions,
                 backupNotificationOptions
             )
         }
@@ -118,6 +132,10 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
     // 文件源
     private var standardSource: Source? = null
     private var breakpointResumeSource: RandomAccessFile? = null
+
+    // 当前状态
+    var state = TaskState.None
+
 
     // 上传通知
     var notificationOptions: NotificationOptions? = null
@@ -328,10 +346,12 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
      * 更新通知栏
      */
     fun updateNotification(
-        progressState: TaskState = TaskState.Running,
+//        progressState: TaskState = TaskState.Running,
+        taskNotificationOptions: NotificationOptions? = null,
         backupNotificationOptions: NotificationOptions? = null
     ) {
-        val notificationOptions = notificationOptions ?: backupNotificationOptions ?: return
+        val notificationOptions =
+            notificationOptions ?: taskNotificationOptions ?: backupNotificationOptions ?: return
         if (notificationOptions.cancelIfDisable(notificationID)) return
         // 判断是否允许自动格式化内容
         if (notificationOptions is UploadNotificationOptions && notificationOptions.isFormatContent) {
@@ -339,7 +359,7 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
                 formatTaskNotificationPlaceholderContent(
                     notificationOptions.notificationTitle
                 )
-            if (progressState == TaskState.Running) {
+            if (state == TaskState.Running) {
                 notificationOptions.contentText =
                     formatTaskNotificationPlaceholderContent(
                         notificationOptions.progressContentText
@@ -350,7 +370,7 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
                 notificationOptions.isAutoCancel =
                     notificationOptions.defaultIsAutoCancel ?: false
             } else {
-                when (progressState) {
+                when (state) {
                     TaskState.Success -> {
                         notificationOptions.contentText =
                             notificationOptions.successContentText
@@ -403,7 +423,6 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
         )
 
 }
-
 
 /**
  * 上传通知配置

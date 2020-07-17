@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.example.arcns.viewmodel.ViewModelUpload" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/layout_toolbar"
+            app:title="@{@string/app_name}" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvView"
+            bindUpload="@{viewModel.uploadManagerData.tasksLiveData}"
+            bindUploadViewModel="@{viewModel}"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toTopOf="@id/btnAddTask1"
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+        <Button
+            android:id="@+id/btnAddTask1"
+            android:layout_width="0dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/btnAddTask2"
+            android:layout_height="wrap_content"
+            android:onClick="@{()->viewModel.addUploadTask()}"
+            android:text="添加图片"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <Button
+            android:id="@+id/btnAddTask2"
+            android:layout_width="0dp"
+            app:layout_constraintLeft_toRightOf="@id/btnAddTask1"
+            app:layout_constraintRight_toLeftOf="@id/btnClearTask"
+            android:layout_height="wrap_content"
+            android:onClick="@{()->viewModel.addUploadTask2()}"
+            android:text="添加视频"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <Button
+            android:id="@+id/btnClearTask"
+            android:layout_width="0dp"
+            app:layout_constraintLeft_toRightOf="@id/btnAddTask2"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_height="wrap_content"
+            android:onClick="@{()->viewModel.clear()}"
+            android:text="清空任务"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

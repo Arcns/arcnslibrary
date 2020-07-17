@@ -36,9 +36,6 @@ class ViewModelMain : ViewModel() {
     private var _toast = MutableLiveData<Event<String>>()
     var toast: LiveData<Event<String>> = _toast
 
-    // 上传管理器数据
-    val uploadManagerData = UploadManagerData()
-
     // 打开蓝牙和权限
     private var _eventOpenBluetoothAndPermission = MutableLiveData<Event<Boolean>>()
     var eventOpenBluetoothAndPermission: LiveData<Event<Boolean>> = _eventOpenBluetoothAndPermission

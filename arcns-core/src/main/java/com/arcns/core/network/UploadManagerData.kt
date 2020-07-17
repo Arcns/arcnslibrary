@@ -248,7 +248,8 @@ class UploadManagerData(
     /**
      * 更新通知栏
      */
-    fun updateNotification(task: UploadTask) = task.updateNotification(notificationOptions)
+    fun updateNotification(task: UploadTask) =
+        task.updateNotification(notificationOptions)
 
     /**
      * 取消任务

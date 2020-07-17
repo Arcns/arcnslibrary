@@ -42,6 +42,14 @@
             app:exitAnim="@anim/slide_exit"
             app:popEnterAnim="@anim/slide_pop_enter"
             app:popExitAnim="@anim/slide_pop_exit" />
+
+        <action
+            android:id="@+id/action_fragmentMain_to_fragmentUpload"
+            app:destination="@id/fragmentUpload"
+            app:enterAnim="@anim/slide_enter"
+            app:exitAnim="@anim/slide_exit"
+            app:popEnterAnim="@anim/slide_pop_enter"
+            app:popExitAnim="@anim/slide_pop_exit" />
     </fragment>
     <fragment
         android:id="@+id/fragmentMapGaode"
@@ -62,5 +70,9 @@
         android:id="@+id/fragmentDownload"
         android:name="com.example.arcns.ui.FragmentDownload"
         android:label="FragmentDownload" />
+    <fragment
+        android:id="@+id/fragmentUpload"
+        android:name="com.example.arcns.ui.FragmentUpload"
+        android:label="FragmentUpload" />
 
 </navigation>
