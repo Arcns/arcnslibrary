@@ -183,6 +183,10 @@ open class DownloadTask(
             else 0
         }
 
+    /**
+     * 取消任务栏
+     */
+    fun cancelNotification() = notificationID.cancelNotification()
 
     /**
      * 更新通知栏

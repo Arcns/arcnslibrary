@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.arcns.core.APP
+import com.arcns.core.network.DownloadManagerData
+import com.arcns.core.network.UploadManagerData
 import com.arcns.core.util.Event
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
@@ -33,6 +35,9 @@ class ViewModelMain : ViewModel() {
     // 弹出提示
     private var _toast = MutableLiveData<Event<String>>()
     var toast: LiveData<Event<String>> = _toast
+
+    // 上传管理器数据
+    val uploadManagerData = UploadManagerData()
 
     // 打开蓝牙和权限
     private var _eventOpenBluetoothAndPermission = MutableLiveData<Event<Boolean>>()

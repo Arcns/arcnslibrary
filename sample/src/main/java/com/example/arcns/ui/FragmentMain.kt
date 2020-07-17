@@ -122,7 +122,7 @@ class FragmentMain : Fragment() {
         btnDownloadTest.setOnClickListener {
             findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentDownload())
         }
-        val uploadManager = UploadManager()
+        val uploadManager = UploadManager(viewLifecycleOwner, viewModel.uploadManagerData)
         var task: UploadTask? = null
         btnUploadTest.setOnClickListener {
 
@@ -130,7 +130,11 @@ class FragmentMain : Fragment() {
             val fileName1 = getCurrentDateTimeFileName(".mp4")
             val file1 = File(cacheDirPath + File.separator + fileName1)
             if (!file1.exists()) {
-                FileUtil.copyFile(requireActivity().assets.open("test.mp4"), cacheDirPath, fileName1)
+                FileUtil.copyFile(
+                    requireActivity().assets.open("test.mp4"),
+                    cacheDirPath,
+                    fileName1
+                )
                 LOG("UploadTest source1 copy ok " + file1.length())
             } else {
                 LOG("UploadTest source1 file exists " + file1.length())

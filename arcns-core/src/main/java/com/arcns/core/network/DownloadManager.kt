@@ -67,19 +67,26 @@ class DownloadManager {
         }
     }
 
-
+    /**
+     * 下载文件列表
+     */
     @Synchronized
     fun download(
         tasks: List<DownloadTask>
-    ) = tasks.forEach {
-        download(it)
-    }
+    ): Int = managerData.download(tasks)
 
+    /**
+     * 下载文件
+     */
     @Synchronized
     fun download(
         task: DownloadTask
     ): Boolean = managerData.download(task)
 
+
+    /**
+     * 下载文件
+     */
     @Synchronized
     private fun download(
         task: DownloadTask,

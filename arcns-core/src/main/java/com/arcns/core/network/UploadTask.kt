@@ -46,8 +46,40 @@ open class UploadTask(
     onTaskFailure,
     onTaskSuccess,
     extraData
-)
+) {
 
+    /**
+     * 取消通知栏
+     */
+    fun cancelNotification() {
+        parameters.forEach {
+            if (it is UploadTaskFileParameter) it.notificationID.cancelNotification()
+        }
+    }
+
+    /**
+     * 更新通知栏
+     */
+    fun updateNotification(
+        backupNotificationOptions: NotificationOptions? = null
+    ) {
+        parameters.forEach {
+            if (it is UploadTaskFileParameter) it.updateNotification(
+                state,
+                backupNotificationOptions
+            )
+        }
+    }
+
+}
+
+/**
+ * 上传任务类更新
+ */
+open class UploadTaskFileParameterUpdate(
+    var task: UploadTask,
+    var parameter: UploadTaskFileParameter
+)
 
 /**
  * 上传参数基类

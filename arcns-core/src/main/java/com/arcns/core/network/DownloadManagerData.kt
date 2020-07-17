@@ -14,7 +14,7 @@ import kotlin.collections.forEachIndexed
 
 class DownloadManagerData(
     // OkHttpClient
-    val httpClient: OkHttpClient = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
+    val httpClient: OkHttpClient = OkHttpClient.Builder().connectTimeout(60, TimeUnit.SECONDS)
         .build(),
     // 每次下载的字节数
     var perByteCount: Int = 2048,
@@ -24,9 +24,9 @@ class DownloadManagerData(
     var onTaskFailure: OnTaskFailure<DownloadTask>? = null,
     // 下载任务的文件进度回调
     var onProgressUpdate: OnDownloadProgressUpdate? = null,
-    // 下载时间间隔
+    // 下载进度更新时间间隔
     var progressUpdateInterval: Long = 1000,
-    // 上传通知配置（禁用优先级高于任务配置，但内容优先级低于任务配置）
+    // 下载通知配置（禁用优先级高于任务配置，但内容优先级低于任务配置）
     var notificationOptions: NotificationOptions? = null,
     // 自定义请求（Request）回调，能够使用该回调对请求进行操作
     var onCustomRequest: ((DownloadTask, Request.Builder) -> Unit)? = null,
@@ -44,6 +44,20 @@ class DownloadManagerData(
     // 任务更新事件
     private var _eventTaskUpdate = MutableLiveData<Event<DownloadTask>>()
     var eventTaskUpdate: LiveData<Event<DownloadTask>> = _eventTaskUpdate
+
+    // 下发任务管理器操作指令
+    private var _eventDownloadManagerNotify = MutableLiveData<Event<DownloadManagerNotify>>()
+    var eventDownloadManagerNotify: LiveData<Event<DownloadManagerNotify>> =
+        _eventDownloadManagerNotify
+
+
+    // 根据任务状态获取任务数量
+    fun getTasksNumberOnState(state: TaskState): Int = getTasksOnState(state).count()
+
+    // 根据任务状态获取任务
+    fun getTasksOnState(state: TaskState): List<DownloadTask> = tasks.filter {
+        it.state == state
+    }
 
     // 任务状态更新通知
     fun onEventTaskUpdateByState(task: DownloadTask) {
@@ -81,11 +95,20 @@ class DownloadManagerData(
     }
 
 
-    // 下发任务管理器操作指令
-    private var _eventDownloadManagerNotify = MutableLiveData<Event<DownloadManagerNotify>>()
-    var eventDownloadManagerNotify: LiveData<Event<DownloadManagerNotify>> =
-        _eventDownloadManagerNotify
+    /**
+     * 下载文件
+     */
+    @Synchronized
+    fun download(
+        tasks: List<DownloadTask>
+    ): Int = tasks.filter {
+        download(it)
+    }.size
 
+
+    /**
+     * 下载文件
+     */
     @Synchronized
     fun download(task: DownloadTask): Boolean {
         if (!addTask(task)) return false
@@ -140,7 +163,7 @@ class DownloadManagerData(
         if (task != null && tasks.contains(task)) {
             if (isClearNotification) {
                 task.notificationOptions = NotificationOptions.DISABLE
-                if (task.isStop) task.notificationID.cancelNotification()
+                if (task.isStop) task.cancelNotification()
             }
             tasks.remove(task)
             if (isCancelTask && !task.isStop) cancel(task, cancelReason)
@@ -175,7 +198,7 @@ class DownloadManagerData(
             if (isClearNotification) {
                 it.notificationOptions = NotificationOptions.DISABLE
                 if (isContainsStop && it.isStop) {
-                    it.notificationID.cancelNotification()
+                    it.cancelNotification()
                 }
             }
             if (isContainsStop || !it.isStop) cancel(it, cancelReason)
