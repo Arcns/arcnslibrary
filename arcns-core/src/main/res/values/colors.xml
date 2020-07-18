@@ -32,4 +32,6 @@
     <color name="compass_outer_ring_3_color">#dd133b</color>
     <color name="compass_contour_circle_color">#1797ff</color>
     <color name="compass_contour_circle_offset_color">#FF0000</color>
+    <!-- 简单弹出框 -->
+    <color name="simple_popup_loading_disabled_bg">#80000000</color>
 </resources>
