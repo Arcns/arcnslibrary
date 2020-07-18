@@ -57,10 +57,20 @@ open class UploadTask(
             return field
         }
 
+    // 获取任务文件列表
     val fileParameters: List<UploadTaskFileParameter>
         get() = parameters.filter {
             it is UploadTaskFileParameter
         }.map { it as UploadTaskFileParameter }
+
+
+    // 根据状态获取任务文件数量
+    fun getFileParametersNumberOnState(state: TaskState): Int = getFileParametersOnState(state).count()
+
+    // 根据状态获取任务文件
+    fun getFileParametersOnState(state: TaskState): List<UploadTaskFileParameter> = fileParameters.filter {
+        it.state == state
+    }
 
     /**
      * 取消通知栏
