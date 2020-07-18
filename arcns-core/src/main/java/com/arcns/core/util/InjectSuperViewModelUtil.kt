@@ -1,5 +1,6 @@
 package com.arcns.core.util
 
+import androidx.annotation.Keep
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -10,7 +11,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
-
 
 @MustBeDocumented
 @Retention(AnnotationRetention.RUNTIME)
@@ -43,6 +43,11 @@ class ViewModelAndInjectSuperLazy<VM : ViewModel>(
 ) : Lazy<VM> {
     private var cached: VM? = null
 
+    init {
+
+        LOG("ViewModelAndInjectSuperLazy:init")
+    }
+
     override val value: VM
         get() {
             val viewModel = cached
@@ -53,9 +58,11 @@ class ViewModelAndInjectSuperLazy<VM : ViewModel>(
                         viewModelClass.declaredMemberProperties.forEach {
                             val superViewModel = it.findAnnotation<InjectSuperViewModel>()
                             if (superViewModel != null && it is KMutableProperty<*>) {
+                                LOG("ViewModelAndInjectSuperLazy:for:"+it.name+"  "+it.returnType)
                                 val javaClass =
                                     (it.returnType.classifier as? KClass<out ViewModel>)?.java
                                         ?: return@forEach
+                                LOG("ViewModelAndInjectSuperLazy:type:"+it.returnType)
                                 it.setter.call(
                                     viewModel,
                                     ViewModelProvider(

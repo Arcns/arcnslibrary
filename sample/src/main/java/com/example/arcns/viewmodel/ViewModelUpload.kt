@@ -146,7 +146,7 @@ class ViewModelUpload : ViewModel() {
 //        })
     }
 
-    fun clear() {
+    fun onClear() {
         uploadManagerData?.cancelAllTask(isContainsStop = true)
     }
 

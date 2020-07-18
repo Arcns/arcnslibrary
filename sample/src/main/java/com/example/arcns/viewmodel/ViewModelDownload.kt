@@ -17,7 +17,7 @@ class ViewModelDownload : ViewModel() {
 
 
     @InjectSuperViewModel
-    lateinit var superViewModel:ViewModelActivityMain
+//    lateinit var superViewModel:ViewModelActivityMain
 
     // 网络接口
     var networkDataSource: NetworkDataSource = NetworkDataSource()
@@ -56,7 +56,7 @@ class ViewModelDownload : ViewModel() {
         )
     }
 
-    fun clear(){
+    fun onClear(){
         downloadManagerData.cancelAllTask(isContainsStop = true)
     }
 

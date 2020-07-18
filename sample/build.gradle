@@ -27,6 +27,8 @@ android {
         def baseurl_jj = '"http://183.56.194.120:8084/est/"'
         def baseurl_cq = '"http://183.56.194.120:8086/est/"'
         all {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField 'String', 'BASEURL_OFFICIAL', baseurl_official
             buildConfigField 'String', 'BASEURL_TEST', baseurl_test
             buildConfigField 'String', 'BASEURL_JIUJIANG', baseurl_jj

@@ -1,6 +1,7 @@
 package com.example.arcns.viewmodel
 
 import android.view.View
+import androidx.annotation.Keep
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

@@ -131,10 +131,10 @@ class FragmentMain : Fragment() {
                     ).show()
                 }.start()
         }
-        btnDownloadTest.setOnClickListener {
+        binding.btnDownloadTest.setOnClickListener {
             findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentDownload())
         }
-        btnUploadTest.setOnClickListener {
+        binding.btnUploadTest.setOnClickListener {
             findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentUpload())
         }
     }

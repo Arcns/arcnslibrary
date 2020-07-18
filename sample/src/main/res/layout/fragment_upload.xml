@@ -57,7 +57,7 @@
             app:layout_constraintLeft_toRightOf="@id/btnAddTask2"
             app:layout_constraintRight_toRightOf="parent"
             android:layout_height="wrap_content"
-            android:onClick="@{()->viewModel.clear()}"
+            android:onClick="@{()->viewModel.onClear()}"
             android:text="清空任务"
             app:layout_constraintBottom_toBottomOf="parent" />
 

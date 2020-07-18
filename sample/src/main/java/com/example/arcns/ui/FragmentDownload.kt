@@ -28,8 +28,7 @@ import kotlinx.android.synthetic.main.fragment_empty.toolbar
 class FragmentDownload : Fragment() {
     private var binding by autoCleared<FragmentDownloadBinding>()
     private val viewModel by viewModelsAndInjectSuper<ViewModelDownload>()
-    private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
-    private lateinit var downloadManager: com.arcns.core.network.DownloadManager
+    private lateinit var downloadManager: DownloadManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,7 +49,7 @@ class FragmentDownload : Fragment() {
         setupResult()
 
 
-        LOG("viewModelActivityMain:" + viewModel.superViewModel.test)
+//        LOG("viewModelActivityMain:" + viewModel.superViewModel.test)
     }
 
     private fun setupResult() {
