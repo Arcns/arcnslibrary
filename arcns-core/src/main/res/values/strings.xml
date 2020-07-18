@@ -29,4 +29,5 @@
     <string name="media_selector_media_bottom_bar_previewe_text">预览</string>
     <string name="media_selector_media_bottom_bar_previewe_text_and_number">预览(%1$d)</string>
     <string name="media_selector_media_button">打开文件</string>
+    <string name="simple_popup_dialog_confirm_button">确定</string>
 </resources>

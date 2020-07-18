@@ -8,12 +8,16 @@ import com.arcns.core.file.getCurrentTimeMillisFileName
 import com.arcns.core.network.DownloadManagerData
 import com.arcns.core.network.DownloadTask
 import com.arcns.core.util.Event
+import com.arcns.core.util.InjectSuperViewModel
 import com.arcns.core.util.eventValue
 import com.example.arcns.data.network.NetworkDataSource
 
 
 class ViewModelDownload : ViewModel() {
 
+
+    @InjectSuperViewModel
+    lateinit var superViewModel:ViewModelActivityMain
 
     // 网络接口
     var networkDataSource: NetworkDataSource = NetworkDataSource()

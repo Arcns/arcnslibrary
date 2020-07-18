@@ -12,12 +12,16 @@ dependencies {
     implementation deps.androidx.appcompat
     implementation deps.androidx.ktx
 
+    // 反射
+    implementation deps.kotlin.reflect
     // 相对布局
     implementation deps.androidx.constraint_layout
     // Navigation Kotlin (仅编译，若项目需要使用到，需要在项目中自行引用)
     // 开启navigation需要配置三个地方：module.gradle页面顶部apply、module.gradle页面dependencies、project.gradle页面的classpath
     compileOnly deps.androidx.nav_fragment_ktx
     compileOnly deps.androidx.nav_ui_ktx
+    // Fragment
+    implementation deps.androidx.fragment_ktx
     // ViewModel and LiveData
     implementation deps.androidx.lifecycle_viewmodel
     implementation deps.androidx.lifecycle_livedata

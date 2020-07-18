@@ -10,6 +10,9 @@ import com.arcns.core.util.Event
 import kotlinx.coroutines.launch
 
 class ViewModelActivityMain : ViewModel() {
+
+    var test:Int = 0
+
     /**
      * 轨迹记录器
      */

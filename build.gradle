@@ -15,7 +15,7 @@ buildscript {
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.0'
+        classpath 'com.android.tools.build:gradle:4.0.1'
         classpath deps.gradle_plugins.kotlin
         // 引入navigation插件库
         classpath deps.gradle_plugins.nav_args

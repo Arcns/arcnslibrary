@@ -6,9 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.arcns.core.APP
-import com.arcns.core.network.DownloadManagerData
-import com.arcns.core.network.UploadManagerData
 import com.arcns.core.util.Event
+import com.arcns.core.util.InjectSuperViewModel
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
 import com.clj.fastble.callback.BleScanCallback
@@ -35,6 +34,9 @@ class ViewModelMain : ViewModel() {
     // 弹出提示
     private var _toast = MutableLiveData<Event<String>>()
     var toast: LiveData<Event<String>> = _toast
+
+    @InjectSuperViewModel
+    lateinit var superViewModel:ViewModelActivityMain
 
     // 打开蓝牙和权限
     private var _eventOpenBluetoothAndPermission = MutableLiveData<Event<Boolean>>()

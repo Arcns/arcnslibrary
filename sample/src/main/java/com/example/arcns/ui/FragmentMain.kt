@@ -1,23 +1,20 @@
 package com.example.arcns.ui
 
 import android.os.Bundle
-import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.createViewModelLazy
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.*
+import androidx.lifecycle.ViewModelLazy
 import androidx.navigation.fragment.findNavController
-import com.arcns.core.app.NotificationOptions
-import com.arcns.core.file.FileUtil
-import com.arcns.core.file.cacheDirPath
-import com.arcns.core.file.getCurrentDateTimeFileName
-import com.arcns.core.network.*
 import com.arcns.core.util.*
 import com.arcns.media.audio.MediaAudioRecorderPlayerUtil
-import com.example.arcns.R
 import com.example.arcns.databinding.FragmentMainBinding
 import com.example.arcns.util.openPermission
 import com.example.arcns.viewmodel.ViewModelActivityMain
@@ -26,19 +23,20 @@ import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.runtime.Permission
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
 import kotlinx.android.synthetic.main.fragment_main.*
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
-import java.io.IOException
-
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.internal.impl.load.java.structure.JavaClass
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  *
  */
 class FragmentMain : Fragment() {
     private var binding by autoCleared<FragmentMainBinding>()
-    private val viewModel by viewModels<ViewModelMain>()
+    private val viewModel by viewModelsAndInjectSuper<ViewModelMain>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
     private lateinit var audioRecorderPlayerUtil: MediaAudioRecorderPlayerUtil
 
@@ -70,6 +68,20 @@ class FragmentMain : Fragment() {
 //        Handler().postDelayed({
 //            activity?.finish()
 //        },2000)
+
+
+//        val clz = ViewModelMain::class
+//        clz.declaredMemberProperties.forEach {
+//            val superViewModel = it.findAnnotation<InjectSuperViewModel>()
+//            if (superViewModel != null && it is KMutableProperty<*>) {
+//                it.setter.call(viewModel, viewModelActivityMain)
+//                LOG("viewModelActivityMain:" + viewModel.superViewModel)
+//            }
+//        }
+
+        LOG("viewModelActivityMain:" + viewModel.superViewModel)
+        viewModel.superViewModel.test = 99
+
     }
 
     private fun setupResult() {

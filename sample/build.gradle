@@ -80,7 +80,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.1.0'
     // Navigation Kotlin
     // 开启navigation需要配置三个地方：module.gradle页面顶部apply、module.gradle页面dependencies、project.gradle页面的classpath
-    def nav_version = "2.2.2"
+    def nav_version = "2.3.0"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
     // ViewModel and LiveData
@@ -130,6 +130,8 @@ dependencies {
     implementation 'com.amap.api:location:4.9.0'
     //高德搜索
     implementation 'com.amap.api:search:7.3.0'
+    //kotlin反射
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
     implementation project(path: ':arcns-core')
     implementation project(path: ':arcns-map-gaode')

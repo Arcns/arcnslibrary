@@ -24,7 +24,15 @@ open class Event<out T>(content: T) {
         }
     }
 
-    fun peekContent(): T? = eventContent as? T
+    /**
+     * 返回event的内容（忽略是否已处理），注意：如果isDisposable（一次性）为True，请使用peekContentOrNull
+     */
+    fun peekContent(): T = eventContent as T
+
+    /**
+     * 返回event的内容（忽略是否已处理），注意：如果isDisposable（一次性）为True，那么已处理后的该值为null
+     */
+    fun peekContentOrNull(): T? = eventContent as? T
 }
 
 class EventObserver<T>(

@@ -15,10 +15,7 @@ import com.arcns.core.network.DownloadTask
 import com.arcns.core.network.DownloadManager
 import com.arcns.core.network.DownloadNotificationOptions
 import com.arcns.core.network.TaskState
-import com.arcns.core.util.setActionBarAsToolbar
-import com.arcns.core.util.EventObserver
-import com.arcns.core.util.autoCleared
-import com.arcns.core.util.showDialog
+import com.arcns.core.util.*
 import com.example.arcns.R
 import com.example.arcns.databinding.FragmentDownloadBinding
 import com.example.arcns.viewmodel.*
@@ -30,7 +27,7 @@ import kotlinx.android.synthetic.main.fragment_empty.toolbar
  */
 class FragmentDownload : Fragment() {
     private var binding by autoCleared<FragmentDownloadBinding>()
-    private val viewModel by viewModels<ViewModelDownload>()
+    private val viewModel by viewModelsAndInjectSuper<ViewModelDownload>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
     private lateinit var downloadManager: com.arcns.core.network.DownloadManager
 
@@ -51,6 +48,9 @@ class FragmentDownload : Fragment() {
         super.onActivityCreated(savedInstanceState)
         setActionBarAsToolbar(toolbar)
         setupResult()
+
+
+        LOG("viewModelActivityMain:" + viewModel.superViewModel.test)
     }
 
     private fun setupResult() {
