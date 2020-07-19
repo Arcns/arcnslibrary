@@ -76,11 +76,11 @@
         android:label="FragmentUpload" />
     <fragment
         android:id="@+id/mediaSelectorDetailsFragment"
-        android:name="com.zkxt.datamonitoring.ui.MediaSelectorDetailsFragment"
+        android:name="com.arcns.core.media.selector.MediaSelectorDetailsFragment"
         android:label="@string/app_name" />
     <fragment
         android:id="@+id/mediaSelectorFragment"
-        android:name="com.zkxt.datamonitoring.ui.MediaSelectorFragment"
+        android:name="com.arcns.core.media.selector.MediaSelectorFragment"
         android:label="@string/app_name" />
     <action
         android:id="@+id/action_global_mediaSelectorDetailsFragment"

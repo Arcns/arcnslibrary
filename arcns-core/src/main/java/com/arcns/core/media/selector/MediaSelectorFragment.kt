@@ -1,4 +1,4 @@
-package com.zkxt.datamonitoring.ui
+package com.arcns.core.media.selector
 
 import android.os.Bundle
 import android.view.LayoutInflater
