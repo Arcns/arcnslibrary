@@ -1,8 +1,5 @@
 package com.arcns.core.media.selector
 
-import android.view.View
-import android.widget.TextView
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
@@ -75,13 +72,13 @@ typealias OnMediaSelectorNavigationCallback = (NavController) -> Unit
 
 
 fun Fragment.navigationDefaultMediaSelector(
-    navigationConfi: MediaSelectorNavigationConfig? = null,
+    navigationConfig: MediaSelectorNavigationConfig? = null,
     navigationTitleConfig: MediaSelectorNavigationTitleConfig? = null
 ) {
     val mediaSelectorViewModel =
         ViewModelProvider(requireActivity()).get(MediaSelectorViewModel::class.java)
-    if (navigationConfi != null) {
-        mediaSelectorViewModel.defaultNavigationConfig = navigationConfi
+    if (navigationConfig != null) {
+        mediaSelectorViewModel.defaultNavigationConfig = navigationConfig
     }
     if (navigationTitleConfig != null) {
         mediaSelectorViewModel.defaultNavigationTitleConfig = navigationTitleConfig
@@ -92,13 +89,13 @@ fun Fragment.navigationDefaultMediaSelector(
 }
 
 fun Fragment.navigationDefaultMediaSelectorDetails(
-    navigationConfi: MediaSelectorNavigationConfig? = null,
+    navigationConfig: MediaSelectorNavigationConfig? = null,
     navigationTitleConfig: MediaSelectorNavigationTitleConfig? = null
 ) {
     val mediaSelectorViewModel =
         ViewModelProvider(requireActivity()).get(MediaSelectorViewModel::class.java)
-    if (navigationConfi != null) {
-        mediaSelectorViewModel.defaultNavigationConfig = navigationConfi
+    if (navigationConfig != null) {
+        mediaSelectorViewModel.defaultNavigationConfig = navigationConfig
     }
     if (navigationTitleConfig != null) {
         mediaSelectorViewModel.defaultNavigationTitleConfig = navigationTitleConfig
