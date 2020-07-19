@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.arcns.core.media.selector.MediaSelectorViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            style="@style/MediaSelectorStyleToolbar"
+            tools:ignore="MissingConstraints">
+
+            <TextView
+                android:id="@+id/tvCenterTitle"
+                style="@style/MediaSelectorStyleToolbarCenterTitle"
+                android:visibility="gone" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <!--        <androidx.appcompat.widget.AppCompatSpinner-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:backgroundTint="@color/colorAccent"-->
+        <!--            android:popupBackground="@color/colorButtonBg"-->
+        <!--            android:theme="@style/ThemeSpinner" />-->
+
+        <include
+            layout="@layout/media_selector_layout_image_selector"
+            viewModel="@{viewModel}"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

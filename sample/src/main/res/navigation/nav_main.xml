@@ -74,5 +74,28 @@
         android:id="@+id/fragmentUpload"
         android:name="com.example.arcns.ui.FragmentUpload"
         android:label="FragmentUpload" />
+    <fragment
+        android:id="@+id/mediaSelectorDetailsFragment"
+        android:name="com.zkxt.datamonitoring.ui.MediaSelectorDetailsFragment"
+        android:label="@string/app_name" />
+    <fragment
+        android:id="@+id/mediaSelectorFragment"
+        android:name="com.zkxt.datamonitoring.ui.MediaSelectorFragment"
+        android:label="@string/app_name" />
+    <action
+        android:id="@+id/action_global_mediaSelectorDetailsFragment"
+        app:destination="@id/mediaSelectorDetailsFragment"
+        app:enterAnim="@anim/slide_enter"
+        app:exitAnim="@anim/slide_exit"
+        app:popEnterAnim="@anim/slide_pop_enter"
+        app:popExitAnim="@anim/slide_pop_exit" />
+    <action
+        android:id="@+id/action_global_mediaSelectorFragment"
+        app:destination="@id/mediaSelectorFragment"
+        app:enterAnim="@anim/slide_enter"
+        app:exitAnim="@anim/slide_exit"
+        app:popEnterAnim="@anim/slide_pop_enter"
+        app:popExitAnim="@anim/slide_pop_exit" />
+
 
 </navigation>

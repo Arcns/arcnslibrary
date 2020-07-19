@@ -93,6 +93,20 @@
             android:text="上传测试"
             app:layout_constraintTop_toBottomOf="@id/btnDownloadTest" />
 
+        <Button
+            android:id="@+id/btnMediaSelector1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="媒体库1"
+            app:layout_constraintTop_toBottomOf="@id/btnUploadTest" />
+
+        <Button
+            android:id="@+id/btnMediaSelector2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="媒体库2"
+            app:layout_constraintTop_toBottomOf="@id/btnMediaSelector1" />
+
 
         <!--        <TextView-->
 <!--            app:layout_constraintTop_toBottomOf="@id/btnGoMapBaidu"-->

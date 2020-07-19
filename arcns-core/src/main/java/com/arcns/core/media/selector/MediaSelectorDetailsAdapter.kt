@@ -135,7 +135,7 @@ fun bindMediaSelectorDetails(
 )
 fun bindMediaSelectorDetailsCurrentMedia(
     viewPager: ViewPager2,
-    currentMedia: EMedia,
+    currentMedia: EMedia?,
     viewModel: MediaSelectorViewModel
 ) {
     // 设置当前打开的媒体文件

@@ -17,7 +17,7 @@ class ViewModelDownload : ViewModel() {
 
 
     @InjectSuperViewModel
-//    lateinit var superViewModel:ViewModelActivityMain
+    lateinit var superViewModel:ViewModelActivityMain
 
     // 网络接口
     var networkDataSource: NetworkDataSource = NetworkDataSource()

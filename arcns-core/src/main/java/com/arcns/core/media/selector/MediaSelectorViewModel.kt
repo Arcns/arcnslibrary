@@ -147,6 +147,11 @@ class MediaSelectorViewModel : ViewModel() {
     // 协程加载
     var setupFromMediaStoreDeferred: Deferred<Unit>? = null
 
+
+    // 配置默认导航（如果要使用默认布局文件，则必须配置该参数）
+    var defaultNavigationConfig: MediaSelectorNavigationConfig? = null
+    var defaultNavigationTitleConfig: MediaSelectorNavigationTitleConfig? = null
+
     /**
      * 初始化
      */
@@ -203,13 +208,17 @@ class MediaSelectorViewModel : ViewModel() {
                 setupFromMediaStoreDeferred = null
             }
         }
-        if (currentMedia != null) {
-            when (currentMedia) {
+        var mCurrentMedia = currentMedia
+        if (isOnlyPreview && mCurrentMedia == null && !initMedias.isNullOrEmpty()) {
+            mCurrentMedia = initMedias[0]
+        }
+        if (mCurrentMedia != null) {
+            when (mCurrentMedia) {
                 is EMedia -> {
-                    _currentMedia.value = currentMedia
+                    _currentMedia.value = mCurrentMedia
                 }
                 is String -> {
-                    _currentMedia.value = EMedia(path = currentMedia)
+                    _currentMedia.value = EMedia(path = mCurrentMedia)
                 }
             }
         }

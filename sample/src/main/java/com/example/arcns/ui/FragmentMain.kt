@@ -5,16 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.createViewModelLazy
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.*
-import androidx.lifecycle.ViewModelLazy
 import androidx.navigation.fragment.findNavController
+import com.arcns.core.APP
+import com.arcns.core.file.FileUtil
+import com.arcns.core.file.cacheDirPath
+import com.arcns.core.media.selector.*
 import com.arcns.core.util.*
 import com.arcns.media.audio.MediaAudioRecorderPlayerUtil
+import com.example.arcns.R
 import com.example.arcns.databinding.FragmentMainBinding
 import com.example.arcns.util.openPermission
 import com.example.arcns.viewmodel.ViewModelActivityMain
@@ -23,13 +23,7 @@ import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.runtime.Permission
 import kotlinx.android.synthetic.main.fragment_empty.toolbar
 import kotlinx.android.synthetic.main.fragment_main.*
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.jvm.internal.impl.load.java.structure.JavaClass
-import kotlin.reflect.jvm.jvmErasure
+import java.io.File
 
 /**
  *
@@ -38,6 +32,7 @@ class FragmentMain : Fragment() {
     private var binding by autoCleared<FragmentMainBinding>()
     private val viewModel by viewModelsAndInjectSuper<ViewModelMain>()
     private val viewModelActivityMain by activityViewModels<ViewModelActivityMain>()
+    private val viewModelImageSelector by activityViewModels<MediaSelectorViewModel>()
     private lateinit var audioRecorderPlayerUtil: MediaAudioRecorderPlayerUtil
 
     override fun onCreateView(
@@ -131,11 +126,69 @@ class FragmentMain : Fragment() {
                     ).show()
                 }.start()
         }
-        binding.btnDownloadTest.setOnClickListener {
+        btnDownloadTest.setOnClickListener {
             findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentDownload())
         }
-        binding.btnUploadTest.setOnClickListener {
+        btnUploadTest.setOnClickListener {
             findNavController().navigate(FragmentMainDirections.actionFragmentMainToFragmentUpload())
+        }
+        btnMediaSelector1.setOnClickListener {
+            AndPermission.with(activity)
+                .runtime()
+                .permission(Permission.READ_EXTERNAL_STORAGE)
+                .onGranted {
+                    context ?: return@onGranted
+                    viewModelImageSelector.setupMediaSelector(
+//                        saveAsOption = viewModel.imageSaveAsOption
+//                    ,
+//                    setupFromMediaStoreMediaQuerys = arrayOf(
+//                        EMediaQuery(
+//                            queryContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+//                        ),
+//                        EMediaQuery(
+//                            queryContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+//                            querySelection = "${MediaStore.Files.FileColumns.SIZE}<145049664"
+//                        )
+//                    )
+                    )
+//                    NavMainDirections.actionGlobalNavigation()
+                    navigationDefaultMediaSelector(
+                        MediaSelectorNavigationConfig(
+                            R.id.action_global_mediaSelectorFragment,
+                            R.id.action_global_mediaSelectorDetailsFragment
+                        ),
+                        MediaSelectorNavigationTitleConfig(
+                            title = "选择图片",
+                            isCenter = true
+                        )
+                    )
+                }.onDenied {
+                    Toast.makeText(
+                        context ?: return@onDenied,
+                        "无权限",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }.start()
+        }
+        btnMediaSelector2.setOnClickListener {
+            val fileName2 = "test.jpg"
+            val file2 = File(cacheDirPath + File.separator + fileName2)
+            if (!file2.exists()) {
+                FileUtil.copyFile(APP.INSTANCE.assets.open(fileName2), cacheDirPath, fileName2)
+            }
+            viewModelImageSelector.setupMediaSelector(
+                isSelector = false,
+                isSetupFromMediaStore = false,
+                initMedias = listOf(file2.absolutePath),
+                currentMedia = file2.absolutePath,
+                isOnlyPreview = true
+            )
+            navigationDefaultMediaSelectorDetails(
+                R.id.action_global_mediaSelectorDetailsFragment,
+                navigationTitleConfig = MediaSelectorNavigationTitleConfig(
+                    isCenter = true
+                )
+            )
         }
     }
 

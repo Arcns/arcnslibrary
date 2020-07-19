@@ -891,25 +891,7 @@ fun Fragment.setActionBar(
     }
 
     if (displayShowTitleEnabled) {
-        findNavController().currentDestination?.label?.let {
-            val title = StringBuffer()
-            val fillInPattern = Pattern.compile("\\{(.+?)\\}")
-            val matcher = fillInPattern.matcher(it)
-            while (matcher.find()) {
-                val argName = matcher.group(1)
-                if (arguments != null && arguments!!.containsKey(argName)) {
-                    matcher.appendReplacement(title, "")
-                    title.append(arguments!![argName].toString())
-                } else {
-                    throw IllegalArgumentException(
-                        "Could not find " + argName + " in "
-                                + arguments + " to fill label " + it
-                    )
-                }
-            }
-            matcher.appendTail(title)
-            toolbar.title = title
-        }
+        toolbar.title = navigationDestinationLabel
     } else {
         toolbar.title = null
     }
@@ -925,6 +907,30 @@ fun Fragment.setActionBar(
         toolbar.navigationIcon = null
     }
 }
+
+/**
+ * 导航目的地标签
+ */
+val Fragment.navigationDestinationLabel: String?
+    get() {
+        findNavController().currentDestination?.label?.let {
+            val title = StringBuffer()
+            val fillInPattern = Pattern.compile("\\{(.+?)\\}")
+            val matcher = fillInPattern.matcher(it)
+            while (matcher.find()) {
+                val argName = matcher.group(1)
+                if (arguments != null && arguments!!.containsKey(argName)) {
+                    matcher.appendReplacement(title, "")
+                    title.append(arguments!![argName].toString())
+                } else {
+                    return null
+                }
+            }
+            matcher.appendTail(title)
+            return title.toString()
+        }
+        return null
+    }
 
 /**
  * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件

@@ -103,7 +103,7 @@ class MediaSelectorSelectedVideoOrAudioViewHolder(
 )
 fun bindMediaSelectorSelected(
     recyclerView: RecyclerView,
-    currentMedia: EMedia,
+    currentMedia: EMedia?,
     data: List<EMedia>?,
     viewModel: MediaSelectorViewModel
 ) {
@@ -143,7 +143,7 @@ fun bindMediaSelectorSelected(
     }
 
     var currentMediaPosition: Int? = null
-    (recyclerView.adapter as? MediaSelectorSelectedAdapter)?.submitList(data?.mapIndexed() { position, item ->
+    (recyclerView.adapter as? MediaSelectorSelectedAdapter)?.submitList(data?.mapIndexed { position, item ->
         val isCurrentMedia = item == currentMedia
         if (isCurrentMedia) {
             currentMediaPosition = position
@@ -154,7 +154,7 @@ fun bindMediaSelectorSelected(
         )
     }?.toList() ?: ArrayList())
     // 选中列表跳转到选中媒体文件
-    recyclerView.addOnLayoutChangeListener(object :View.OnLayoutChangeListener{
+    recyclerView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
         override fun onLayoutChange(
             v: View?,
             left: Int,
@@ -168,7 +168,8 @@ fun bindMediaSelectorSelected(
         ) {
             recyclerView.removeOnLayoutChangeListener(this)
             currentMediaPosition?.run {
-                val layoutManager = (recyclerView.layoutManager as? LinearLayoutManager) ?: return
+                val layoutManager =
+                    (recyclerView.layoutManager as? LinearLayoutManager) ?: return
                 if (this > layoutManager.findLastCompletelyVisibleItemPosition() || this < layoutManager.findFirstCompletelyVisibleItemPosition()) {
                     layoutManager.scrollToPosition(this)
 //            layoutManager.stackFromEnd = true
