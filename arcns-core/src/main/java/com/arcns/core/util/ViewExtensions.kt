@@ -65,6 +65,9 @@ import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.sqrt
 
 /***********************************公共**************************************/
 
@@ -379,6 +382,89 @@ fun String.log() {
 
 
 /***********************************图片显示、保存与压缩**************************************/
+
+// 把文件路径转换为bitmap，并设置大小
+fun String.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
+    File(this).bitmap(width, height)
+
+// 把文件转换为bitmap，并设置大小
+fun File.bitmap(width: Int? = null, height: Int? = null): Bitmap? {
+    if (!exists()) return null
+    if (width == null && height == null) return BitmapFactory.decodeFile(absolutePath)
+    var newWidth = width
+    var newHeight = height
+    val options = BitmapFactory.Options()
+    options.inJustDecodeBounds = true;
+    BitmapFactory.decodeFile(absolutePath, options);
+    if (newWidth == null) {
+        var scale = newHeight!!.toDouble() / options.outHeight
+        newWidth = (options.outWidth * scale).toInt()
+    }
+    if (newHeight == null) {
+        var scale = newWidth!!.toDouble() / options.outWidth
+        newHeight = (options.outWidth * scale).toInt()
+    }
+    // 计算图片缩放比例
+    val minSideLength = Math.min(newWidth, newHeight);
+    options.inSampleSize = computeBitmapSampleSize(
+        options, minSideLength,
+        newWidth * newHeight
+    );
+    options.inJustDecodeBounds = false;
+    options.inInputShareable = true;
+    options.inPurgeable = true;
+    try {
+        return BitmapFactory.decodeFile(absolutePath, options)
+    } catch (e: java.lang.Exception) {
+        e.printStackTrace()
+    }
+    return null
+}
+
+private fun computeBitmapSampleSize(
+    options: BitmapFactory.Options?,
+    minSideLength: Int, maxNumOfPixels: Int
+): Int {
+    val initialSize = computeBitmapInitialSampleSize(
+        options!!, minSideLength,
+        maxNumOfPixels
+    )
+    var roundedSize: Int
+    if (initialSize <= 8) {
+        roundedSize = 1
+        while (roundedSize < initialSize) {
+            roundedSize = roundedSize shl 1
+        }
+    } else {
+        roundedSize = (initialSize + 7) / 8 * 8
+    }
+    return roundedSize
+}
+
+private fun computeBitmapInitialSampleSize(
+    options: BitmapFactory.Options,
+    minSideLength: Int, maxNumOfPixels: Int
+): Int {
+    val w = options.outWidth.toDouble()
+    val h = options.outHeight.toDouble()
+    val lowerBound = if (maxNumOfPixels == -1) 1 else ceil(
+        sqrt(w * h / maxNumOfPixels)
+    ).toInt()
+    val upperBound =
+        if (minSideLength == -1) 128 else floor(w / minSideLength).coerceAtMost(floor(h / minSideLength))
+            .toInt()
+    if (upperBound < lowerBound) {
+        // return the larger one when there is no overlapping zone.
+        return lowerBound
+    }
+    return if (maxNumOfPixels == -1 && minSideLength == -1) {
+        1
+    } else if (minSideLength == -1) {
+        lowerBound
+    } else {
+        upperBound
+    }
+}
 
 
 // 把图片资源转换为bitmap，并设置大小

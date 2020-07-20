@@ -78,7 +78,7 @@ class NetworkDataSource {
             level = HttpLoggingInterceptor.Level.BODY
         }).connectTimeout(5, TimeUnit.SECONDS).build()
         val retrofit = Retrofit.Builder()
-            .baseUrl(SharedPreferencesUtil.getSystemSetting())
+            .baseUrl("https://baidu.com")
             .client(httpClient)
 //            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(
