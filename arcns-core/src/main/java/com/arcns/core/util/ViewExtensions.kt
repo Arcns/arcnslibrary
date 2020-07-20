@@ -86,6 +86,12 @@ inline fun <reified T> Collection<T>.toArrayList(): ArrayList<T> {
     }
 }
 
+// 获取屏幕宽度
+val screenWidth: Int get() = APP.INSTANCE.resources.displayMetrics.widthPixels
+
+// 获取屏幕高度
+val screenHeight: Int get() = APP.INSTANCE.resources.displayMetrics.heightPixels
+
 /***********************************格式转换**************************************/
 
 // string格式转datetime

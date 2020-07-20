@@ -20,12 +20,11 @@ android {
             abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
         }
     }
-    kotlinOptions { jvmTarget = 1.8 }
     buildTypes {
-        def baseurl_official = '"http://14.116.254.82:8088/est/"'
-        def baseurl_test = '"http://183.56.194.120:8088/est/"'
-        def baseurl_jj = '"http://183.56.194.120:8084/est/"'
-        def baseurl_cq = '"http://183.56.194.120:8086/est/"'
+        def baseurl_official = '"/"'
+        def baseurl_test = '"/"'
+        def baseurl_jj = '"/"'
+        def baseurl_cq = '"/"'
         all {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -60,6 +59,10 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 }
 
