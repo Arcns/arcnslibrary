@@ -2,8 +2,8 @@ ext.versions = [
         min_sdk     : 16,
         compile_sdk : 29,
         build_tools : "29.0.2",
-        publish_code: 33,
-        publish_name: "0.1.21"
+        publish_code: 36,
+        publish_name: "0.3.2"
 ]
 ext.deps = [
         gradle_plugins: [

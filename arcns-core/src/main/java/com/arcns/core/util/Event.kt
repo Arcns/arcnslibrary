@@ -17,9 +17,7 @@ open class Event<out T>(content: T) {
     fun getContentIfNotHandled(isDisposable: Boolean = false, getContentCallback: (T) -> Unit) {
         if (!hasBeenHandled) {
             hasBeenHandled = true
-            (eventContent as? T)?.run {
-                getContentCallback(this)
-            }
+            getContentCallback(peekContent())
             if (isDisposable) eventContent = null
         }
     }
