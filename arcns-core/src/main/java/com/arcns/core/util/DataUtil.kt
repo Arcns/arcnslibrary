@@ -19,6 +19,17 @@ public inline fun <T> List<T>.forEachIndexed(action: (index: Int, T) -> Unit): U
 }
 
 /**
+ * 根据value查找key
+ */
+fun <R, T> Map<R, T>.getKey(value: T): R? {
+    if (!values.contains(value)) return null
+    keys.forEach {
+        if (get(it) == value) return it
+    }
+    return null
+}
+
+/**
  * 保留小数点
  * @param 要保留的小数点位数
  * @param 是否四舍五入

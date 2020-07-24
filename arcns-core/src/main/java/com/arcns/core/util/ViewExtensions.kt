@@ -937,70 +937,6 @@ fun Context.openAppByFile(
 /***********************************其他**************************************/
 
 /**
- * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
- */
-fun Fragment.setActionBarAsToolbar(
-    toolbar: View,
-    displayShowTitleEnabled: Boolean = false,
-    isTopLevelDestination: Boolean = false,
-    isPaddingStatusBarHeight: Boolean = true,
-    menuResId: Int? = null,
-    menuItemClickListener: ((MenuItem) -> Unit)? = null
-) = (toolbar as? Toolbar)?.run {
-    setActionBar(
-        this,
-        displayShowTitleEnabled,
-        isTopLevelDestination,
-        isPaddingStatusBarHeight,
-        menuResId,
-        menuItemClickListener
-    )
-}
-
-/**
- * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
- */
-fun Fragment.setActionBar(
-    toolbar: Toolbar,
-    displayShowTitleEnabled: Boolean = false,
-    isTopLevelDestination: Boolean = false,
-    isPaddingStatusBarHeight: Boolean = true
-) {
-    if (toolbar.layoutParams.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
-        // 设置系统状态栏
-        if (isPaddingStatusBarHeight) {
-            toolbar.setPaddingStatusBarHeight(true, false)
-        }
-        // 自适应高度时，设置Toolbar高度为actionBar默认高度
-        toolbar.layoutParams = toolbar.layoutParams.apply {
-            height = context.getActionBarHeight() + toolbar.paddingTop + toolbar.paddingBottom
-        }
-    } else {
-        // 非自适应高度时，不再重新设置高度；但设置系统状态栏自动扩展高度
-        if (isPaddingStatusBarHeight) {
-            toolbar.setPaddingStatusBarHeight(true, true)
-        }
-    }
-
-    if (displayShowTitleEnabled) {
-        toolbar.title = navigationDestinationLabel
-    } else {
-        toolbar.title = null
-    }
-    if (!isTopLevelDestination) {
-        toolbar.navigationIcon = DrawerArrowDrawable(toolbar.context).apply {
-            progress = 1f
-        }
-        toolbar.setNavigationContentDescription(androidx.navigation.ui.R.string.nav_app_bar_navigate_up_description)
-        toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
-        }
-    } else {
-        toolbar.navigationIcon = null
-    }
-}
-
-/**
  * 导航目的地标签
  */
 val Fragment.navigationDestinationLabel: String?
@@ -1027,8 +963,91 @@ val Fragment.navigationDestinationLabel: String?
 /**
  * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
  */
+fun Fragment.setActionBarAsToolbar(
+    toolbar: View,
+    title: String? = null,
+    displayShowTitleEnabled: Boolean = false,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    menuResId: Int? = null,
+    menuItemClickListener: ((MenuItem) -> Unit)? = null
+) = (toolbar as? Toolbar)?.run {
+    setActionBar(
+        this,
+        title,
+        displayShowTitleEnabled,
+        isTopLevelDestination,
+        isPaddingStatusBarHeight,
+        menuResId,
+        menuItemClickListener
+    )
+}
+
+/**
+ * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
+ */
 fun Fragment.setActionBar(
     toolbar: Toolbar,
+    title: String? = null,
+    displayShowTitleEnabled: Boolean = false,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true
+) {
+    toolbar.applyCompatActionBar(
+        title = if (displayShowTitleEnabled) navigationDestinationLabel ?: title
+        else title,
+        isTopLevelDestination = isTopLevelDestination,
+        isPaddingStatusBarHeight = isPaddingStatusBarHeight
+    ) {
+        activity?.onBackPressed()
+    }
+}
+
+/**
+ * 设置ToolBar为模拟ActionBar效果
+ */
+fun Toolbar.applyCompatActionBar(
+    title: String? = null,
+    isTopLevelDestination: Boolean = false,
+    isPaddingStatusBarHeight: Boolean = true,
+    onBackPressedCallback: (() -> Unit)? = null
+) {
+    if (layoutParams.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
+        // 设置系统状态栏
+        if (isPaddingStatusBarHeight) {
+            setPaddingStatusBarHeight(true, false)
+        }
+        // 自适应高度时，设置Toolbar高度为actionBar默认高度
+        layoutParams = layoutParams.apply {
+            height = context.getActionBarHeight() + paddingTop + paddingBottom
+        }
+    } else {
+        // 非自适应高度时，不再重新设置高度；但设置系统状态栏自动扩展高度
+        if (isPaddingStatusBarHeight) {
+            setPaddingStatusBarHeight(true, true)
+        }
+    }
+    this.title = title
+    if (!isTopLevelDestination) {
+        navigationIcon = DrawerArrowDrawable(context).apply {
+            progress = 1f
+        }
+        setNavigationContentDescription(androidx.navigation.ui.R.string.nav_app_bar_navigate_up_description)
+        setNavigationOnClickListener {
+            onBackPressedCallback?.invoke()
+        }
+    } else {
+        navigationIcon = null
+    }
+}
+
+
+/**
+ * 设置ToolBar为模拟ActionBar效果，并设置Navigation返回按钮和事件
+ */
+fun Fragment.setActionBar(
+    toolbar: Toolbar,
+    title: String? = null,
     displayShowTitleEnabled: Boolean = false,
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true,
@@ -1037,6 +1056,7 @@ fun Fragment.setActionBar(
 ) {
     setActionBar(
         toolbar,
+        title,
         displayShowTitleEnabled,
         isTopLevelDestination,
         isPaddingStatusBarHeight
@@ -1049,6 +1069,7 @@ fun Fragment.setActionBar(
  */
 fun Fragment.setActionBar(
     toolbar: Toolbar,
+    title: String? = null,
     displayShowTitleEnabled: Boolean = false,
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true,
@@ -1058,6 +1079,7 @@ fun Fragment.setActionBar(
 ) {
     setActionBar(
         toolbar,
+        title,
         displayShowTitleEnabled,
         isTopLevelDestination,
         isPaddingStatusBarHeight
@@ -1105,37 +1127,44 @@ fun ComponentActivity.setActionBar(
     if (isTransparentStatusBar) {
         setupTransparentStatusBar()
     }
-    if (toolbar.layoutParams.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
-        // 设置系统状态栏
-        if (isPaddingStatusBarHeight) {
-            toolbar.setPaddingStatusBarHeight(true, false)
-        }
-        // 自适应高度时，设置Toolbar高度为actionBar默认高度
-        toolbar.layoutParams = toolbar.layoutParams.apply {
-            height = getActionBarHeight() + toolbar.paddingTop + toolbar.paddingBottom
-        }
-    } else {
-        // 非自适应高度时，不再重新设置高度；同时在设置系统状态栏，自动扩展高度
-        if (isPaddingStatusBarHeight) {
-            toolbar.setPaddingStatusBarHeight(true, true)
-        }
+    toolbar.applyCompatActionBar(
+        title = showTitleResId?.string ?: showTitle,
+        isTopLevelDestination = isTopLevelDestination,
+        isPaddingStatusBarHeight = isPaddingStatusBarHeight
+    ) {
+        onBackPressed()
     }
-    if (showTitleResId != null) {
-        toolbar.setTitle(showTitleResId)
-    } else {
-        toolbar.title = showTitle
-    }
-    if (!isTopLevelDestination) {
-        toolbar.navigationIcon = DrawerArrowDrawable(toolbar.context).apply {
-            progress = 1f
-        }
-        toolbar.setNavigationContentDescription(androidx.navigation.ui.R.string.nav_app_bar_navigate_up_description)
-        toolbar.setNavigationOnClickListener {
-            onBackPressed()
-        }
-    } else {
-        toolbar.navigationIcon = null
-    }
+//    if (toolbar.layoutParams.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+//        // 设置系统状态栏
+//        if (isPaddingStatusBarHeight) {
+//            toolbar.setPaddingStatusBarHeight(true, false)
+//        }
+//        // 自适应高度时，设置Toolbar高度为actionBar默认高度
+//        toolbar.layoutParams = toolbar.layoutParams.apply {
+//            height = getActionBarHeight() + toolbar.paddingTop + toolbar.paddingBottom
+//        }
+//    } else {
+//        // 非自适应高度时，不再重新设置高度；同时在设置系统状态栏，自动扩展高度
+//        if (isPaddingStatusBarHeight) {
+//            toolbar.setPaddingStatusBarHeight(true, true)
+//        }
+//    }
+//    if (showTitleResId != null) {
+//        toolbar.setTitle(showTitleResId)
+//    } else {
+//        toolbar.title = showTitle
+//    }
+//    if (!isTopLevelDestination) {
+//        toolbar.navigationIcon = DrawerArrowDrawable(toolbar.context).apply {
+//            progress = 1f
+//        }
+//        toolbar.setNavigationContentDescription(androidx.navigation.ui.R.string.nav_app_bar_navigate_up_description)
+//        toolbar.setNavigationOnClickListener {
+//            onBackPressed()
+//        }
+//    } else {
+//        toolbar.navigationIcon = null
+//    }
 }
 
 /**
