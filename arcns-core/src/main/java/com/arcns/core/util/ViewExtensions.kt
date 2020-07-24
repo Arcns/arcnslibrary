@@ -965,8 +965,8 @@ val Fragment.navigationDestinationLabel: String?
  */
 fun Fragment.setActionBarAsToolbar(
     toolbar: View,
-    title: String? = null,
     displayShowTitleEnabled: Boolean = false,
+    title: String? = null,
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true,
     menuResId: Int? = null,
@@ -974,8 +974,8 @@ fun Fragment.setActionBarAsToolbar(
 ) = (toolbar as? Toolbar)?.run {
     setActionBar(
         this,
-        title,
         displayShowTitleEnabled,
+        title,
         isTopLevelDestination,
         isPaddingStatusBarHeight,
         menuResId,
@@ -988,8 +988,8 @@ fun Fragment.setActionBarAsToolbar(
  */
 fun Fragment.setActionBar(
     toolbar: Toolbar,
-    title: String? = null,
     displayShowTitleEnabled: Boolean = false,
+    title: String? = null,
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true
 ) {
@@ -1047,8 +1047,8 @@ fun Toolbar.applyCompatActionBar(
  */
 fun Fragment.setActionBar(
     toolbar: Toolbar,
-    title: String? = null,
     displayShowTitleEnabled: Boolean = false,
+    title: String? = null,
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true,
     menuResId: Int? = TOOLBAR_NO_ACTION,
@@ -1056,8 +1056,8 @@ fun Fragment.setActionBar(
 ) {
     setActionBar(
         toolbar,
-        title,
         displayShowTitleEnabled,
+        title,
         isTopLevelDestination,
         isPaddingStatusBarHeight
     )
@@ -1069,8 +1069,8 @@ fun Fragment.setActionBar(
  */
 fun Fragment.setActionBar(
     toolbar: Toolbar,
-    title: String? = null,
     displayShowTitleEnabled: Boolean = false,
+    title: String? = null,
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true,
     hasMenu: LiveData<Boolean>,
@@ -1079,8 +1079,8 @@ fun Fragment.setActionBar(
 ) {
     setActionBar(
         toolbar,
-        title,
         displayShowTitleEnabled,
+        title,
         isTopLevelDestination,
         isPaddingStatusBarHeight
     )
