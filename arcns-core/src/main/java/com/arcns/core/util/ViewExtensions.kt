@@ -17,6 +17,7 @@ import android.os.Looper
 import android.text.Html
 import android.text.Spanned
 import android.util.Base64
+import android.util.DisplayMetrics
 import android.util.TypedValue
 import android.view.*
 import android.view.animation.Animation
@@ -91,11 +92,24 @@ inline fun <reified T> Collection<T>.toArrayList(): ArrayList<T> {
     }
 }
 
+// 获取屏幕宽高
+val screenWidthHeight: WidthHeight
+    get() {
+        val windowManager =
+            APP.INSTANCE.getSystemService(AppCompatActivity.WINDOW_SERVICE) as WindowManager
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getRealMetrics(displayMetrics)
+        return WidthHeight(
+            displayMetrics.widthPixels,
+            displayMetrics.heightPixels
+        )
+    }
+
 // 获取屏幕宽度
-val screenWidth: Int get() = APP.INSTANCE.resources.displayMetrics.widthPixels
+val screenWidth: Int get() = screenWidthHeight.width
 
 // 获取屏幕高度
-val screenHeight: Int get() = APP.INSTANCE.resources.displayMetrics.heightPixels
+val screenHeight: Int get() = screenWidthHeight.height
 
 /***********************************格式转换**************************************/
 
@@ -384,28 +398,28 @@ fun String.log() {
 
 
 /***********************************图片显示、保存与压缩**************************************/
-open class BitmapSize(
+open class WidthHeight(
     var width: Int,
     var height: Int
 )
 
-open class BitmapScaledSize(
+open class ScaledWidthHeight(
     width: Int,
     height: Int,
     var newWidth: Int,
     var newHeight: Int
-) : BitmapSize(width, height)
+) : WidthHeight(width, height)
 
 /**
  * 获取bitmap大小
  */
-fun String.getBitmapSize(): BitmapSize? = File(this).getBitmapSize()
+fun String.getBitmapSize(): WidthHeight? = File(this).getBitmapSize()
 
 
 /**
  * 获取bitmap大小
  */
-fun File.getBitmapSize(): BitmapSize? {
+fun File.getBitmapSize(): WidthHeight? {
     if (!exists()) return null
     return FileInputStream(this).getBitmapSize()
 }
@@ -413,18 +427,18 @@ fun File.getBitmapSize(): BitmapSize? {
 /**
  * 获取bitmap大小
  */
-fun Uri.getBitmapSize(): BitmapSize? {
+fun Uri.getBitmapSize(): WidthHeight? {
     return APP.INSTANCE.contentResolver.openInputStream(this)?.getBitmapSize()
 }
 
 /**
  * 获取bitmap大小
  */
-fun Int.getBitmapSize(): BitmapSize? = try {
+fun Int.getBitmapSize(): WidthHeight? = try {
     val options = BitmapFactory.Options()
     options.inJustDecodeBounds = true
     BitmapFactory.decodeResource(APP.INSTANCE.resources, this, options)
-    BitmapSize(
+    WidthHeight(
         width = options.outWidth,
         height = options.outHeight
     )
@@ -435,11 +449,11 @@ fun Int.getBitmapSize(): BitmapSize? = try {
 /**
  * 获取bitmap大小
  */
-fun InputStream.getBitmapSize(): BitmapSize? = try {
+fun InputStream.getBitmapSize(): WidthHeight? = try {
     val options = BitmapFactory.Options()
     options.inJustDecodeBounds = true
     BitmapFactory.decodeStream(this, null, options)
-    BitmapSize(
+    WidthHeight(
         width = options.outWidth,
         height = options.outHeight
     )
@@ -452,7 +466,7 @@ fun InputStream.getBitmapSize(): BitmapSize? = try {
 /**
  * 计算缩放后的bitmap大小
  */
-fun String.calculateBitmapScaledSize(width: Int? = null, height: Int? = null): BitmapScaledSize? =
+fun String.calculateBitmapScaledSize(width: Int? = null, height: Int? = null): ScaledWidthHeight? =
     getBitmapSize()?.calculateBitmapScaledSize(width, height)
 
 /**
@@ -461,7 +475,7 @@ fun String.calculateBitmapScaledSize(width: Int? = null, height: Int? = null): B
 fun File.calculateBitmapScaledSize(
     width: Int? = null,
     height: Int? = null
-): BitmapScaledSize? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
+): ScaledWidthHeight? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
 
 /**
  * 计算缩放后的bitmap大小
@@ -469,7 +483,7 @@ fun File.calculateBitmapScaledSize(
 fun Uri.calculateBitmapScaledSize(
     width: Int? = null,
     height: Int? = null
-): BitmapScaledSize? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
+): ScaledWidthHeight? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
 
 /**
  * 计算缩放后的bitmap大小
@@ -477,7 +491,7 @@ fun Uri.calculateBitmapScaledSize(
 fun Int.calculateBitmapScaledSize(
     width: Int? = null,
     height: Int? = null
-): BitmapScaledSize? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
+): ScaledWidthHeight? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
 
 /**
  * 计算缩放后的bitmap大小
@@ -485,20 +499,20 @@ fun Int.calculateBitmapScaledSize(
 fun InputStream.calculateBitmapScaledSize(
     width: Int? = null,
     height: Int? = null
-): BitmapScaledSize? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
+): ScaledWidthHeight? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
 
 /**
  * 计算缩放后的bitmap大小
  */
-fun BitmapSize.calculateBitmapScaledSize(
+fun WidthHeight.calculateBitmapScaledSize(
     width: Int? = null,
     height: Int? = null
-): BitmapScaledSize? {
+): ScaledWidthHeight? {
     val size = this
     var newWidth = if (width == 0) null else width
     var newHeight = if (height == 0) null else height
     if (newWidth == null && newHeight == null) {
-        return BitmapScaledSize(
+        return ScaledWidthHeight(
             width = size.width,
             height = size.height,
             newWidth = size.width,
@@ -513,7 +527,7 @@ fun BitmapSize.calculateBitmapScaledSize(
         var scale = newWidth!!.toDouble() / size.width
         newHeight = (size.height * scale).toInt()
     }
-    return BitmapScaledSize(
+    return ScaledWidthHeight(
         width = size.width,
         height = size.height,
         newWidth = newWidth,
