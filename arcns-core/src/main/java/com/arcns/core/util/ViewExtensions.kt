@@ -495,8 +495,8 @@ fun BitmapSize.calculateBitmapScaledSize(
     height: Int? = null
 ): BitmapScaledSize? {
     val size = this
-    var newWidth = if(width == 0) null else width
-    var newHeight = if(height == 0) null else height
+    var newWidth = if (width == 0) null else width
+    var newHeight = if (height == 0) null else height
     if (newWidth == null && newHeight == null) {
         return BitmapScaledSize(
             width = size.width,
