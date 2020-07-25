@@ -45,6 +45,7 @@ import com.afollestad.materialdialogs.MaterialDialog.Companion.DEFAULT_BEHAVIOR
 import com.arcns.core.APP
 import com.arcns.core.R
 import com.arcns.core.file.mimeType
+import com.arcns.core.file.tryClose
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DecodeFormat
@@ -62,6 +63,7 @@ import me.shouheng.compress.strategy.Strategies
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
@@ -382,6 +384,142 @@ fun String.log() {
 
 
 /***********************************图片显示、保存与压缩**************************************/
+open class BitmapSize(
+    var width: Int,
+    var height: Int
+)
+
+open class BitmapScaledSize(
+    width: Int,
+    height: Int,
+    var newWidth: Int,
+    var newHeight: Int
+) : BitmapSize(width, height)
+
+/**
+ * 获取bitmap大小
+ */
+fun String.getBitmapSize(): BitmapSize? = File(this).getBitmapSize()
+
+
+/**
+ * 获取bitmap大小
+ */
+fun File.getBitmapSize(): BitmapSize? {
+    if (!exists()) return null
+    return FileInputStream(this).getBitmapSize()
+}
+
+/**
+ * 获取bitmap大小
+ */
+fun Uri.getBitmapSize(): BitmapSize? {
+    return APP.INSTANCE.contentResolver.openInputStream(this)?.getBitmapSize()
+}
+
+/**
+ * 获取bitmap大小
+ */
+fun Int.getBitmapSize(): BitmapSize? = try {
+    val options = BitmapFactory.Options()
+    options.inJustDecodeBounds = true
+    BitmapFactory.decodeResource(APP.INSTANCE.resources, this, options)
+    BitmapSize(
+        width = options.outWidth,
+        height = options.outHeight
+    )
+} catch (e: java.lang.Exception) {
+    null
+}
+
+/**
+ * 获取bitmap大小
+ */
+fun InputStream.getBitmapSize(): BitmapSize? = try {
+    val options = BitmapFactory.Options()
+    options.inJustDecodeBounds = true
+    BitmapFactory.decodeStream(this, null, options)
+    BitmapSize(
+        width = options.outWidth,
+        height = options.outHeight
+    )
+} catch (e: java.lang.Exception) {
+    null
+} finally {
+    tryClose()
+}
+
+/**
+ * 计算缩放后的bitmap大小
+ */
+fun String.calculateBitmapScaledSize(width: Int? = null, height: Int? = null): BitmapScaledSize? =
+    getBitmapSize()?.calculateBitmapScaledSize(width, height)
+
+/**
+ * 计算缩放后的bitmap大小
+ */
+fun File.calculateBitmapScaledSize(
+    width: Int? = null,
+    height: Int? = null
+): BitmapScaledSize? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
+
+/**
+ * 计算缩放后的bitmap大小
+ */
+fun Uri.calculateBitmapScaledSize(
+    width: Int? = null,
+    height: Int? = null
+): BitmapScaledSize? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
+
+/**
+ * 计算缩放后的bitmap大小
+ */
+fun Int.calculateBitmapScaledSize(
+    width: Int? = null,
+    height: Int? = null
+): BitmapScaledSize? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
+
+/**
+ * 计算缩放后的bitmap大小
+ */
+fun InputStream.calculateBitmapScaledSize(
+    width: Int? = null,
+    height: Int? = null
+): BitmapScaledSize? = getBitmapSize()?.calculateBitmapScaledSize(width, height)
+
+/**
+ * 计算缩放后的bitmap大小
+ */
+fun BitmapSize.calculateBitmapScaledSize(
+    width: Int? = null,
+    height: Int? = null
+): BitmapScaledSize? {
+    val size = this
+    if (width == null && height == null) {
+        return BitmapScaledSize(
+            width = size.width,
+            height = size.height,
+            newWidth = size.width,
+            newHeight = size.height
+        )
+    }
+    var newWidth = width
+    var newHeight = height
+    if (newWidth == null) {
+        var scale = newHeight!!.toDouble() / size.height
+        newWidth = (size.width * scale).toInt()
+    }
+    if (newHeight == null) {
+        var scale = newWidth!!.toDouble() / size.width
+        newHeight = (size.height * scale).toInt()
+    }
+    return BitmapScaledSize(
+        width = size.width,
+        height = size.height,
+        newWidth = newWidth,
+        newHeight = newHeight
+    )
+}
 
 // 把文件路径转换为bitmap，并设置大小
 fun String.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
@@ -391,26 +529,15 @@ fun String.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
 fun File.bitmap(width: Int? = null, height: Int? = null): Bitmap? {
     if (!exists()) return null
     if (width == null && height == null) return BitmapFactory.decodeFile(absolutePath)
-    var newWidth = width
-    var newHeight = height
-    val options = BitmapFactory.Options()
-    options.inJustDecodeBounds = true;
-    BitmapFactory.decodeFile(absolutePath, options);
-    if (newWidth == null) {
-        var scale = newHeight!!.toDouble() / options.outHeight
-        newWidth = (options.outWidth * scale).toInt()
-    }
-    if (newHeight == null) {
-        var scale = newWidth!!.toDouble() / options.outWidth
-        newHeight = (options.outWidth * scale).toInt()
-    }
+    // 计算缩放后的bitmap大小
+    val size = calculateBitmapScaledSize(width, height) ?: return null
     // 计算图片缩放比例
-    val minSideLength = Math.min(newWidth, newHeight);
+    val minSideLength = size.newWidth.coerceAtMost(size.newHeight)
+    val options = BitmapFactory.Options()
     options.inSampleSize = computeBitmapSampleSize(
         options, minSideLength,
-        newWidth * newHeight
-    );
-    options.inJustDecodeBounds = false;
+        size.newWidth * size.newHeight
+    )
     options.inInputShareable = true;
     options.inPurgeable = true;
     try {
@@ -859,8 +986,17 @@ fun saveImageAsLocal(
         is File -> requestBuilder.load(image)
         else -> throw java.lang.Exception("iamge type error")
     }
-    if (width != 0f || height != 0f) {
+    if (width != 0f && height != 0f) {
         requestBuilder = requestBuilder.override(width.toInt(), height.toInt())
+    } else {
+        val size = when (image) {
+            is Int -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
+            is String -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
+            is Uri -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
+            is File -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
+            else -> null
+        } ?: throw java.lang.Exception("iamge calculate scaled size error")
+        requestBuilder = requestBuilder.override(size.newWidth, size.newHeight)
     }
     requestBuilder = if (centerInside) {
         requestBuilder.centerInside()
