@@ -95,6 +95,7 @@ class MapPositionGroup {
         decimalPlaces: Int? = null,//刷新时忽略坐标小数点的位数，默认为空即不忽略
         isRounding: Boolean = true,//刷新时忽略坐标小数点时是否四舍五入
         isEqualtExtraData: Boolean = false, //刷新时是否同时对比坐标的ExtraData
+        onCustomEqualtExtraData: ((extraData1: Any?, extraData2: Any?) -> Boolean)? = null,//自定义坐标的ExtraData对比方法
         isUniquenessItem: Boolean = true, // 刷新时是否每个item在列表中都是唯一的，若是则不进行重复对比
         isFillMapPositionIDWhenSame: Boolean = true, // 对比相同时，自动把老坐标中的id填充给新坐标
         onRefreshSameItemCallback: ((MapPosition, MapPosition) -> Unit)? = null // 对比相同时的回调
@@ -106,6 +107,7 @@ class MapPositionGroup {
                 decimalPlaces,
                 isRounding,
                 isEqualtExtraData,
+                onCustomEqualtExtraData,
                 isUniquenessItem
             ) { newMapPosition, oldMapPosition ->
                 if (isFillMapPositionIDWhenSame) {
