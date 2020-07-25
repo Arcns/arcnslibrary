@@ -2,8 +2,8 @@ ext.versions = [
         min_sdk     : 16,
         compile_sdk : 29,
         build_tools : "29.0.2",
-        publish_code: 37,
-        publish_name: "0.3.5"
+        publish_code: 38,
+        publish_name: "0.3.7-1"
 ]
 ext.deps = [
         gradle_plugins: [
@@ -33,7 +33,7 @@ ext.deps = [
                 // viewpager2
                 viewpager2         : "androidx.viewpager2:viewpager2:1.0.0",
                 // fragment
-                fragment_ktx         : "androidx.fragment:fragment-ktx:1.2.5",
+                fragment_ktx       : "androidx.fragment:fragment-ktx:1.2.5",
         ],
         // 弹出框
         afollestad    : [
