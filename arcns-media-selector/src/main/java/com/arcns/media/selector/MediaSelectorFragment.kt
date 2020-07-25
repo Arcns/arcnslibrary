@@ -1,4 +1,4 @@
-package com.arcns.core.media.selector
+package com.arcns.media.selector
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,22 +9,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
-import com.arcns.core.R
-import com.arcns.core.databinding.MediaSelectorFragmentImageSelectorDetailsBinding
-import com.arcns.core.media.selector.MediaSelectorViewModel
 import com.arcns.core.util.*
+import com.arcns.media.selector.databinding.MediaSelectorFragmentImageSelectorBinding
 import kotlinx.android.synthetic.main.media_selector_fragment_image_selector.*
 import kotlinx.android.synthetic.main.media_selector_fragment_image_selector.view.*
-import kotlinx.android.synthetic.main.media_selector_fragment_image_selector_details.*
-import kotlinx.android.synthetic.main.media_selector_fragment_image_selector_details.toolbar
-import kotlinx.android.synthetic.main.media_selector_fragment_image_selector_details.view.*
-import kotlinx.android.synthetic.main.media_selector_fragment_image_selector_details.view.tvCenterTitle
 
 /**
- * 照片选择器（图片详情）
+ * 照片选择器
  */
-class MediaSelectorDetailsFragment : Fragment() {
-    private var binding by autoCleared<MediaSelectorFragmentImageSelectorDetailsBinding>()
+class MediaSelectorFragment : Fragment() {
+    private var binding by autoCleared<MediaSelectorFragmentImageSelectorBinding>()
     private val viewModel by activityViewModels<MediaSelectorViewModel>()
 
     override fun onCreateView(
@@ -33,11 +27,10 @@ class MediaSelectorDetailsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding =
-            MediaSelectorFragmentImageSelectorDetailsBinding.inflate(inflater, container, false)
-                .apply {
-                    lifecycleOwner = this@MediaSelectorDetailsFragment
-                    viewModel = this@MediaSelectorDetailsFragment.viewModel
-                }
+            MediaSelectorFragmentImageSelectorBinding.inflate(inflater, container, false).apply {
+                lifecycleOwner = this@MediaSelectorFragment
+                viewModel = this@MediaSelectorFragment.viewModel
+            }
         return binding.root
     }
 
@@ -54,11 +47,10 @@ class MediaSelectorDetailsFragment : Fragment() {
         }
         setupImageSelector()
         setupOnBackPressedDelayedNavigateUp {
-            if (viewModel.isOnlyPreview.value == true) {
-                viewModel.destroy()
-            }
+            viewModel.destroy()
             0
         }
+        setTitle()
     }
 
     private fun setTitle(title: String? = null) {
@@ -78,21 +70,23 @@ class MediaSelectorDetailsFragment : Fragment() {
     }
 
     private fun setupImageSelector() {
+        viewModel.eventClickMedia.observe(viewLifecycleOwner, EventObserver {
+            viewModel.defaultNavigationConfig?.navigationMediaSelectorDetails(findNavController())
+        })
+        viewModel.eventClickPreview.observe(viewLifecycleOwner, EventObserver {
+            viewModel.defaultNavigationConfig?.navigationMediaSelectorDetails(findNavController())
+        })
         viewModel.selectedMedias.observe(viewLifecycleOwner, Observer {
             toolbar.menu.findItem(R.id.mediaSelectorMenuDefaultItem)?.isEnabled =
                 viewModel.selectedMediasSize > 0
             toolbar.menu.findItem(R.id.mediaSelectorMenuDefaultItem)?.title =
                 viewModel.completeButtonText
         })
-        viewModel.currentMedia.observe(viewLifecycleOwner, Observer {
-            setTitle(viewModel.detailsTitleText)
-        })
         viewModel.toast.observe(viewLifecycleOwner, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
         viewModel.eventCompleteSelectedMedias.observe(viewLifecycleOwner, EventObserver {
             viewModel.defaultNavigationConfig?.navigationBackToStart(findNavController())
-                ?: findNavController().navigateUp()
         })
     }
 }

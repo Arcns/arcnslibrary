@@ -1,4 +1,4 @@
-package com.arcns.core.media.selector
+package com.arcns.media.selector
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider

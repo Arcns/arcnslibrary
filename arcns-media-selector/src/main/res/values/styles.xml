@@ -1,0 +1,28 @@
+<resources>
+
+    <!-- 工具栏 -->
+    <style name="MediaSelectorStyleToolbar" >
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?colorPrimary</item>
+        <item name="android:theme">@style/MediaSelectorThemeToolbar</item>
+        <item name="layout_constraintLeft_toLeftOf">parent</item>
+        <item name="layout_constraintTop_toTopOf">parent</item>
+        <item name="titleTextAppearance">@style/MediaSelectorStyleToolbarTitleText</item>
+    </style>
+    <style name="MediaSelectorThemeToolbar" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        <item name="colorControlHighlight">?colorAccent</item>
+    </style>
+    <style name="MediaSelectorStyleToolbarTitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">18sp</item>
+    </style>
+    <style name="MediaSelectorStyleToolbarCenterTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+
+</resources>

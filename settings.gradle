@@ -1,3 +1,4 @@
+include ':arcns-media-selector'
 include ':arcns-media-audio'
 include ':sample', ':arcns-core'
 rootProject.name='Arcns'

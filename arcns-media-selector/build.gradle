@@ -1,5 +1,5 @@
 //ext.module_group = "com.github.Arcns.arcnslibrary"
-////ext.module_name = "arcns-core"
+//ext.module_name = "arcns-map-media-selector"
 
 apply from: rootProject.file("library_config.gradle")
 
@@ -11,35 +11,22 @@ dependencies {
     androidTestImplementation deps.test.androidx_espresso
     implementation deps.androidx.appcompat
     implementation deps.androidx.ktx
-
-    // 反射
-    implementation deps.kotlin.reflect
-    // 相对布局
-    implementation deps.androidx.constraint_layout
+    implementation project(path: ':arcns-core')
     // Navigation Kotlin (仅编译，若项目需要使用到，需要在项目中自行引用)
     // 开启navigation需要配置三个地方：module.gradle页面顶部apply、module.gradle页面dependencies、project.gradle页面的classpath
     compileOnly deps.androidx.nav_fragment_ktx
     compileOnly deps.androidx.nav_ui_ktx
-    // Fragment
-    implementation deps.androidx.fragment_ktx
+    // 相对布局
+    implementation deps.androidx.constraint_layout
     // ViewModel and LiveData
     implementation deps.androidx.lifecycle_viewmodel
     implementation deps.androidx.lifecycle_livedata
     // viewpager2
     implementation deps.androidx.viewpager2
-    // 弹出框(仅编译，若项目需要使用到，需要在项目中自行引用)
-    compileOnly deps.afollestad.md_core
-    compileOnly deps.afollestad.md_lifecycle
-    compileOnly deps.afollestad.md_datetime
-    compileOnly deps.afollestad.md_bottomsheets
-    // 图片加载库
-    implementation deps.glide
-    annotationProcessor deps.glide_compiler
-    implementation deps.picasso
-    // Gson
-    implementation deps.gson
-    // 事件传递
-    implementation deps.eventbus
-    // 图片压缩大小
-    implementation deps.compressor
+    // recyclerview
+    implementation deps.androidx.recyclerview
+    // Fragment
+    implementation deps.androidx.fragment_ktx
+    // 图片控件
+    implementation deps.photo_view
 }

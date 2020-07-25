@@ -1,10 +1,8 @@
-package com.arcns.core.media.selector
+package com.arcns.media.selector
 
 import android.net.Uri
-import com.arcns.core.R
-import com.arcns.core.util.dimen
 import com.arcns.core.file.*
-import java.lang.Exception
+import com.arcns.core.util.dimen
 
 data class EMedia(
     /**

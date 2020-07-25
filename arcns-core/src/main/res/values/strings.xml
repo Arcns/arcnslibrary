@@ -21,13 +21,5 @@
     <string name="text_upload_progress_notification_default_task_failure">上传失败</string>
     <string name="text_upload_progress_notification_default_task_cancel">取消上传</string>
     <string name="text_upload_progress_notification_default_task_pause">暂停上传</string>
-    <string name="media_selector_max_size_tip">你最多只能选择%1$d个文件</string>
-    <string name="media_selector_complete_view_text">完成</string>
-    <string name="media_selector_complete_view_text_and_number">完成(%1$d/%2$d)</string>
-    <string name="media_selector_details_title">%1$d/%2$d</string>
-    <string name="media_selector_media_bottom_bar_toggle_selected_media">选择</string>
-    <string name="media_selector_media_bottom_bar_previewe_text">预览</string>
-    <string name="media_selector_media_bottom_bar_previewe_text_and_number">预览(%1$d)</string>
-    <string name="media_selector_media_button">打开文件</string>
     <string name="simple_popup_dialog_confirm_button">确定</string>
 </resources>

@@ -1,32 +1,24 @@
-package com.arcns.core.media.selector
+package com.arcns.media.selector
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
-import com.arcns.core.R
-import com.arcns.core.databinding.MediaSelectorFragmentImageSelectorBinding
-import com.arcns.core.media.selector.MediaSelectorViewModel
 import com.arcns.core.util.*
-import kotlinx.android.synthetic.main.media_selector_fragment_image_selector.*
-import kotlinx.android.synthetic.main.media_selector_fragment_image_selector.toolbar
-import kotlinx.android.synthetic.main.media_selector_fragment_image_selector.view.*
-import kotlinx.android.synthetic.main.media_selector_fragment_image_selector.view.tvCenterTitle
+import com.arcns.media.selector.databinding.MediaSelectorFragmentImageSelectorDetailsBinding
 import kotlinx.android.synthetic.main.media_selector_fragment_image_selector_details.*
 import kotlinx.android.synthetic.main.media_selector_fragment_image_selector_details.view.*
 
 /**
- * 照片选择器
+ * 照片选择器（图片详情）
  */
-class MediaSelectorFragment : Fragment() {
-    private var binding by autoCleared<MediaSelectorFragmentImageSelectorBinding>()
+class MediaSelectorDetailsFragment : Fragment() {
+    private var binding by autoCleared<MediaSelectorFragmentImageSelectorDetailsBinding>()
     private val viewModel by activityViewModels<MediaSelectorViewModel>()
 
     override fun onCreateView(
@@ -35,10 +27,11 @@ class MediaSelectorFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding =
-            MediaSelectorFragmentImageSelectorBinding.inflate(inflater, container, false).apply {
-                lifecycleOwner = this@MediaSelectorFragment
-                viewModel = this@MediaSelectorFragment.viewModel
-            }
+            MediaSelectorFragmentImageSelectorDetailsBinding.inflate(inflater, container, false)
+                .apply {
+                    lifecycleOwner = this@MediaSelectorDetailsFragment
+                    viewModel = this@MediaSelectorDetailsFragment.viewModel
+                }
         return binding.root
     }
 
@@ -55,10 +48,11 @@ class MediaSelectorFragment : Fragment() {
         }
         setupImageSelector()
         setupOnBackPressedDelayedNavigateUp {
-            viewModel.destroy()
+            if (viewModel.isOnlyPreview.value == true) {
+                viewModel.destroy()
+            }
             0
         }
-        setTitle()
     }
 
     private fun setTitle(title: String? = null) {
@@ -78,23 +72,21 @@ class MediaSelectorFragment : Fragment() {
     }
 
     private fun setupImageSelector() {
-        viewModel.eventClickMedia.observe(viewLifecycleOwner, EventObserver {
-            viewModel.defaultNavigationConfig?.navigationMediaSelectorDetails(findNavController())
-        })
-        viewModel.eventClickPreview.observe(viewLifecycleOwner, EventObserver {
-            viewModel.defaultNavigationConfig?.navigationMediaSelectorDetails(findNavController())
-        })
         viewModel.selectedMedias.observe(viewLifecycleOwner, Observer {
             toolbar.menu.findItem(R.id.mediaSelectorMenuDefaultItem)?.isEnabled =
                 viewModel.selectedMediasSize > 0
             toolbar.menu.findItem(R.id.mediaSelectorMenuDefaultItem)?.title =
                 viewModel.completeButtonText
         })
+        viewModel.currentMedia.observe(viewLifecycleOwner, Observer {
+            setTitle(viewModel.detailsTitleText)
+        })
         viewModel.toast.observe(viewLifecycleOwner, EventObserver {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         })
         viewModel.eventCompleteSelectedMedias.observe(viewLifecycleOwner, EventObserver {
             viewModel.defaultNavigationConfig?.navigationBackToStart(findNavController())
+                ?: findNavController().navigateUp()
         })
     }
 }

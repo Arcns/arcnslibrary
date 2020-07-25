@@ -1,17 +1,14 @@
-package com.arcns.core.media.selector
+package com.arcns.media.selector
 
 import android.provider.MediaStore
 import androidx.lifecycle.*
 import com.arcns.core.APP
-import com.arcns.core.R
-import com.arcns.core.util.Event
 import com.arcns.core.file.FileUtil
 import com.arcns.core.file.getRandomCacheFilePath
-import com.arcns.core.media.getMediasFromMediaStore
+import com.arcns.core.util.Event
 import com.arcns.core.util.saveImageAsLocal
 import com.arcns.core.util.string
 import kotlinx.coroutines.*
-import java.lang.Exception
 
 class MediaSelectorViewModel : ViewModel() {
 
@@ -200,7 +197,7 @@ class MediaSelectorViewModel : ViewModel() {
             setupFromMediaStoreDeferred = viewModelScope.async(Dispatchers.IO) {
                 _loadIng.postValue(true)
                 _selectedMedias.postValue(null)
-                delay(300)
+                delay(500)
                 _allMedias.postValue(
                     getMediasFromMediaStore(*setupFromMediaStoreMediaQuerys)
                 )

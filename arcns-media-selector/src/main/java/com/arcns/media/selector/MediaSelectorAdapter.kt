@@ -1,4 +1,4 @@
-package com.arcns.core.media.selector
+package com.arcns.media.selector
 
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +10,7 @@ import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.arcns.core.R
-import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemBinding
+import com.arcns.media.selector.databinding.MediaSelectorLayoutRecyclerviewItemBinding
 
 
 class MediaSelectorAdapter(val viewModel: MediaSelectorViewModel) :

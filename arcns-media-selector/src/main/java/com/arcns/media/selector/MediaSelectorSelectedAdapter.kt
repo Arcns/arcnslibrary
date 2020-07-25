@@ -1,14 +1,12 @@
-package com.arcns.core.media.selector
+package com.arcns.media.selector
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.*
-import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemSelectedBinding
-import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemSelectedVideoOrAudioBinding
-import com.arcns.core.util.LOG
+import com.arcns.media.selector.databinding.MediaSelectorLayoutRecyclerviewItemSelectedBinding
+import com.arcns.media.selector.databinding.MediaSelectorLayoutRecyclerviewItemSelectedVideoOrAudioBinding
 
 
 class MediaSelectorSelectedAdapter(val viewModel: MediaSelectorViewModel) :

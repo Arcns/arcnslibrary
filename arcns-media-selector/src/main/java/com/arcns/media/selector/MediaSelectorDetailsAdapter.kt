@@ -1,4 +1,4 @@
-package com.arcns.core.media.selector
+package com.arcns.media.selector
 
 import android.net.Uri
 import android.view.LayoutInflater
@@ -10,11 +10,11 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.arcns.core.APP
-import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemDetailsBinding
-import com.arcns.core.databinding.MediaSelectorLayoutRecyclerviewItemDetailsNoPreviewBinding
 import com.arcns.core.file.mimeType
 import com.arcns.core.util.openAppByPath
 import com.arcns.core.util.openAppByUri
+import com.arcns.media.selector.databinding.MediaSelectorLayoutRecyclerviewItemDetailsBinding
+import com.arcns.media.selector.databinding.MediaSelectorLayoutRecyclerviewItemDetailsNoPreviewBinding
 
 
 class MediaSelectorDetailsAdapter(val viewModel: MediaSelectorViewModel) :
