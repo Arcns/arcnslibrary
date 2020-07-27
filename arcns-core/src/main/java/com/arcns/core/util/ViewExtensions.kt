@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.icu.text.CaseMap
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -24,6 +25,7 @@ import android.view.animation.Animation
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -1157,7 +1159,7 @@ fun Fragment.setActionBar(
  * 设置ToolBar为模拟ActionBar效果
  */
 fun Toolbar.applyCompatActionBar(
-    title: String? = null,
+    title: String? = null, // 注意，如果使用自定义布局时，请设置tag为：@string/view_tag_custom_toolbar_title_text_view
     isTopLevelDestination: Boolean = false,
     isPaddingStatusBarHeight: Boolean = true,
     onBackPressedCallback: (() -> Unit)? = null
@@ -1177,7 +1179,7 @@ fun Toolbar.applyCompatActionBar(
             setPaddingStatusBarHeight(true, true)
         }
     }
-    this.title = title
+    fastTitle = title
     if (!isTopLevelDestination) {
         navigationIcon = DrawerArrowDrawable(context).apply {
             progress = 1f
@@ -1190,6 +1192,24 @@ fun Toolbar.applyCompatActionBar(
         navigationIcon = null
     }
 }
+
+/**
+ * 快速设置/获取标题（支持自定义title布局）
+ * 注意，如果使用自定义布局时，请设置tag为：@string/view_tag_custom_toolbar_title_text_view
+ */
+var Toolbar.fastTitle: String?
+    set(value) {
+        val tvCustomTitle =
+            findViewWithTag<TextView>(R.string.view_tag_custom_toolbar_title_text_view.string)
+        if (tvCustomTitle != null) tvCustomTitle.text = value
+        else this.title = value
+    }
+    get() {
+        val tvCustomTitle =
+            findViewWithTag<TextView>(R.string.view_tag_custom_toolbar_title_text_view.string)
+        return if (tvCustomTitle != null) tvCustomTitle.text?.toString()
+        else this.title?.toString()
+    }
 
 
 /**

@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Arcns Library</string>
+    <string name="view_tag_custom_toolbar_title_text_view">view_tag_custom_toolbar_title_text_view</string>
     <string name="text_not_find_open_app_by_mime_type">未检测到可以打开此文件的应用</string>
     <string name="text_map_navigation_item_baidu">百度地图</string>
     <string name="text_map_navigation_item_gaode">高德地图</string>
