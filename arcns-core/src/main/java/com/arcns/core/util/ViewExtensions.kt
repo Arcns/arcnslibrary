@@ -47,6 +47,8 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.Companion.DEFAULT_BEHAVIOR
 import com.arcns.core.APP
 import com.arcns.core.R
+import com.arcns.core.file.FileUtil
+import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.mimeType
 import com.arcns.core.file.tryClose
 import com.bumptech.glide.Glide
@@ -63,10 +65,7 @@ import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 import me.shouheng.compress.Compress
 import me.shouheng.compress.strategy.Strategies
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
@@ -542,26 +541,63 @@ fun String.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
     File(this).bitmap(width, height)
 
 // 把文件转换为bitmap，并设置大小
-fun File.bitmap(width: Int? = null, height: Int? = null): Bitmap? {
-    if (!exists()) return null
-    if (width == null && height == null) return BitmapFactory.decodeFile(absolutePath)
-    // 计算缩放后的bitmap大小
-    val size = calculateBitmapScaledSize(width, height) ?: return null
-    // 计算图片缩放比例
-    val minSideLength = size.newWidth.coerceAtMost(size.newHeight)
-    val options = BitmapFactory.Options()
-    options.inSampleSize = computeBitmapSampleSize(
-        options, minSideLength,
-        size.newWidth * size.newHeight
-    )
-    options.inInputShareable = true;
-    options.inPurgeable = true;
+fun File.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
+    if (!exists()) null
+    else FileInputStream(this).bitmap(width, height)
+
+// 把Uri文件转换为bitmap，并设置大小
+fun Uri.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
+    APP.INSTANCE.contentResolver.openInputStream(this)?.bitmap(width, height)
+
+/**
+ * 把文件流转换为bitmap，并设置大小
+ */
+fun InputStream.bitmap(width: Int? = null, height: Int? = null): Bitmap? {
     try {
-        return BitmapFactory.decodeFile(absolutePath, options)
+        if (width == null && height == null) return BitmapFactory.decodeStream(this)
+        // 计算缩放后的bitmap大小
+        val size = calculateBitmapScaledSize(width, height) ?: return null
+        // 计算图片缩放比例
+        val minSideLength = size.newWidth.coerceAtMost(size.newHeight)
+        val options = BitmapFactory.Options()
+        options.inSampleSize = computeBitmapSampleSize(
+            options, minSideLength,
+            size.newWidth * size.newHeight
+        )
+        options.inInputShareable = true;
+        options.inPurgeable = true;
+        return BitmapFactory.decodeStream(this, null, options)
     } catch (e: java.lang.Exception) {
-        e.printStackTrace()
+        return null
+    } finally {
+        tryClose()
     }
-    return null
+}
+
+/**
+ * 把资源转换为bitmap，并设置大小
+ */
+fun Int.bitmap(width: Int? = null, height: Int? = null): Bitmap? {
+    try {
+        if (width == null && height == null) return BitmapFactory.decodeResource(
+            APP.INSTANCE.resources,
+            this
+        )
+        // 计算缩放后的bitmap大小
+        val size = calculateBitmapScaledSize(width, height) ?: return null
+        // 计算图片缩放比例
+        val minSideLength = size.newWidth.coerceAtMost(size.newHeight)
+        val options = BitmapFactory.Options()
+        options.inSampleSize = computeBitmapSampleSize(
+            options, minSideLength,
+            size.newWidth * size.newHeight
+        )
+        options.inInputShareable = true;
+        options.inPurgeable = true;
+        return BitmapFactory.decodeResource(APP.INSTANCE.resources, this, options)
+    } catch (e: java.lang.Exception) {
+        return null
+    }
 }
 
 private fun computeBitmapSampleSize(
@@ -912,14 +948,16 @@ fun Int.saveImageAsLocal(
     height: Float = 0f,
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
-    compressQuality: Int = 80
+    compressQuality: Int = 80,
+    isOriginal: Boolean = false
 ): File? = saveImageAsLocalOrNull(
     this,
     width,
     height,
     centerInside,
     highQualityBitmap,
-    compressQuality
+    compressQuality,
+    isOriginal
 )
 
 fun String.saveImageAsLocal(
@@ -927,14 +965,16 @@ fun String.saveImageAsLocal(
     height: Float = 0f,
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
-    compressQuality: Int = 80
+    compressQuality: Int = 80,
+    isOriginal: Boolean = false
 ): File? = saveImageAsLocalOrNull(
     this,
     width,
     height,
     centerInside,
     highQualityBitmap,
-    compressQuality
+    compressQuality,
+    isOriginal
 )
 
 fun File.saveImageAsLocal(
@@ -942,14 +982,16 @@ fun File.saveImageAsLocal(
     height: Float = 0f,
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
-    compressQuality: Int = 80
+    compressQuality: Int = 80,
+    isOriginal: Boolean = false
 ): File? = saveImageAsLocalOrNull(
     this,
     width,
     height,
     centerInside,
     highQualityBitmap,
-    compressQuality
+    compressQuality,
+    isOriginal
 )
 
 fun Uri.saveImageAsLocal(
@@ -957,14 +999,16 @@ fun Uri.saveImageAsLocal(
     height: Float = 0f,
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
-    compressQuality: Int = 80
+    compressQuality: Int = 80,
+    isOriginal: Boolean = false
 ): File? = saveImageAsLocalOrNull(
     this,
     width,
     height,
     centerInside,
     highQualityBitmap,
-    compressQuality
+    compressQuality,
+    isOriginal
 )
 
 fun saveImageAsLocalOrNull(
@@ -973,9 +1017,18 @@ fun saveImageAsLocalOrNull(
     height: Float = 0f,
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
-    compressQuality: Int = 80
+    compressQuality: Int = 80,
+    isOriginal: Boolean = false
 ): File? = try {
-    saveImageAsLocal(image, width, height, centerInside, highQualityBitmap, compressQuality)
+    saveImageAsLocal(
+        image,
+        width,
+        height,
+        centerInside,
+        highQualityBitmap,
+        compressQuality,
+        isOriginal
+    )
 } catch (e: java.lang.Exception) {
     null
 }
@@ -986,10 +1039,31 @@ fun saveImageAsLocal(
     height: Float = 0f,
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
-    compressQuality: Int = 80
+    compressQuality: Int = 80,
+    isOriginal: Boolean = false
 ): File {
     if (image == null) {
         throw java.lang.Exception("iamge is null")
+    }
+    if (isOriginal) {
+        val bitmap = when (image) {
+            is Int -> image.bitmap()
+            is String -> image.bitmap()
+            is Uri -> image.bitmap()
+            is File -> image.bitmap()
+            else -> null
+        } ?: throw java.lang.Exception("iamge as to bitmap error")
+        val localFile = File(getRandomPhotoCacheFilePath())
+        val localFileOutputStream = FileOutputStream(localFile)
+        try {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, localFileOutputStream)
+            return localFile
+        } catch (e: java.lang.Exception) {
+            throw e
+        } finally {
+            localFileOutputStream.tryClose()
+        }
+
     }
     var requestBuilder =
         Glide.with(APP.INSTANCE).asBitmap()

@@ -165,7 +165,7 @@ data class EMediaSaveAsOption(
      */
     var size: Float? = null,
     /**
-     * 是否转存为原图（将忽略宽、高和大小设置）
+     * 是否转存为原图（将忽略宽、高、大小、高清、压缩质量等设置）
      */
     var isOriginal: Boolean = false,
     /**
