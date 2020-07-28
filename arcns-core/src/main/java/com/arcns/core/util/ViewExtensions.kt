@@ -37,11 +37,9 @@ import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.observe
+import androidx.lifecycle.*
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.DialogBehavior
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.Companion.DEFAULT_BEHAVIOR
@@ -1621,5 +1619,34 @@ inline fun <T : View> T.afterMeasure(crossinline onAfterMeasureCallback: T.() ->
             }
         }
 
+    })
+}
+
+/**
+ * 设置列表滚动时自动隐藏软键盘
+ */
+fun Fragment.setupAutoHideSoftInput(
+    rvView: RecyclerView,
+    lifecycleOwner: LifecycleOwner = viewLifecycleOwner
+) = requireActivity().setupAutoHideSoftInput(rvView, lifecycleOwner)
+
+/**
+ * 设置列表滚动时自动隐藏软键盘
+ */
+fun Activity.setupAutoHideSoftInput(
+    rvView: RecyclerView,
+    lifecycleOwner: LifecycleOwner
+) {
+    rvView.setOnFocusChangeListener { _, hasFocus ->
+        if (hasFocus) hideSoftInputFromWindow()
+    }
+    rvView.isFocusable = false
+    rvView.isFocusableInTouchMode = false
+    lifecycleOwner.lifecycle.addObserver(object : LifecycleObserver {
+        @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+        fun onDestroy() {
+            lifecycleOwner.lifecycle.removeObserver(this)
+            rvView.onFocusChangeListener = null
+        }
     })
 }
