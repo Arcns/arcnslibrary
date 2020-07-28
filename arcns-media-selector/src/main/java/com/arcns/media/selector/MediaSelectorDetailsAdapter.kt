@@ -77,6 +77,10 @@ class MediaSelectorDetailsViewHolder(
 
     fun bindTo(item: EMedia) {
         binding.item = item
+        binding.pvImage.setOnLongClickListener {
+            binding?.viewModel?.onDetailsImageLongClick(item)
+            true //消耗事件
+        }
     }
 }
 

@@ -22,6 +22,7 @@
         android:layout_height="match_parent">
 
         <com.github.chrisbanes.photoview.PhotoView
+            android:id="@+id/pvImage"
             setImage="@{item.value}"
             setImageAsGif="@{item.isGif}"
             setImageCenterInside="@{true}"
@@ -31,14 +32,14 @@
             android:transitionName="@{item.idToString}" />
 
         <ImageView
-            android:layout_width="0dp"
-            android:layout_height="0dp"
             bindFileClickOpenApp="@{item}"
             bindFileClickOpenAppViewModel="@{viewModel}"
-            android:visibility="@{item.isImage?View.GONE:View.VISIBLE}"
-            android:src="@drawable/media_selector_media_type_video_or_audio_play"
-            android:scaleType="fitXY"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:foreground="@drawable/media_selector_media_type_video_or_audio_play_foreground"
+            android:scaleType="fitXY"
+            android:src="@drawable/media_selector_media_type_video_or_audio_play"
+            android:visibility="@{item.isImage?View.GONE:View.VISIBLE}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="w,1:1"
             app:layout_constraintLeft_toLeftOf="parent"

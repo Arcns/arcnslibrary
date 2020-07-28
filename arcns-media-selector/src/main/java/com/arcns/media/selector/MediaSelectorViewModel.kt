@@ -6,6 +6,7 @@ import com.arcns.core.APP
 import com.arcns.core.file.FileUtil
 import com.arcns.core.file.getRandomCacheFilePath
 import com.arcns.core.util.Event
+import com.arcns.core.util.fastEventValue
 import com.arcns.core.util.saveImageAsLocal
 import com.arcns.core.util.string
 import kotlinx.coroutines.*
@@ -29,6 +30,10 @@ class MediaSelectorViewModel : ViewModel() {
     private var _selectedMedias = MutableLiveData<ArrayList<EMedia>>()
     var selectedMedias: LiveData<ArrayList<EMedia>> = _selectedMedias
     val selectedMediasSize: Int get() = selectedMedias.value?.size ?: 0
+
+    // 详情页图片长按
+    private var _eventOnDetailsImageLongClick = MutableLiveData<Event<EMedia>>()
+    var eventOnDetailsImageLongClick: LiveData<Event<EMedia>> = _eventOnDetailsImageLongClick
 
     // 选择器结果
     private var _resultSelectedMedias = MutableLiveData<Event<ArrayList<EMedia>?>>()
@@ -409,6 +414,13 @@ class MediaSelectorViewModel : ViewModel() {
     fun getSelectedMediaIndex(item: EMedia?): String = _selectedMedias.value?.indexOf(item)?.run {
         if (this >= 0) (this + 1).toString() else ""
     } ?: ""
+
+    /**
+     * 详情页图片长按
+     */
+    fun onDetailsImageLongClick(item: EMedia) {
+        _eventOnDetailsImageLongClick.fastEventValue = item
+    }
 
     /**
      * 销毁资源
