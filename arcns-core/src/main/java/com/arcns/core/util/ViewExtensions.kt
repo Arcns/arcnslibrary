@@ -1063,7 +1063,6 @@ fun saveImageAsLocal(
         } finally {
             localFileOutputStream.tryClose()
         }
-
     }
     var requestBuilder =
         Glide.with(APP.INSTANCE).asBitmap()

@@ -361,7 +361,8 @@ class MediaSelectorViewModel : ViewModel() {
                                 option.saveAsHeight,
                                 option.centerInside,
                                 option.highQualityBitmap,
-                                option.saveAsCompressQuality
+                                option.saveAsCompressQuality,
+                                option.isOriginal
                             ).absolutePath
                         } else {
                             // 视频或音频或gif
