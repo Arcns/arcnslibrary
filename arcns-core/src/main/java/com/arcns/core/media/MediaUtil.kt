@@ -41,6 +41,7 @@ class MediaUtil(var fragment: Fragment) {
         fileName: String,
         fileMimeType: String = MIME_TYPE_WILDCARD,
         resultCode: Int? = null,
+        onCustomIntent: ((Intent) -> Unit)? = null,
         fileUriListener: FileUriListener? = null
     ) {
         this.listeneRequestCode = resultCode
@@ -51,7 +52,8 @@ class MediaUtil(var fragment: Fragment) {
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = fileMimeType
         // 设置默认文件名
-        intent.putExtra(Intent.EXTRA_TITLE, fileName);
+        intent.putExtra(Intent.EXTRA_TITLE, fileName)
+        onCustomIntent?.invoke(intent)
         fragment.startActivityForResult(
             intent,
             requestCodeForCreateFileSelector
@@ -64,6 +66,7 @@ class MediaUtil(var fragment: Fragment) {
     fun onOpenFileSelector(
         fileMimeType: String = MIME_TYPE_WILDCARD,
         resultCode: Int? = null,
+        onCustomIntent: ((Intent) -> Unit)? = null,
         fileUriListener: FileUriListener? = null
     ) {
         this.listeneRequestCode = resultCode
@@ -74,6 +77,7 @@ class MediaUtil(var fragment: Fragment) {
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         // 设置过滤类型
         intent.type = fileMimeType
+        onCustomIntent?.invoke(intent)
         fragment.startActivityForResult(
             intent,
             requestCodeForOpenFileSelector
@@ -83,7 +87,11 @@ class MediaUtil(var fragment: Fragment) {
     /**
      * 打开系统相机拍照
      */
-    fun onImageCapture(resultCode: Int? = null, phtotoListener: PhtotoListener? = null) {
+    fun onImageCapture(
+        resultCode: Int? = null,
+        onCustomIntent: ((Intent) -> Unit)? = null,
+        phtotoListener: PhtotoListener? = null
+    ) {
         this.captureSaveFilePath = null
         this.listeneRequestCode = resultCode
         this.phtotoListener = phtotoListener
@@ -110,13 +118,18 @@ class MediaUtil(var fragment: Fragment) {
             captureSaveFilePath = saveFileUri.encodedPath
         }
         intent.putExtra(MediaStore.EXTRA_OUTPUT, saveFileUri)
+        onCustomIntent?.invoke(intent)
         fragment.startActivityForResult(intent, requestCodeForImageCapture)
     }
 
     /**
      * 打开系统相机录制视频
      */
-    fun onVideoCapture(resultCode: Int? = null, phtotoListener: PhtotoListener? = null) {
+    fun onVideoCapture(
+        resultCode: Int? = null,
+        onCustomIntent: ((Intent) -> Unit)? = null,
+        phtotoListener: PhtotoListener? = null
+    ) {
         this.captureSaveFilePath = null
         this.listeneRequestCode = resultCode
         this.phtotoListener = phtotoListener
@@ -143,18 +156,24 @@ class MediaUtil(var fragment: Fragment) {
             captureSaveFilePath = saveFileUri.encodedPath
         }
         intent.putExtra(MediaStore.EXTRA_OUTPUT, saveFileUri)
+        onCustomIntent?.invoke(intent)
         fragment.startActivityForResult(intent, requestCodeForVideoCapture)
     }
 
     /**
      * 打开系统相册选择相片
      */
-    fun onPhotoAlbum(resultCode: Int? = null, phtotoUriListener: FileUriListener? = null) {
+    fun onPhotoAlbum(
+        resultCode: Int? = null,
+        onCustomIntent: ((Intent) -> Unit)? = null,
+        phtotoUriListener: FileUriListener? = null
+    ) {
         this.captureSaveFilePath = null
         this.listeneRequestCode = resultCode
         this.photoUriListener = phtotoUriListener
         fragment.startActivityForResult(Intent(Intent.ACTION_PICK).apply {
             type = "image/*"
+            onCustomIntent?.invoke(this)
         }, requestCodeForPhotoAlbum);
     }
 
