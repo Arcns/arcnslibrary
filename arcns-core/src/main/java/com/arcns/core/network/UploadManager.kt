@@ -152,7 +152,7 @@ class UploadManager {
                         // 更新状态
                         task.onChangeStateToFailureIfNotStop()
                         // 失败回调
-                        task.onTaskSuccess?.invoke(task, response)
+                        task.onTaskFailure?.invoke(task, null, response)
                         managerData.onTaskFailure?.invoke(task, null, response)
                         // 更新到通知栏
                         managerData.updateNotification(task)
