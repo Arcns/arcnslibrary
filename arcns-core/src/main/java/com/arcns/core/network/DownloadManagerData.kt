@@ -31,7 +31,9 @@ class DownloadManagerData(
     // 自定义请求（Request）回调，能够使用该回调对请求进行操作
     var onCustomRequest: ((DownloadTask, Request.Builder) -> Unit)? = null,
     // 下载通道数量，0为无限制，若当前下载数量超过通道数量，则超过的任务会排队等待
-    var lanes: Int = 3
+    var lanes: Int = 3,
+    // 任务全部完成回调
+    var onAllTasksCompleted: ((List<DownloadTask>) -> Unit)? = null
 ) {
     val uniqueID: String = UUID.randomUUID().toString()
 
@@ -44,6 +46,10 @@ class DownloadManagerData(
     // 任务更新事件
     private var _eventTaskUpdate = MutableLiveData<Event<DownloadTask>>()
     var eventTaskUpdate: LiveData<Event<DownloadTask>> = _eventTaskUpdate
+
+    // 任务全部完成
+    private var _eventAllTasksCompleted = MutableLiveData<Event<List<DownloadTask>>>()
+    var eventAllTasksCompleted: LiveData<Event<List<DownloadTask>>> = _eventAllTasksCompleted
 
     // 下发任务管理器操作指令
     private var _eventDownloadManagerNotify = MutableLiveData<Event<DownloadManagerNotify>>()
@@ -65,6 +71,11 @@ class DownloadManagerData(
         _eventTaskUpdate.fastValue = Event(task)
         if (task.isStop && task.stopReason != NetworkTaskStopReason.HumanAll) {
             downloadWaitTasks()
+            // 全部任务已完成
+            if (_tasks.value?.firstOrNull { it.state == TaskState.None || it.isRunning || it.isWait } == null) {
+                _eventAllTasksCompleted.fastEventValue = _tasks.value!!
+                onAllTasksCompleted?.invoke(_tasks.value!!)
+            }
         }
     }
 
