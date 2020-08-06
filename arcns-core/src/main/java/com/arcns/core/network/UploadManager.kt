@@ -254,7 +254,10 @@ class UploadManager {
                 // 更新到通知栏
                 LOG("UploadManager ${task.id} parameter ok ")
                 parameter.state = TaskState.Success
-                parameter.updateNotification(task.notificationOptions)
+                parameter.updateNotification(
+                    task.notificationOptions,
+                    this@UploadManager.managerData.notificationOptions
+                )
                 managerData.onEventTaskUpdateByProgress(
                     UploadTaskFileParameterUpdate(
                         task,
@@ -277,7 +280,8 @@ class UploadManager {
                 LOG("UploadManager ${task.id} parameter error " + e.message)
                 parameter.state = if (task.isStop) task.state else TaskState.Failure
                 parameter.updateNotification(
-                    task.notificationOptions
+                    task.notificationOptions,
+                    this@UploadManager.managerData.notificationOptions
                 )
                 managerData.onEventTaskUpdateByProgress(
                     UploadTaskFileParameterUpdate(
@@ -313,7 +317,10 @@ class UploadManager {
                     )
                 }
                 // 更新到通知栏
-                parameter.updateNotification(backupNotificationOptions = task.notificationOptions)
+                parameter.updateNotification(
+                    task.notificationOptions,
+                    this@UploadManager.managerData.notificationOptions
+                )
                 managerData.onEventTaskUpdateByProgress(
                     UploadTaskFileParameterUpdate(
                         task,
