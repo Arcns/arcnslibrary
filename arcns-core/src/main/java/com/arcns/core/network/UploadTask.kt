@@ -365,6 +365,10 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
         if (notificationOptions.cancelIfDisable(notificationID)) return
         // 判断是否允许自动格式化内容
         if (notificationOptions is UploadNotificationOptions && notificationOptions.isFormatContent) {
+            if (notificationOptions.autoCancelOnState?.contains(state) == true) {
+                notificationID.cancelNotification()
+                return
+            }
             notificationOptions.contentTitle =
                 formatTaskNotificationPlaceholderContent(
                     notificationOptions.notificationTitle
@@ -444,6 +448,7 @@ open class UploadNotificationOptions(
     notificationID: Int = randomNotificationID,
     var notificationTitle: String = "$TASK_NOTIFICATION_PLACEHOLDER_SHOW_NAME",
     var progressContentText: String = "$TASK_NOTIFICATION_PLACEHOLDER_LENGTH | $TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE",//{length} | {percentage}: 1M/2M | 50%
+    var autoCancelOnState: List<TaskState>? = null,// 需要上传任务自动取消通知的状态
     var successContentText: String = R.string.text_upload_progress_notification_default_task_success.string,
     var failureContentText: String = R.string.text_upload_progress_notification_default_task_failure.string,
     var pauseContentText: String = R.string.text_upload_progress_notification_default_task_pause.string,
