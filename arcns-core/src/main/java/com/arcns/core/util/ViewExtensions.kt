@@ -459,7 +459,7 @@ fun InputStream.getBitmapSize(): WidthHeight? = try {
 } catch (e: java.lang.Exception) {
     null
 } finally {
-    tryClose()
+//    tryClose()
 }
 
 /**
