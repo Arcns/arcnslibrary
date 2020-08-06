@@ -2,6 +2,7 @@ package com.arcns.core.util
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.text.TextUtils
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.View.OnFocusChangeListener
@@ -558,4 +559,92 @@ fun bindAppBarLayoutScrollEnabled(view: View, enabled: Boolean) {
         view.layoutParams = this
     }
 
+}
+
+
+
+/**
+ * 自动换行 整齐排版
+ */
+@BindingAdapter(
+    value = [
+        "setAutoSplitText",
+        "setAutoSplitTexIndent",
+        "setAutoSplitTexDrawableSize"
+    ],
+    requireAll = false
+)
+fun TextView.setAutoSplitText(rawText: String?, indent: String?, drawableSize: Float?): String? {
+    val a = paddingLeft
+    val b = paddingRight
+    val c = width
+    if (rawText.isNullOrEmpty()) {
+        text = rawText
+        return rawText
+    }
+    val autoSplitText = if (c != 0) {
+        val tvWidth = c - a - b.toFloat() - (drawableSize?.toInt() ?: 0) //空间可用宽度
+
+        //将缩进处理成空格
+        var indentSpace = ""
+        var indentWidth = 0f
+        if (!TextUtils.isEmpty(indent)) {
+            val rawIndentWidth: Float = paint.measureText(indent)
+            if (rawIndentWidth < tvWidth) {
+                while (paint.measureText(indentSpace)
+                        .also({ indentWidth = it }) < rawIndentWidth
+                ) {
+                    indentSpace += " "
+                }
+            }
+        }
+
+        //将原始文本按行拆分
+        val rawTextLines =
+            rawText.replace("\r".toRegex(), "").split("\n".toRegex()).toTypedArray()
+        val sbNewText = StringBuilder()
+        for (rawTextLine in rawTextLines) {
+            if (paint.measureText(rawTextLine) <= tvWidth) {
+                //如果行宽度在空间范围之内，就不处理了
+                sbNewText.append(
+                    """
+                        $rawTextLine
+                        
+                        """.trimIndent()
+                )
+            } else {
+                //否则按字符测量，在超过可用宽度的前一个字符处，手动替换，加上换行，缩进
+                var lineWidth = 0f
+                var i = 0
+                while (i != rawTextLine.length) {
+                    val ch = rawTextLine[i]
+                    //从手动换行的第二行开始加上缩进
+                    if (lineWidth < 0.1f && i != 0) {
+                        sbNewText.append(indentSpace)
+                        lineWidth += indentWidth
+                    }
+                    val textWidth: Float = paint.measureText(ch.toString())
+                    lineWidth += textWidth
+                    if (lineWidth < tvWidth) {
+                        sbNewText.append(ch)
+                    } else {
+                        sbNewText.append("\n")
+                        lineWidth = 0f
+                        --i
+                    }
+                    ++i
+                }
+                sbNewText.append("\n")
+            }
+        }
+        //结尾多余的换行去掉
+        if (!rawText.endsWith("\n")) {
+            sbNewText.deleteCharAt(sbNewText.length - 1)
+        }
+        sbNewText.toString()
+    } else {
+        ""
+    }
+    text = autoSplitText
+    return autoSplitText
 }
