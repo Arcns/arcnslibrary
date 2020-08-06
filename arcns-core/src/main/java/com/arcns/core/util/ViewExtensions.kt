@@ -459,7 +459,7 @@ fun InputStream.getBitmapSize(): WidthHeight? = try {
 } catch (e: java.lang.Exception) {
     null
 } finally {
-//    tryClose()
+    tryClose()
 }
 
 /**
@@ -541,20 +541,24 @@ fun String.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
 // 把文件转换为bitmap，并设置大小
 fun File.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
     if (!exists()) null
-    else FileInputStream(this).bitmap(width, height)
+    else FileInputStream(this).bitmap(
+        if (width == null && height == null) null
+        else calculateBitmapScaledSize(width, height)
+    )
 
 // 把Uri文件转换为bitmap，并设置大小
 fun Uri.bitmap(width: Int? = null, height: Int? = null): Bitmap? =
-    APP.INSTANCE.contentResolver.openInputStream(this)?.bitmap(width, height)
+    APP.INSTANCE.contentResolver.openInputStream(this)?.bitmap(
+        if (width == null && height == null) null
+        else calculateBitmapScaledSize(width, height)
+    )
 
 /**
  * 把文件流转换为bitmap，并设置大小
  */
-fun InputStream.bitmap(width: Int? = null, height: Int? = null): Bitmap? {
+fun InputStream.bitmap(size: ScaledWidthHeight? = null): Bitmap? {
     try {
-        if (width == null && height == null) return BitmapFactory.decodeStream(this)
-        // 计算缩放后的bitmap大小
-        val size = calculateBitmapScaledSize(width, height) ?: return null
+        if (size == null) return BitmapFactory.decodeStream(this)
         // 计算图片缩放比例
         val minSideLength = size.newWidth.coerceAtMost(size.newHeight)
         val options = BitmapFactory.Options()
