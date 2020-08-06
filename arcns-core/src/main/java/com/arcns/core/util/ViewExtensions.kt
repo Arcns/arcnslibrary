@@ -387,12 +387,12 @@ const val MODE_DEBUG = true
  */
 fun LOG(message: String) {
     if (MODE_DEBUG)
-        android.util.Log.e("ZKXT_MODE_DEBUG", message)
+        android.util.Log.e("ARCNS_MODE_DEBUG", message)
 }
 
 fun String.log() {
     if (MODE_DEBUG)
-        android.util.Log.e("ZKXT_MODE_DEBUG", this)
+        android.util.Log.e("ARCNS_MODE_DEBUG", this)
 }
 
 
