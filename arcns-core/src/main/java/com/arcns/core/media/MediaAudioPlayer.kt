@@ -12,7 +12,8 @@ import java.util.*
  */
 class MediaAudioPlayer(
     context: Context,
-    private val onHandlerCallback: ((Int, Int?) -> Unit)? = null
+    private val progressCallbackRate: Long = 10, // 进度回调频率
+    private val onHandlerCallback: ((Int, Int?) -> Unit)? = null // 播放进度、状态更新等的处理回调
 ) :
     OnBufferingUpdateListener, OnCompletionListener, OnPreparedListener,
     OnErrorListener {
@@ -26,7 +27,7 @@ class MediaAudioPlayer(
     }
 
     /**
-     * @param url url地址
+     * 播放本地或网络地址的音频
      */
     fun playUrl(url: String?): Boolean {
         try {
@@ -43,6 +44,7 @@ class MediaAudioPlayer(
     }
 
     /**
+     * 播放数据源的音频
      */
     fun playBySetDataSource(setDataSource: (MediaPlayer?) -> Unit): Boolean {
         try {
@@ -62,13 +64,11 @@ class MediaAudioPlayer(
         mTimer = Timer()
         mTimerTask = object : TimerTask() {
             override fun run() {
-                if (mMediaPlayer == null || !mMediaPlayer!!.isPlaying) {
-                    return
-                }
+                if (mMediaPlayer?.isPlaying != true) return
                 onHandlerCallback?.invoke(HANDLER_CUR_TIME, mMediaPlayer?.currentPosition)
             }
         }
-        mTimer?.schedule(mTimerTask, 0, 10)
+        mTimer?.schedule(mTimerTask, 0, progressCallbackRate)
     }
 
     // 暂停
@@ -88,6 +88,9 @@ class MediaAudioPlayer(
         }
     }
 
+    /**
+     * 跳转
+     */
     fun seekTo(time: Int) {
         if (mMediaPlayer != null) {
             mMediaPlayer?.seekTo(time)
