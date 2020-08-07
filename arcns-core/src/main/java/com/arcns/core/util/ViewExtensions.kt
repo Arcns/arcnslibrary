@@ -10,7 +10,6 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.icu.text.CaseMap
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -45,7 +44,6 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.MaterialDialog.Companion.DEFAULT_BEHAVIOR
 import com.arcns.core.APP
 import com.arcns.core.R
-import com.arcns.core.file.FileUtil
 import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.mimeType
 import com.arcns.core.file.tryClose
@@ -940,7 +938,6 @@ fun ImageView.setImageViaGlide(
                 }
             })
     } else {
-        // 设置为src
         requestBuilder.into(this)
     }
 }
