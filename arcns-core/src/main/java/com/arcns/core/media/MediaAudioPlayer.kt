@@ -28,7 +28,7 @@ class MediaAudioPlayer(
     /**
      * @param url url地址
      */
-    fun playUrl(url: String?): Int {
+    fun playUrl(url: String?): Boolean {
         try {
             mAudioManager?.mode = AudioManager.MODE_NORMAL
             mMediaPlayer?.reset()
@@ -36,15 +36,15 @@ class MediaAudioPlayer(
             mMediaPlayer?.prepareAsync() // prepare自动播放
         } catch (e: Exception) {
             e.printStackTrace()
-            return -1
+            return false
         }
         setupPlayTimerTask()
-        return 100
+        return true
     }
 
     /**
      */
-    fun playBySetDataSource(setDataSource: (MediaPlayer?) -> Unit): Int {
+    fun playBySetDataSource(setDataSource: (MediaPlayer?) -> Unit): Boolean {
         try {
             mAudioManager?.mode = AudioManager.MODE_NORMAL
             mMediaPlayer?.reset()
@@ -52,10 +52,10 @@ class MediaAudioPlayer(
             mMediaPlayer?.prepareAsync() // prepare自动播放
         } catch (e: Exception) {
             e.printStackTrace()
-            return -1
+            return false
         }
         setupPlayTimerTask()
-        return 100
+        return true
     }
 
     private fun setupPlayTimerTask() {

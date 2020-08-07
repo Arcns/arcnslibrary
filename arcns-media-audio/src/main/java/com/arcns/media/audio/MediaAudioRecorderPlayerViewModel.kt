@@ -334,7 +334,7 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
                     APP.INSTANCE,
                     Uri.parse(playerPath.value)
                 )
-            } == 100) {
+            } == true) {
             _playerState.fastValue = MediaAudioPlayerState.Playing
             // 启动动画
             _eventWaveLineAnim.fastValue = Event(true)
