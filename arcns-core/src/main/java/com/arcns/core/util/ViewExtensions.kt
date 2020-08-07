@@ -48,6 +48,7 @@ import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.mimeType
 import com.arcns.core.file.tryClose
 import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -876,6 +877,8 @@ fun ImageView.setImageViaGlide(
         is GlideUrl -> if (asGif == true) glide.asGif().load(image) else glide.load(image)
         else -> return
     }
+//    requestBuilder.priority(Priority.LOW)
+//    requestBuilder =requestBuilder.thumbnail(0.1f)
     // 设置缓存机制
     if (cache == false) {
         requestBuilder =

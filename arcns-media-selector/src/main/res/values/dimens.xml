@@ -2,6 +2,7 @@
 <resources>
     <!-- 多媒体选择器 -->
     <dimen name="media_selector_media_size">60dp</dimen>
+<!--    <dimen name="media_selector_media_size">360dp</dimen>-->
 <!--    <dimen name="image_selector_image_details_width">195dp</dimen>-->
     <dimen name="media_selector_media_details_width">480dp</dimen>
     <dimen name="media_selector_media_circular_indicator_size">32dp</dimen>
