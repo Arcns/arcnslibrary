@@ -2,13 +2,12 @@ package com.arcns.media.audio
 
 import android.media.MediaPlayer
 import android.net.Uri
-import android.os.Handler
-import android.os.Message
 import androidx.lifecycle.*
 import com.arcns.core.APP
 import com.arcns.core.util.Event
 import com.arcns.core.util.LOG
 import com.arcns.core.file.getRandomAudioCacheFilePath
+import com.arcns.core.media.MediaAudioPlayer
 import com.arcns.core.util.fastValue
 import com.czt.mp3recorder.MP3Recorder
 import kotlinx.coroutines.*
@@ -312,23 +311,24 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
         if (audioPlayer != null) {
             return
         }
-        audioPlayer = MediaAudioPlayer(APP.INSTANCE) { type, data ->
-            when (type) {
-                // 更新时间
-                MediaAudioPlayer.HANDLER_CUR_TIME -> {
-                    playerCurrent.fastValue = (data ?: 0).toLong()
+        audioPlayer =
+            MediaAudioPlayer(APP.INSTANCE) { type, data ->
+                when (type) {
+                    // 更新时间
+                    MediaAudioPlayer.HANDLER_CUR_TIME -> {
+                        playerCurrent.fastValue = (data ?: 0).toLong()
+                    }
+                    // 播放结束
+                    MediaAudioPlayer.HANDLER_COMPLETE -> finishPlayer()
+                    // 播放开始
+                    MediaAudioPlayer.HANDLER_PREPARED -> {
+                        playerCurrent.fastValue = 0
+                        playerDuration.fastValue = (data ?: 0).toLong()
+                    }
+                    // 播放错误
+                    MediaAudioPlayer.HANDLER_ERROR -> failedPlayer()
                 }
-                // 播放结束
-                MediaAudioPlayer.HANDLER_COMPLETE -> finishPlayer()
-                // 播放开始
-                MediaAudioPlayer.HANDLER_PREPARED -> {
-                    playerCurrent.fastValue = 0
-                    playerDuration.fastValue = (data ?: 0).toLong()
-                }
-                // 播放错误
-                MediaAudioPlayer.HANDLER_ERROR -> failedPlayer()
             }
-        }
         if (audioPlayer?.playBySetDataSource {
                 it?.setDataSource(
                     APP.INSTANCE,

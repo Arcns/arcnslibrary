@@ -1,4 +1,4 @@
-package com.arcns.media.audio
+package com.arcns.core.media
 
 import android.content.Context
 import android.media.AudioManager
@@ -8,7 +8,7 @@ import android.net.Uri
 import java.util.*
 
 /**
- * 声音播放
+ * 音频播放器
  */
 class MediaAudioPlayer(
     context: Context,
