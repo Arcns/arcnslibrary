@@ -5,14 +5,15 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.MediaPlayer.*
 import android.net.Uri
-import android.os.Handler
-import android.os.Message
 import java.util.*
 
 /**
  * 声音播放
  */
-class MediaAudioPlayer(context: Context, private val mRemoteHandler: Handler?) :
+class MediaAudioPlayer(
+    context: Context,
+    private val onHandlerCallback: ((Int, Int?) -> Unit)? = null
+) :
     OnBufferingUpdateListener, OnCompletionListener, OnPreparedListener,
     OnErrorListener {
     private var mMediaPlayer: MediaPlayer? = null
@@ -64,10 +65,7 @@ class MediaAudioPlayer(context: Context, private val mRemoteHandler: Handler?) :
                 if (mMediaPlayer == null || !mMediaPlayer!!.isPlaying) {
                     return
                 }
-                val msg = Message()
-                msg.obj = mMediaPlayer?.currentPosition
-                msg.what = 1
-                mRemoteHandler?.sendMessageAtTime(msg, 0)
+                onHandlerCallback?.invoke(HANDLER_CUR_TIME, mMediaPlayer?.currentPosition)
             }
         }
         mTimer?.schedule(mTimerTask, 0, 10)
@@ -99,22 +97,13 @@ class MediaAudioPlayer(context: Context, private val mRemoteHandler: Handler?) :
 
     // 播放准备
     override fun onPrepared(mp: MediaPlayer) {
-        if (mRemoteHandler != null) {
-            val msg = Message()
-            msg.obj = mMediaPlayer?.duration
-            msg.what = 2
-            mRemoteHandler.sendMessageAtTime(msg, 0)
-        }
+        onHandlerCallback?.invoke(HANDLER_PREPARED, mMediaPlayer?.duration)
         mp.start()
     }
 
     // 播放完成
     override fun onCompletion(mp: MediaPlayer) {
-        if (mRemoteHandler != null) {
-            val msg = Message()
-            msg.what = 0
-            mRemoteHandler.sendMessageAtTime(msg, 0)
-        }
+        onHandlerCallback?.invoke(HANDLER_COMPLETE, null)
     }
 
     /**
@@ -122,11 +111,7 @@ class MediaAudioPlayer(context: Context, private val mRemoteHandler: Handler?) :
      */
     override fun onBufferingUpdate(mp: MediaPlayer, percent: Int) {}
     override fun onError(mp: MediaPlayer, what: Int, extra: Int): Boolean {
-        if (mRemoteHandler != null) {
-            val msg = Message()
-            msg.what = -28
-            mRemoteHandler.sendMessageAtTime(msg, 0)
-        }
+        onHandlerCallback?.invoke(HANDLER_ERROR, null)
         return false
     }
 
