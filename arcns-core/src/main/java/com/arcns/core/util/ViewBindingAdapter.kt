@@ -19,6 +19,10 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.ViewCompat
 import androidx.databinding.BindingAdapter
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.OnLifecycleEvent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -504,13 +508,22 @@ fun bindMargin(
 }
 
 // 让CoordinatorLayout和AppBarLayout滚动能够自适应，在列表内容未撑满时禁用，在撑满时开启
-@BindingAdapter("bindAppBarLayoutAdaptiveScroll")
-fun bindAppBarLayoutAdaptiveScroll(recyclerView: RecyclerView, appBarLayoutChildren: View) {
+@BindingAdapter(
+    value = [
+        "bindAppBarLayoutAdaptiveScroll",
+        "bindAppBarLayoutAdaptiveScrollLifecycleOwner"
+    ],
+    requireAll = false
+)
+fun RecyclerView.bindAppBarLayoutAdaptiveScroll(
+    appBarLayoutChildren: View,
+    lifecycleOwner: LifecycleOwner? = null
+) {
     // 删除上一个监听，避免重复监听
-    (recyclerView?.tag as? View.OnLayoutChangeListener)?.run {
-        recyclerView.removeOnLayoutChangeListener(this)
+    (tag as? View.OnLayoutChangeListener)?.run {
+        removeOnLayoutChangeListener(this)
     }
-    recyclerView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+    addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
         override fun onLayoutChange(
             v: View?,
             left: Int,
@@ -522,15 +535,14 @@ fun bindAppBarLayoutAdaptiveScroll(recyclerView: RecyclerView, appBarLayoutChild
             oldRight: Int,
             oldBottom: Int
         ) {
-            recyclerView.tag = this
-            val layoutManager =
-                recyclerView.layoutManager as? LinearLayoutManager ?: return
-            var itemCount = (recyclerView.adapter as? ListAdapter<*, *>)?.itemCount
-                ?: (recyclerView.adapter as? RecyclerView.Adapter)?.itemCount ?: return
-            if (recyclerView.getTag(R.string.app_name)?.toString()?.toIntOrNull() == itemCount) {
+            tag = this
+            val layoutManager = layoutManager as? LinearLayoutManager ?: return
+            var itemCount = (adapter as? ListAdapter<*, *>)?.itemCount
+                ?: (adapter as? RecyclerView.Adapter)?.itemCount ?: return
+            if (getTag(R.string.app_name)?.toString()?.toIntOrNull() == itemCount) {
                 return
             }
-            recyclerView.setTag(R.string.app_name, itemCount.toString())
+            setTag(R.string.app_name, itemCount.toString())
             var firstPosition =
                 layoutManager.findFirstCompletelyVisibleItemPosition()
             var lastPosition =
@@ -539,6 +551,16 @@ fun bindAppBarLayoutAdaptiveScroll(recyclerView: RecyclerView, appBarLayoutChild
                 bindAppBarLayoutScrollEnabled(appBarLayoutChildren, false)
             } else {
                 bindAppBarLayoutScrollEnabled(appBarLayoutChildren, true)
+            }
+        }
+    })
+    lifecycleOwner?.lifecycle?.addObserver(object : LifecycleObserver {
+        @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+        fun onDestroy() {
+            lifecycleOwner.lifecycle.removeObserver(this)
+            // 删除监听，避免泄漏
+            (tag as? View.OnLayoutChangeListener)?.run {
+                removeOnLayoutChangeListener(this)
             }
         }
     })
