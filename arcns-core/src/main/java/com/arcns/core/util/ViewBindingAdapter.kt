@@ -522,6 +522,7 @@ fun RecyclerView.bindAppBarLayoutAdaptiveScroll(
     // 删除上一个监听，避免重复监听
     (tag as? View.OnLayoutChangeListener)?.run {
         removeOnLayoutChangeListener(this)
+        tag = null
     }
     addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
         override fun onLayoutChange(
@@ -561,6 +562,7 @@ fun RecyclerView.bindAppBarLayoutAdaptiveScroll(
             // 删除监听，避免泄漏
             (tag as? View.OnLayoutChangeListener)?.run {
                 removeOnLayoutChangeListener(this)
+                tag = null
             }
         }
     })
