@@ -70,6 +70,20 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.sqrt
 
+
+open class WidthHeight(
+    var width: Int,
+    var height: Int,
+    var extra: Any? = null
+)
+
+open class ScaledWidthHeight(
+    width: Int,
+    height: Int,
+    var newWidth: Int,
+    var newHeight: Int
+) : WidthHeight(width, height)
+
 /***********************************公共**************************************/
 
 // 是否为主线程
@@ -99,7 +113,8 @@ val screenWidthHeight: WidthHeight
         windowManager.defaultDisplay.getRealMetrics(displayMetrics)
         return WidthHeight(
             displayMetrics.widthPixels,
-            displayMetrics.heightPixels
+            displayMetrics.heightPixels,
+            extra = displayMetrics
         )
     }
 
@@ -108,6 +123,33 @@ val screenWidth: Int get() = screenWidthHeight.width
 
 // 获取屏幕高度
 val screenHeight: Int get() = screenWidthHeight.height
+
+
+// 获取屏幕实际可用宽高（包含status bar）
+val screenAvailableWidthHeight: WidthHeight
+    get() {
+        val windowManager =
+            APP.INSTANCE.getSystemService(AppCompatActivity.WINDOW_SERVICE) as WindowManager
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val screenHeight = screenHeight
+        val screenAvailableHeight =
+            if (screenHeight == displayMetrics.heightPixels || screenHeight == displayMetrics.heightPixels + APP.INSTANCE.getNavigationBarHeight())
+                displayMetrics.heightPixels
+            else displayMetrics.heightPixels + APP.INSTANCE.getStatusBarHeight()
+        return WidthHeight(
+            displayMetrics.widthPixels,
+            screenAvailableHeight,
+            extra = displayMetrics
+        )
+    }
+
+// 获取屏幕实际可用宽度（包含status bar）
+val screenAvailableWidth: Int get() = screenAvailableWidthHeight.width
+
+// 获取屏幕实际可用高度（包含status bar）
+val screenAvailableHeight: Int get() = screenAvailableWidthHeight.height
+
 
 /***********************************格式转换**************************************/
 
@@ -242,6 +284,16 @@ fun Activity.setupTransparentStatusBar() {
 fun Context.getStatusBarHeight(): Int {
     var result = 0;
     var resId = resources.getIdentifier("status_bar_height", "dimen", "android");
+    if (resId > 0) {
+        result = resources.getDimensionPixelSize(resId);
+    }
+    return result
+}
+
+// 获取系统导航栏高度
+fun Context.getNavigationBarHeight(): Int {
+    var result = 0;
+    var resId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
     if (resId > 0) {
         result = resources.getDimensionPixelSize(resId);
     }
@@ -396,17 +448,6 @@ fun String.log() {
 
 
 /***********************************图片显示、保存与压缩**************************************/
-open class WidthHeight(
-    var width: Int,
-    var height: Int
-)
-
-open class ScaledWidthHeight(
-    width: Int,
-    height: Int,
-    var newWidth: Int,
-    var newHeight: Int
-) : WidthHeight(width, height)
 
 /**
  * 获取bitmap大小
