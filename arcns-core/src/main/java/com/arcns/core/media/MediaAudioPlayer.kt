@@ -164,14 +164,11 @@ class MediaAudioPlayer(
         try {
             if (isReadyPlay) {
                 mMediaPlayer?.start() //播放
-                if (isPause) {
-                    onHandlerCallback?.invoke(HANDLER_PLAY, currentPosition)
-                }
             } else {
                 mMediaPlayer?.prepareAsync() // 加载并播放
-                onHandlerCallback?.invoke(HANDLER_PLAY, currentPosition)
             }
             startPlayTimerTask()
+            onHandlerCallback?.invoke(HANDLER_PLAY, currentPosition)
         } catch (e: Exception) {
             e.printStackTrace()
             return false
