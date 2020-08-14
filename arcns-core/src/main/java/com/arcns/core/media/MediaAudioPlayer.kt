@@ -146,7 +146,9 @@ class MediaAudioPlayer : MediaAudioBasePlayer(),
                 mMediaPlayer?.prepareAsync() // 加载并播放
             }
             isPause = false
+            // 启动处理更新定时器
             startHandlerUpdateTimerTask()
+            // 提交处理回调
             submitHandlerCallback(MediaAudoPlayerHandlerType.Play, currentPosition)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -161,6 +163,7 @@ class MediaAudioPlayer : MediaAudioBasePlayer(),
         isPause = true
         stopHandlerUpdateTimerTask()
         mMediaPlayer?.pause()
+        // 提交处理回调
         submitHandlerCallback(MediaAudoPlayerHandlerType.Pause)
         return true
     }
@@ -200,17 +203,10 @@ class MediaAudioPlayer : MediaAudioBasePlayer(),
     }
 
     /**
-     * 销毁
-     */
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
-    /**
      * 处理更新定时器回调（运行时定时回调）
      */
     override fun onHandlerUpdateTimerTaskCallback() {
-        if (mMediaPlayer?.isPlaying != true) return
+        if (!isPlaying) return
         submitHandlerCallback(MediaAudoPlayerHandlerType.Update, currentPosition)
     }
 

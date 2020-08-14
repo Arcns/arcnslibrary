@@ -67,6 +67,7 @@ abstract class MediaAudioBasePlayer {
      */
     protected open fun onDestroy() {
         release()
+        mHandlerCallback = null
     }
 
 
@@ -92,7 +93,7 @@ abstract class MediaAudioBasePlayer {
      * 启动处理更新定时器
      */
     protected fun startHandlerUpdateTimerTask() {
-        if (mHandlerUpdateTimer != null) return
+        if (mHandlerUpdateRate <= 0 || mHandlerUpdateTimer != null) return
         mHandlerUpdateTimer = Timer()
         mHandlerUpdateTimerTask = object : TimerTask() {
             override fun run() {
