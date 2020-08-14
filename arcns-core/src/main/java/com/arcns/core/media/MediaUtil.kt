@@ -1,12 +1,15 @@
 package com.arcns.core.media
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import com.arcns.core.APP
 import com.arcns.core.file.MIME_TYPE_WILDCARD
 import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.getRandomVideoCacheFilePath
@@ -205,3 +208,13 @@ class MediaUtil(var fragment: Fragment) {
 
 }
 
+
+/**
+ * 获取Uri文件的播放时长
+ */
+val Uri.duration: Long
+    get() = MediaPlayer.create(APP.INSTANCE, this).let {
+        val value = it.duration.toLong()
+        it.release()
+        value
+    }

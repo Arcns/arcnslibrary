@@ -73,6 +73,7 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
     var playerState: LiveData<MediaAudioPlayerState> = _playerState
     private var audioPlayer: MediaAudioPlayer? = null
     private var playerPath = MutableLiveData<String>()
+    private var hasNewPlayerPath: Boolean = true
 
     // 显示的时间
     var showTimeToString = Transformations.switchMap(playerState) {
@@ -277,6 +278,7 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
         if (path == null) {
             return
         }
+        hasNewPlayerPath = true
         playerPath.value = path
         _playerState.value = MediaAudioPlayerState.Ready
         if (durationSeconds != null) {
@@ -308,33 +310,33 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
      * 开始播放
      */
     fun startPlayer() {
-        if (audioPlayer != null) {
-            return
-        }
-        audioPlayer =
-            MediaAudioPlayer(APP.INSTANCE) { type, data ->
-                when (type) {
-                    // 更新时间
-                    MediaAudioPlayer.HANDLER_CUR_TIME -> {
-                        playerCurrent.fastValue = (data ?: 0).toLong()
+        if (audioPlayer == null) {
+            audioPlayer =
+                MediaAudioPlayer(APP.INSTANCE) { type, data ->
+                    when (type) {
+                        // 更新时间
+                        MediaAudioPlayer.HANDLER_CUR_TIME -> {
+                            playerCurrent.fastValue = (data ?: 0).toLong()
+                        }
+                        // 播放结束
+                        MediaAudioPlayer.HANDLER_COMPLETE -> finishPlayer()
+                        // 播放开始
+                        MediaAudioPlayer.HANDLER_PREPARED -> {
+                            playerCurrent.fastValue = 0
+                            playerDuration.fastValue = (data ?: 0).toLong()
+                        }
+                        // 播放错误
+                        MediaAudioPlayer.HANDLER_ERROR -> failedPlayer()
                     }
-                    // 播放结束
-                    MediaAudioPlayer.HANDLER_COMPLETE -> finishPlayer()
-                    // 播放开始
-                    MediaAudioPlayer.HANDLER_PREPARED -> {
-                        playerCurrent.fastValue = 0
-                        playerDuration.fastValue = (data ?: 0).toLong()
-                    }
-                    // 播放错误
-                    MediaAudioPlayer.HANDLER_ERROR -> failedPlayer()
                 }
-            }
-        if (audioPlayer?.playBySetDataSource {
-                it?.setDataSource(
-                    APP.INSTANCE,
-                    Uri.parse(playerPath.value)
-                )
-            } == true) {
+        }
+        val playSuccess = if (audioPlayer?.isReadyPlay == true && !hasNewPlayerPath) {
+            audioPlayer?.start()
+        } else {
+            hasNewPlayerPath = false
+            audioPlayer?.setSourceAndPlay(Uri.parse(playerPath.value))
+        } == true
+        if (playSuccess) {
             _playerState.fastValue = MediaAudioPlayerState.Playing
             // 启动动画
             _eventWaveLineAnim.fastValue = Event(true)
@@ -357,7 +359,7 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
      * 继续播放
      */
     fun continuePlayer() {
-        audioPlayer?.play()
+        audioPlayer?.start()
         _playerState.value = MediaAudioPlayerState.Playing
         // 启动动画
         _eventWaveLineAnim.value = Event(true)
@@ -387,9 +389,7 @@ class MediaAudioRecorderPlayerViewModel : ViewModel() {
         if (playerState.value == MediaAudioPlayerState.None) {
             return
         }
-        audioPlayer?.pause()
         audioPlayer?.stop()
-        audioPlayer = null
         _playerState.fastValue = MediaAudioPlayerState.Ready
         // 停止动画
         _eventWaveLineAnim.fastValue = Event(false)
