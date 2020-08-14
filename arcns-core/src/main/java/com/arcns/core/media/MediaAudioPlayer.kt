@@ -1,30 +1,22 @@
 package com.arcns.core.media
 
 import android.content.Context
-import android.media.*
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.OnLifecycleEvent
 import com.arcns.core.APP
 import java.util.*
 
 /**
- * 音频播放器
+ * 音频播放器（基于MediaPlayer）
  */
-class MediaAudioPlayer(
-    context: Context,
-    private val progressCallbackRate: Long = 10, // 进度回调频率
-    private val onHandlerCallback: ((Int, Int?) -> Unit)? = null // 播放进度、状态更新等的处理回调
-) :
+class MediaAudioPlayer : MediaAudioBasePlayer(),
     MediaPlayer.OnCompletionListener,
     MediaPlayer.OnPreparedListener,
     MediaPlayer.OnErrorListener {
     private var mMediaPlayer: MediaPlayer? = null
-    private var mTimer: Timer? = null
-    private var mTimerTask: TimerTask? = null
     private var mAudioManager: AudioManager? = null
 
     /**
@@ -86,24 +78,10 @@ class MediaAudioPlayer(
             mMediaPlayer?.setOnErrorListener(this)
             // 获取管理器
             mAudioManager =
-                context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                APP.INSTANCE.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    /**
-     * 设置生命周期感知
-     */
-    fun setLifecycleOwner(lifecycleOwner: LifecycleOwner): MediaAudioPlayer {
-        lifecycleOwner.lifecycle.addObserver(object : LifecycleObserver {
-            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            fun onDestroy() {
-                lifecycleOwner.lifecycle.removeObserver(this)
-                release()
-            }
-        })
-        return this
     }
 
     /**
@@ -160,15 +138,16 @@ class MediaAudioPlayer(
     /**
      * 开始播放
      */
-    fun start(): Boolean {
+    override fun start(): Boolean {
         try {
             if (isReadyPlay) {
                 mMediaPlayer?.start() //播放
             } else {
                 mMediaPlayer?.prepareAsync() // 加载并播放
             }
-            startPlayTimerTask()
-            onHandlerCallback?.invoke(HANDLER_PLAY, currentPosition)
+            isPause = false
+            startHandlerUpdateTimerTask()
+            submitHandlerCallback(MediaAudoPlayerHandlerType.Play, currentPosition)
         } catch (e: Exception) {
             e.printStackTrace()
             return false
@@ -176,81 +155,81 @@ class MediaAudioPlayer(
         return true
     }
 
-    /**
-     * 初始化播放进度定时器
-     */
-    private fun startPlayTimerTask() {
-        if (mTimer != null) return
-        isPause = false
-        mTimer = Timer()
-        mTimerTask = object : TimerTask() {
-            override fun run() {
-                if (mMediaPlayer?.isPlaying != true) return
-                onHandlerCallback?.invoke(HANDLER_CUR_TIME, currentPosition)
-            }
-        }
-        mTimer?.schedule(mTimerTask, 0, progressCallbackRate)
-    }
-
     // 暂停
-    fun pause(): Boolean {
+    override fun pause(): Boolean {
         if (mMediaPlayer == null || remainingDuration < 500) return false
         isPause = true
-        mTimer?.cancel()
-        mTimer = null
+        stopHandlerUpdateTimerTask()
         mMediaPlayer?.pause()
-        onHandlerCallback?.invoke(HANDLER_PAUSE, null)
+        submitHandlerCallback(MediaAudoPlayerHandlerType.Pause)
         return true
     }
 
     // 停止
-    fun stop() {
-        if (mTimer == null) return
-        mTimer?.cancel()
-        mTimer = null
+    override fun stop() {
+        if (!isReadyPlay) {
+            return
+        }
+        isReadyPlay = false
+        stopHandlerUpdateTimerTask()
         mMediaPlayer?.pause()
         mMediaPlayer?.stop()
-        isReadyPlay = false
     }
 
-    // 释放
-    fun release() {
-        stop()
-        mMediaPlayer?.release()
-        mMediaPlayer = null
-    }
 
     /**
      * 跳转（保持原有的播放状态，也就是此时如果未播放，则跳转后也会保持未播放的状态）
      */
-    fun seekTo(msec: Int) {
+    override fun seekTo(msec: Int) {
         mMediaPlayer?.seekTo(msec)
     }
 
     /**
      * 跳转并播放
      */
-    fun seekToAndPlay(msec: Int) {
+    override fun seekToAndPlay(msec: Int) {
         seekTo(msec)
         start()
+    }
+
+    // 释放
+    override fun release() {
+        stop()
+        mMediaPlayer?.release()
+        mMediaPlayer = null
+    }
+
+    /**
+     * 销毁
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
+    /**
+     * 处理更新定时器回调（运行时定时回调）
+     */
+    override fun onHandlerUpdateTimerTaskCallback() {
+        if (mMediaPlayer?.isPlaying != true) return
+        submitHandlerCallback(MediaAudoPlayerHandlerType.Update, currentPosition)
     }
 
     /**
      * 播放完播放准备
      */
     override fun onPrepared(mp: MediaPlayer) {
-        onHandlerCallback?.invoke(HANDLER_PREPARED, mMediaPlayer?.duration)
+        submitHandlerCallback(MediaAudoPlayerHandlerType.Prepared, mMediaPlayer?.duration)
         mp.start()
         isReadyPlay = true
     }
 
     // 播放完成回调
     override fun onCompletion(mp: MediaPlayer) {
-        if (mTimer == null) {
+        if (!isReadyPlay) {
             return
         }
         stop()
-        onHandlerCallback?.invoke(HANDLER_COMPLETE, null)
+        submitHandlerCallback(MediaAudoPlayerHandlerType.Complete)
     }
 
     /**
@@ -258,19 +237,9 @@ class MediaAudioPlayer(
      */
     override fun onError(mp: MediaPlayer, what: Int, extra: Int): Boolean {
         stop()
-        onHandlerCallback?.invoke(HANDLER_ERROR, null)
+        submitHandlerCallback(MediaAudoPlayerHandlerType.Error)
         return false
     }
 
-    // 静态相关
-    companion object {
-        const val HANDLER_CUR_TIME = 1 //当前播放状态时间
-        const val HANDLER_PREPARED = 2 //装备好了
-        const val HANDLER_PAUSE = 3 //暂停
-        const val HANDLER_PLAY = 4 // 开始播放/继续播放
-        const val HANDLER_COMPLETE = 0 //完成
-        const val HANDLER_ERROR = -28 //错误
-    }
-
-
 }
+
