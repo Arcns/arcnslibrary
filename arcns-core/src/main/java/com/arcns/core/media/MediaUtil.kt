@@ -3,6 +3,7 @@ package com.arcns.core.media
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -214,10 +215,14 @@ class MediaUtil(var fragment: Fragment) {
  * 获取Uri文件的播放时长
  */
 val Uri.duration: Long
-    get() = MediaPlayer.create(APP.INSTANCE, this).let {
-        val value = it.duration.toLong()
-        it.release()
-        value
+    get() {
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(APP.INSTANCE, this)
+        val duration =
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                .toLongOrNull()
+        retriever.release()
+        return duration ?: -1
     }
 
 
@@ -225,9 +230,4 @@ val Uri.duration: Long
  * 获取Uri文件的播放时长
  */
 val Uri.durationOrNull: Long?
-    get() = try {
-        duration
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
+    get() = duration.let { if (it == -1L) null else it }
