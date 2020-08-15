@@ -7,7 +7,6 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.core.database.getStringOrNull
 import com.arcns.core.APP
-import sun.awt.AppContext
 
 
 /**
@@ -94,7 +93,7 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
                             duration =
                                 cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION))
                         }
-                        if (duration == null && uri != null) {
+                        if (duration == null) {
                             val mmr = MediaMetadataRetriever()
                             mmr.setDataSource(APP.INSTANCE, uri)
                             duration =
