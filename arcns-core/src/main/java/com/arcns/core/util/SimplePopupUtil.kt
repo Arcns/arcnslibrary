@@ -174,7 +174,7 @@ class SimplePopupData(
      * 更新加载框下的说明文字
      */
     fun updateLoadingDescription(loadingDescription: String? = null) {
-        this._loadingDescription.value =
+        this._loadingDescription.fastValue =
             if (loadingDescription.isNullOrBlank()) null else loadingDescription
     }
 
