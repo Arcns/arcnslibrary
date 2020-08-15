@@ -194,27 +194,27 @@ class FragmentMain : Fragment() {
     }
 
     private fun openBluetoothAndPermission() {
-        var permissions = arrayOf(
-            Permission.ACCESS_FINE_LOCATION,
-            Permission.ACCESS_COARSE_LOCATION
-        )
-        if (AndPermission.hasPermissions(
-                context,
-                permissions
-            )
-        ) {
-            viewModel.enableBluetooth()
-            return
-        }
-        requireActivity().showDialog {
-            message(text = "使用本应用需要您授予【位置】权限，用于搜索附近的蓝牙设备。如果您不同意授予以上权限，将导致本应用的功能无法正常使用。")
-            positiveButton(text = "去授予权限") {
-                openPermission(permissions, "权限获取失败，请授予本应用使用【位置】权限，用于搜索附近的蓝牙设备") {
-                    viewModel.enableBluetooth()
-                }
-            }
-            negativeButton(text = "取消")
-        }
+//        var permissions = arrayOf(
+//            Permission.ACCESS_FINE_LOCATION,
+//            Permission.ACCESS_COARSE_LOCATION
+//        )
+//        if (AndPermission.hasPermissions(
+//                context,
+//                permissions
+//            )
+//        ) {
+//            viewModel.enableBluetooth()
+//            return
+//        }
+//        requireActivity().showDialog {
+//            message(text = "使用本应用需要您授予【位置】权限，用于搜索附近的蓝牙设备。如果您不同意授予以上权限，将导致本应用的功能无法正常使用。")
+//            positiveButton(text = "去授予权限") {
+//                openPermission(permissions, "权限获取失败，请授予本应用使用【位置】权限，用于搜索附近的蓝牙设备") {
+//                    viewModel.enableBluetooth()
+//                }
+//            }
+//            negativeButton(text = "取消")
+//        }
     }
 
 

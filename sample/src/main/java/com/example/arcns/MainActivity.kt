@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val viewModel: ViewModelActivityMain by viewModels()
     private lateinit var navController: NavController
+    private lateinit var simplePopupUtil: SimplePopupUtil
 
     // 蓝牙开关广播接受者
     private val bluetoothIntentFilter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
@@ -69,6 +70,9 @@ class MainActivity : AppCompatActivity() {
         LOG("test:32ac - " + calculatedCRC16ToHex("0X35=ÿ,"))
         LOG("test:2311 - " + calculatedCRC16ToHex("FFFF=msg_,"))
         LOG("test:7657 - " + calculatedCRC16ToHex("TIME= 20200624173828,TEMP= 29.4,"))
+
+
+        simplePopupUtil = SimplePopupUtil(this, this, viewModel.simplePopupData,navController)
 
 
         // 定位器服务

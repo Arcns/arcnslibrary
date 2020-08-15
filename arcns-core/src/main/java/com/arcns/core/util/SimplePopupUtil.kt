@@ -142,6 +142,10 @@ class SimplePopupData(
     private var _disableTouchMarginTop = MutableLiveData<Float>()
     var disableTouchMarginTop: LiveData<Float> = _disableTouchMarginTop
 
+    // 加载框下的说明文字
+    private var _loadingDescription = MutableLiveData<String>()
+    var loadingDescription: LiveData<String> = _loadingDescription
+
     // 目的地更新时自动关闭加载框
     var isDestinationChangedAutoStop: Boolean = true
 
@@ -150,10 +154,12 @@ class SimplePopupData(
      * 开始加载
      */
     fun startLoading(
-        isDisableTouch: Boolean = true,
-        disableTouchMarginTop: Int? = null,
-        isEnableDisabledBackground: Boolean = defaultIsEnableDisabledBackground ?: isDisableTouch,
-        isDestinationChangedAutoStop: Boolean = true
+        isDisableTouch: Boolean = true,// 禁用触摸
+        disableTouchMarginTop: Int? = null, // 禁用触摸时，顶部不禁用的高度
+        isEnableDisabledBackground: Boolean = defaultIsEnableDisabledBackground
+            ?: isDisableTouch, // 启用背景
+        isDestinationChangedAutoStop: Boolean = true, // 目的地跳转时自动关闭搜索框
+        loadingDescription: String? = null // 加载框下的说明文字
     ) {
         _loadIng.fastValue = true
         _isDisableTouch.fastValue = isDisableTouch
@@ -161,6 +167,15 @@ class SimplePopupData(
         _disableTouchMarginTop.fastValue =
             disableTouchMarginTop?.toFloat() ?: defaultDisableTouchMarginTop
         this.isDestinationChangedAutoStop = isDestinationChangedAutoStop
+        updateLoadingDescription(loadingDescription)
+    }
+
+    /**
+     * 更新加载框下的说明文字
+     */
+    fun updateLoadingDescription(loadingDescription: String? = null) {
+        this._loadingDescription.value =
+            if (loadingDescription.isNullOrBlank()) null else loadingDescription
     }
 
     /**

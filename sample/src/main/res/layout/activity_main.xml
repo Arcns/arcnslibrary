@@ -38,6 +38,10 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <include
+            data="@{viewModel.simplePopupData}"
+            layout="@layout/simple_popup_layout_loading" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

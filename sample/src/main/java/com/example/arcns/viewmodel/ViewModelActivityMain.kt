@@ -8,10 +8,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arcns.core.map.MapTrackRecorder
 import com.arcns.core.util.Event
+import com.arcns.core.util.SimplePopupData
 import kotlinx.coroutines.launch
 
 class ViewModelActivityMain : ViewModel() {
 
+    val simplePopupData = SimplePopupData(defaultIsEnableDisabledBackground = false)
     var test:Int = 0
 
     /**

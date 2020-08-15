@@ -53,24 +53,26 @@ class ViewModelMain : ViewModel() {
             setReConnectCount(1, 5000)
             operateTimeout = 5000
         }
-        startBluetooth()
+//        startBluetooth()
     }
 
     fun startBluetooth() {
+        superViewModel.simplePopupData.startLoading(isDisableTouch = false,loadingDescription = "加载中。。")
+
         // 设备不支持蓝牙功能
-        if (!BleManager.getInstance().isSupportBle) {
-            _state.value = "当前设备不支持蓝牙功能，无法使用本应用功能"
-            _toast.value = Event("当前设备不支持蓝牙功能，无法使用本应用功能")
-            return
-        }
-        // 打开蓝牙和权限
-        val isBlueEnable = BleManager.getInstance().isBlueEnable
-        if (!isBlueEnable) {
-            _state.value = "当前手机蓝牙处于关闭状态，请开启蓝牙"
-        } else {
-            _state.value = "请授予【位置】权限，用于搜索附近的蓝牙设备"
-        }
-        _eventOpenBluetoothAndPermission.value = Event(isBlueEnable)
+//        if (!BleManager.getInstance().isSupportBle) {
+//            _state.value = "当前设备不支持蓝牙功能，无法使用本应用功能"
+//            _toast.value = Event("当前设备不支持蓝牙功能，无法使用本应用功能")
+//            return
+//        }
+//        // 打开蓝牙和权限
+//        val isBlueEnable = BleManager.getInstance().isBlueEnable
+//        if (!isBlueEnable) {
+//            _state.value = "当前手机蓝牙处于关闭状态，请开启蓝牙"
+//        } else {
+//            _state.value = "请授予【位置】权限，用于搜索附近的蓝牙设备"
+//        }
+//        _eventOpenBluetoothAndPermission.value = Event(isBlueEnable)
     }
 
     // 打开蓝牙

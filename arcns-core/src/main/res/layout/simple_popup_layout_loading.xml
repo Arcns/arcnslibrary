@@ -36,10 +36,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="@{data.loadIng?View.VISIBLE:View.GONE}"
+            app:layout_constraintBottom_toTopOf="@id/tvDescription"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{data.loadingDescription}"
+            android:layout_marginTop="@dimen/simple_popup_loading_description_margin"
+            android:textColor="@color/simple_popup_loading_description_text_color"
+            android:textSize="@dimen/simple_popup_loading_description_text_size"
+            android:visibility="@{data.loadIng&amp;&amp;data.loadingDescription!=null?View.VISIBLE:View.GONE}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/progressBar" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,4 +6,7 @@
     <dimen name="compass_current_direction_text_size">38sp</dimen>
     <dimen name="compass_current_degree_text_size">42sp</dimen>
     <dimen name="compass_current_direction_text_height">80dp</dimen>
+    <!-- 加载框 -->
+    <dimen name="simple_popup_loading_description_margin">12dp</dimen>
+    <dimen name="simple_popup_loading_description_text_size">14sp</dimen>
 </resources>
