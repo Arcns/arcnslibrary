@@ -465,22 +465,40 @@ public class FileUtil {
     }
 
     /**
-     * 返回Uri的对应文件信息（名称、类型，文件大小）
+     * 返回Uri的对应文件信息（名称、类型，文件大小，路径）
      */
     public static String[] getFileInfoWithUri(Context context, Uri uri) {
-        Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.MIME_TYPE, MediaStore.Files.FileColumns.SIZE}, null, null, null);
+        return getFileInfoWithUri(context, uri, new String[]{
+                MediaStore.Files.FileColumns.DISPLAY_NAME,
+                MediaStore.Files.FileColumns.MIME_TYPE,
+                MediaStore.Files.FileColumns.SIZE,
+                MediaStore.Files.FileColumns.DATA
+        });
+    }
+
+    /**
+     * 返回Uri的对应文件信息
+     */
+    public static String[] getFileInfoWithUri(Context context, Uri uri, String[] infoProjection) {
+        if (infoProjection == null || infoProjection.length == 0) return null;
+        Cursor cursor = context.getContentResolver().query(uri, infoProjection, null, null, null);
         if (cursor == null) {
             return null;
         }
         if (cursor.moveToFirst()) {
-            String fileName = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME));
-            String mimeType = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE));
-            String fileSize = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE));
+            String[] values = new String[infoProjection.length];
+            for (int i = 0; i < infoProjection.length; i++) {
+                try {
+                    values[i] = cursor.getString(cursor.getColumnIndex(infoProjection[i]));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    values[i] = null;
+                }
+            }
             if (!cursor.isClosed()) {
                 cursor.close();
             }
-            String[] info = {fileName, mimeType, fileSize};
-            return info;
+            return values;
         }
         return null;
     }
