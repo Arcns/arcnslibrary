@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.LinkedHashMap;
 
 import okio.Source;
 
@@ -468,7 +469,21 @@ public class FileUtil {
      * 返回Uri的对应文件信息（名称、类型，文件大小，路径）
      */
     public static String[] getFileInfoWithUri(Context context, Uri uri) {
-        return getFileInfoWithUri(context, uri, new String[]{
+        return getFileInfoMapWithUri(context, uri).values().toArray(new String[0]);
+    }
+
+    /**
+     * 返回Uri的对应文件信息
+     */
+    public static String[] getFileInfoWithUri(Context context, Uri uri, String[] infoProjection) {
+        return getFileInfoMapWithUri(context, uri, infoProjection).values().toArray(new String[0]);
+    }
+
+    /**
+     * 返回Uri的对应文件信息（名称、类型，文件大小，路径）
+     */
+    public static LinkedHashMap<String, String> getFileInfoMapWithUri(Context context, Uri uri) {
+        return getFileInfoMapWithUri(context, uri, new String[]{
                 MediaStore.Files.FileColumns.DISPLAY_NAME,
                 MediaStore.Files.FileColumns.MIME_TYPE,
                 MediaStore.Files.FileColumns.SIZE,
@@ -479,20 +494,20 @@ public class FileUtil {
     /**
      * 返回Uri的对应文件信息
      */
-    public static String[] getFileInfoWithUri(Context context, Uri uri, String[] infoProjection) {
+    public static LinkedHashMap<String, String> getFileInfoMapWithUri(Context context, Uri uri, String[] infoProjection) {
         if (infoProjection == null || infoProjection.length == 0) return null;
         Cursor cursor = context.getContentResolver().query(uri, infoProjection, null, null, null);
         if (cursor == null) {
             return null;
         }
         if (cursor.moveToFirst()) {
-            String[] values = new String[infoProjection.length];
+            LinkedHashMap<String, String> values = new LinkedHashMap<String, String>();
             for (int i = 0; i < infoProjection.length; i++) {
                 try {
-                    values[i] = cursor.getString(cursor.getColumnIndex(infoProjection[i]));
+                    values.put(infoProjection[i], cursor.getString(cursor.getColumnIndex(infoProjection[i])));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    values[i] = null;
+                    values.put(infoProjection[i], null);
                 }
             }
             if (!cursor.isClosed()) {
@@ -507,22 +522,21 @@ public class FileUtil {
      * 返回Uri的对应MimeType
      */
     public static String getFileMimeTypeWithUri(Context context, Uri uri) {
-        String[] info = getFileInfoWithUri(context, uri);
-        if (info == null || info.length < 2) {
-            return null;
-        }
-        return info[1];
+        return getFileInfoMapWithUri(context, uri).get(MediaStore.Files.FileColumns.MIME_TYPE);
     }
 
     /**
      * 返回Uri的对应文件名
      */
     public static String getFileNameWithUri(Context context, Uri uri) {
-        String[] info = getFileInfoWithUri(context, uri);
-        if (info == null || info.length < 1) {
-            return null;
-        }
-        return info[0];
+        return getFileInfoMapWithUri(context, uri).get(MediaStore.Files.FileColumns.DISPLAY_NAME);
+    }
+
+    /**
+     * 返回Uri的对应路径
+     */
+    public static String getFilePathWithUri(Context context, Uri uri) {
+        return getFileInfoMapWithUri(context, uri).get(MediaStore.Files.FileColumns.DATA);
     }
 
     /**
@@ -540,12 +554,8 @@ public class FileUtil {
      * 返回Uri的对应文件大小
      */
     public static Long getFileLengthWithUri(Context context, Uri uri) {
-        String[] info = getFileInfoWithUri(context, uri);
-        if (info == null || info.length < 3) {
-            return null;
-        }
         try {
-            return Long.parseLong(info[2]);
+            return Long.parseLong(getFileInfoMapWithUri(context, uri).get(MediaStore.Files.FileColumns.SIZE));
         } catch (Exception e) {
             return null;
         }
