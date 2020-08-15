@@ -1,12 +1,12 @@
 package com.arcns.media.selector
 
 import android.content.ContentUris
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.database.getStringOrNull
 import com.arcns.core.APP
-import com.arcns.core.media.duration
-import com.arcns.core.media.durationOrNull
 
 
 /**
@@ -93,7 +93,20 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
                             duration =
                                 cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION))
                         }
-                        if (duration == null) duration = uri?.durationOrNull
+                        if (duration == null && uri != null) {
+                            val extractor = MediaExtractor()
+                            extractor.setDataSource(APP.INSTANCE, uri!!, null)
+                            var format: MediaFormat? = null
+                            for (i in 0 until extractor.trackCount) {
+                                format = extractor.getTrackFormat(i)
+                                if (format.getString(MediaFormat.KEY_MIME).startsWith("audio/")) {
+                                    extractor.selectTrack(i)
+                                    break
+                                }
+                            }
+                            if (format != null)
+                                duration = format.getLong(MediaFormat.KEY_DURATION)
+                        }
                     }
                     else -> Unit
                 }
