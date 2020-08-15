@@ -1,8 +1,12 @@
 package com.arcns.media.selector
 
 import android.content.ContentUris
+import android.os.Build
 import android.provider.MediaStore
+import androidx.core.database.getStringOrNull
 import com.arcns.core.APP
+import com.arcns.core.media.duration
+import com.arcns.core.media.durationOrNull
 
 
 /**
@@ -36,16 +40,7 @@ fun getMediasFromMediaStore(
  */
 fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery): ArrayList<EMedia> {
     val queryProjection = when (mediaQuery.queryContentUri) {
-        MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI -> arrayOf(
-            MediaStore.Files.FileColumns._ID,
-            MediaStore.Files.FileColumns.DISPLAY_NAME,
-            MediaStore.Files.FileColumns.DATE_ADDED,
-            MediaStore.Files.FileColumns.MIME_TYPE,
-            MediaStore.Files.FileColumns.DURATION,// 只有视频和音频才有持续时间
-            MediaStore.Files.FileColumns.SIZE,
-            MediaStore.Files.FileColumns.DATA
-        )
-        else -> arrayOf(
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI -> arrayListOf(
             MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.DISPLAY_NAME,
             MediaStore.Files.FileColumns.DATE_ADDED,
@@ -53,7 +48,26 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
             MediaStore.Files.FileColumns.SIZE,
             MediaStore.Files.FileColumns.DATA
         )
-    }
+        else -> arrayListOf(
+            MediaStore.Files.FileColumns._ID,
+            MediaStore.Files.FileColumns.DISPLAY_NAME,
+            MediaStore.Files.FileColumns.DATE_ADDED,
+            MediaStore.Files.FileColumns.MIME_TYPE,
+            MediaStore.Files.FileColumns.SIZE,
+            MediaStore.Files.FileColumns.DATA
+        )
+    }.apply {
+        when (mediaQuery.queryContentUri) {
+            // 只有视频和音频才有持续时间
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                add(MediaStore.Files.FileColumns.DURATION)
+            }
+        }
+        // 添加额外查询参数
+        mediaQuery.extraQueryProjection?.forEach {
+            if (!contains(it)) add(it)
+        }
+    }.toTypedArray()
     val cursor = APP.INSTANCE.contentResolver.query(
         mediaQuery.queryContentUri,
         queryProjection,
@@ -75,10 +89,21 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
                 when (mediaQuery.queryContentUri) {
                     // 只有视频和音频才有持续时间
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI -> {
-                        duration =
-                            cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION))
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            duration =
+                                cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION))
+                        }
+                        if (duration == null) duration = uri?.durationOrNull
                     }
                     else -> Unit
+                }
+                if (!mediaQuery.extraQueryProjection.isNullOrEmpty()) {
+                    // 获取额外查询参数的值
+                    val values = HashMap<String, String?>()
+                    mediaQuery.extraQueryProjection?.forEach {
+                        values[it] = cursor.getStringOrNull(cursor.getColumnIndex(it))
+                    }
+                    extraValues = values
                 }
             })
     }

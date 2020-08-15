@@ -15,6 +15,7 @@ import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.getRandomVideoCacheFilePath
 import com.arcns.core.util.fileProviderAuthority
 import java.io.File
+import java.lang.Exception
 
 
 typealias PhtotoListener = (Intent?, String?, Int?) -> Unit
@@ -217,4 +218,16 @@ val Uri.duration: Long
         val value = it.duration.toLong()
         it.release()
         value
+    }
+
+
+/**
+ * 获取Uri文件的播放时长
+ */
+val Uri.durationOrNull: Long?
+    get() = try {
+        duration
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }

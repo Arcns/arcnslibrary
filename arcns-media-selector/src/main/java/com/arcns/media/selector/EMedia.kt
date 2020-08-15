@@ -55,6 +55,9 @@ data class EMedia(
      */
     var tag: String? = null
 
+    // 附加值
+    var extraValues: Map<String, String?>? = null
+
     /**
      * 是否选中
      */
@@ -194,5 +197,6 @@ data class EMediaSaveAsOption(
 
 data class EMediaQuery(
     var queryContentUri: Uri,
-    var querySelection: String? = null
+    var querySelection: String? = null,
+    var extraQueryProjection: Array<String>? = null
 )
