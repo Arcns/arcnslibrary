@@ -78,7 +78,7 @@ class BaiduMapViewManager(
      * 注意：该方法用于把_lifecycleOwner、_mapView等引用的对象都置为null或清空，方便系统回收资源，否则可能会引起内存泄漏
      * 该方法通常由实现类在生命周期onDestroy时调用，请勿在使用管理器过程中调用该方法
      */
-    override fun onGarbageCollection(){
+    override fun onGarbageCollection() {
         stopLocateMyLocation()
         baiduMapLocator = null
         centerFixedMarker?.remove()
@@ -245,7 +245,7 @@ class BaiduMapViewManager(
             if (onCompletionCallback != null)
                 Handler().postDelayed(
                     { onCompletionCallback.invoke() },
-                    moveCameraAnimationDuration
+                    moveCameraAnimationDuration + 100
                 )
         }
     }
