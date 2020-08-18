@@ -216,13 +216,23 @@ class MediaUtil(var fragment: Fragment) {
  */
 val Uri.duration: Long
     get() {
+        var duration = -1L
         val retriever = MediaMetadataRetriever()
-        retriever.setDataSource(APP.INSTANCE, this)
-        val duration =
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                .toLongOrNull()
-        retriever.release()
-        return duration ?: -1
+        try {
+            retriever.setDataSource(APP.INSTANCE, this)
+            duration =
+                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    .toLongOrNull() ?: -1
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                retriever.release()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return duration
     }
 
 

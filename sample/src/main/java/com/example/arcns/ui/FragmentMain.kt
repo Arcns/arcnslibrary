@@ -1,6 +1,7 @@
 package com.example.arcns.ui
 
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -142,15 +143,15 @@ class FragmentMain : Fragment() {
                     viewModelImageSelector.setupMediaSelector(
 //                        saveAsOption = viewModel.imageSaveAsOption
 //                    ,
-//                    setupFromMediaStoreMediaQuerys = arrayOf(
-//                        EMediaQuery(
-//                            queryContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-//                        ),
-//                        EMediaQuery(
-//                            queryContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-//                            querySelection = "${MediaStore.Files.FileColumns.SIZE}<145049664"
-//                        )
-//                    )
+                    setupFromMediaStoreMediaQuerys = arrayOf(
+                        EMediaQuery(
+                            queryContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        ),
+                        EMediaQuery(
+                            queryContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                            querySelection = "${MediaStore.Files.FileColumns.SIZE}<145049664"
+                        )
+                    )
                     )
 //                    NavMainDirections.actionGlobalNavigation()
                     navigationDefaultMediaSelector(

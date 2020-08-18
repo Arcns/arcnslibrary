@@ -73,33 +73,40 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
         null,
         "${MediaStore.Files.FileColumns.DATE_ADDED} DESC"
     )
-    while (cursor?.moveToNext() == true) {
+    loop@ while (cursor?.moveToNext() == true) {
         val id = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID))
+        val uri = ContentUris.withAppendedId(mediaQuery.queryContentUri, id)
+        // 只有视频和音频才有持续时间
+        var duration: Long? = null
+        when (mediaQuery.queryContentUri) {
+            MediaStore.Video.Media.INTERNAL_CONTENT_URI,
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            MediaStore.Audio.Media.INTERNAL_CONTENT_URI,
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    duration =
+                        cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION))
+                }
+                if (duration == null) {
+                    duration = uri.durationOrNull
+                }
+                if (duration == null) {
+                    // 过滤掉无持续时间的视频和音频
+                    continue@loop
+                }
+            }
+            else -> Unit
+        }
         medias.add(
             EMedia(
                 id = id,
                 name = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME)),
-                uri = ContentUris.withAppendedId(mediaQuery.queryContentUri, id),
+                uri = uri,
                 added = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED)),
                 mimeType = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)),
-                size = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE))
+                size = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE)),
+                duration = duration
             ).apply {
-                when (mediaQuery.queryContentUri) {
-                    // 只有视频和音频才有持续时间
-                    MediaStore.Video.Media.INTERNAL_CONTENT_URI,
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    MediaStore.Audio.Media.INTERNAL_CONTENT_URI,
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI -> {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            duration =
-                                cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION))
-                        }
-                        if (duration == null) {
-                            duration = uri?.durationOrNull
-                        }
-                    }
-                    else -> Unit
-                }
                 if (!mediaQuery.extraQueryProjection.isNullOrEmpty()) {
                     // 获取额外查询参数的值
                     val values = HashMap<String, String?>()
