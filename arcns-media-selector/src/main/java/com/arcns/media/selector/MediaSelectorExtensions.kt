@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import androidx.core.database.getStringOrNull
 import com.arcns.core.APP
 import com.arcns.core.media.durationOrNull
+import com.arcns.core.util.toArrayList
 
 
 /**
@@ -97,25 +98,28 @@ fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery):
             }
             else -> Unit
         }
-        medias.add(
-            EMedia(
-                id = id,
-                name = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME)),
-                uri = uri,
-                added = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED)),
-                mimeType = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)),
-                size = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE)),
-                duration = duration
-            ).apply {
-                if (!mediaQuery.extraQueryProjection.isNullOrEmpty()) {
-                    // 获取额外查询参数的值
-                    val values = HashMap<String, String?>()
-                    mediaQuery.extraQueryProjection?.forEach {
-                        values[it] = cursor.getStringOrNull(cursor.getColumnIndex(it))
-                    }
-                    extraValues = values
+        val media = EMedia(
+            id = id,
+            name = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME)),
+            uri = uri,
+            added = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED)),
+            mimeType = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)),
+            size = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE)),
+            duration = duration
+        ).apply {
+            if (!mediaQuery.extraQueryProjection.isNullOrEmpty()) {
+                // 获取额外查询参数的值
+                val values = HashMap<String, String?>()
+                mediaQuery.extraQueryProjection?.forEach {
+                    values[it] = cursor.getStringOrNull(cursor.getColumnIndex(it))
                 }
-            })
+                extraValues = values
+            }
+        }
+        if (mediaQuery.onFilter?.invoke(media) == false) {
+            continue@loop // 过滤
+        }
+        medias.add(media)
     }
     if (cursor?.isClosed == false) {
         cursor.close()

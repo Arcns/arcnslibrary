@@ -198,5 +198,6 @@ data class EMediaSaveAsOption(
 data class EMediaQuery(
     var queryContentUri: Uri,
     var querySelection: String? = null,
-    var extraQueryProjection: Array<String>? = null
+    var extraQueryProjection: Array<String>? = null,
+    val onFilter: ((EMedia) -> Boolean)? = null // 对查询到的Media进行筛选，返回true表示保留，返回false表示过滤
 )

@@ -143,15 +143,16 @@ class FragmentMain : Fragment() {
                     viewModelImageSelector.setupMediaSelector(
 //                        saveAsOption = viewModel.imageSaveAsOption
 //                    ,
-                    setupFromMediaStoreMediaQuerys = arrayOf(
-                        EMediaQuery(
-                            queryContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                        ),
-                        EMediaQuery(
-                            queryContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                            querySelection = "${MediaStore.Files.FileColumns.SIZE}<145049664"
+                        mediaSelectedMaxSize = 9,
+                        setupFromMediaStoreMediaQuerys = arrayOf(
+                            EMediaQuery(
+                                queryContentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                            ),
+                            EMediaQuery(
+                                queryContentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                                querySelection = "${MediaStore.Files.FileColumns.SIZE}<60000"
+                            )
                         )
-                    )
                     )
 //                    NavMainDirections.actionGlobalNavigation()
                     navigationDefaultMediaSelector(
