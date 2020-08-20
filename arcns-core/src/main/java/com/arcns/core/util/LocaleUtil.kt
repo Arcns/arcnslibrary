@@ -240,7 +240,7 @@ fun Configuration.updateConfigurationIfSupported(): Configuration? {
         if (locale != null) return this
     }
     val newLocale = APP.localeUtil?.getSaveLocaleAutoConvertSystemLocale()
-    if (locale != null) {
+    if (newLocale != null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) setLocale(newLocale)
         else locale = newLocale
     }
