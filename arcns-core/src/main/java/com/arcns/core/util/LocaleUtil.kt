@@ -28,6 +28,8 @@ import java.util.*
  *  2、在activity的attachBaseContext中调用applyOverrideConfiguration(Configuration())
  *  3、在activity的applyOverrideConfiguration中使用LocaleUtil.updateConfigurationIfSupported()更新语言配置
  *  4、在需要设置语言的地方调用LocaleUtil.showLocaleSelector即可
+ * 兼容5.0，6.0等老版本
+ *  1、如果设置语言的地方为Fragment则需要在其onAttach中使用LocaleUtil.wrapLocaleContext封装context的上下文
  *
  */
 class LocaleUtil(
@@ -59,7 +61,6 @@ class LocaleUtil(
         }
 
     /**
-     * 适用 <= Appcompat 1.1
      * 返回封装好语言的上下文
      */
     fun wrapLocaleContext(context: Context?): Context? =
