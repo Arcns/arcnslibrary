@@ -13,12 +13,22 @@ import java.util.*
 /**
  * 语言工具
  * 使用方法：
+ * 一、Appcompat版本 <= 1.1
  * 1、在application oncreate中初始化，并在attachBaseContext、onConfigurationChanged在调用LocaleUtil.setSystemLocaleLanguage设置系统默认语言
  * 2、在activity的attachBaseContext中使用LocaleUtil.wrapLocaleContext封装super的上下文
  * 3、在需要设置语言的地方调用LocaleUtil.showLocaleSelector即可
  * 兼容5.0，6.0等老版本
  * 1、如果设置语言的地方为Fragment则需要在其onAttach中使用LocaleUtil.wrapLocaleContext封装context的上下文
  * 2、在activity的applyOverrideConfiguration中使用Context.applyOverrideConfiguration覆盖super的语言配置
+ *
+ *
+ *
+ * 二、Appcompat版本 >= 1.1
+ *  1、在application oncreate中初始化，并在attachBaseContext、onConfigurationChanged在调用LocaleUtil.setSystemLocaleLanguage设置系统默认语言
+ *  2、在activity的attachBaseContext中调用applyOverrideConfiguration(Configuration())
+ *  3、在activity的applyOverrideConfiguration中使用LocaleUtil.updateConfigurationIfSupported()更新语言配置
+ *  4、在需要设置语言的地方调用LocaleUtil.showLocaleSelector即可
+ *
  */
 class LocaleUtil(
     /**
@@ -49,6 +59,7 @@ class LocaleUtil(
         }
 
     /**
+     * 适用 <= Appcompat 1.1
      * 返回封装好语言的上下文
      */
     fun wrapLocaleContext(context: Context?): Context? =
@@ -205,6 +216,7 @@ val Configuration.localeLanguage: String
     }.language
 
 /**
+ * 适用 <= Appcompat 1.1
  * 应用语言配置（使语言配置修改后能够兼容5.0，6.0等老版本）
  */
 fun Context.applyOverrideConfiguration(overrideConfiguration: Configuration?): Configuration? {
@@ -214,4 +226,22 @@ fun Context.applyOverrideConfiguration(overrideConfiguration: Configuration?): C
         overrideConfiguration.uiMode = uiMode
     }
     return overrideConfiguration
+}
+
+/**
+ * 适用 >= Appcompat 1.2
+ * 更新语言配置
+ */
+fun Configuration.updateConfigurationIfSupported(): Configuration? {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (!locales.isEmpty) return this
+    } else {
+        if (locale != null) return this
+    }
+    val newLocale = APP.localeUtil?.getSaveLocaleAutoConvertSystemLocale()
+    if (locale != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) setLocale(newLocale)
+        else locale = newLocale
+    }
+    return this
 }
