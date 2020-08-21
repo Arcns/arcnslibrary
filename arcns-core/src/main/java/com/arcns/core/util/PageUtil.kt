@@ -64,9 +64,7 @@ class PageUtil(
 
     // 检查是否已经到最后一页
     fun <T> checkNoMoreData(newData: List<T>?){
-        if (newData?.size ?: 0 < pageSize) {
-            _noMoreData.value = true
-        }
+        _noMoreData.value = newData?.size ?: 0 < pageSize
     }
 
     // 合并分页数据
