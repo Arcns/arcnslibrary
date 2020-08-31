@@ -56,7 +56,11 @@ import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.gson.ExclusionStrategy
+import com.google.gson.FieldAttributes
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.Expose
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -220,16 +224,6 @@ val Int.dimenOrNull: Float?
         null
     }
 
-
-// string序列化为对象
-inline fun <reified T> Gson.fromJson(json: String) = fromJson(json, T::class.java)
-inline fun <reified T> Gson.tryFromJson(json: String?): T? = try {
-    if (json.isNullOrBlank()) null
-    else fromJson(json, T::class.java)
-} catch (e: java.lang.Exception) {
-    null
-}
-
 // string转换为html
 val String.html: Spanned
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -243,6 +237,52 @@ fun String.colorHtmlToString(colorRes: Int): String =
 
 fun String.colorHtml(color: Int): Spanned = colorHtmlToString(color).html
 
+
+/***********************************Gson**************************************/
+// string序列化为对象
+inline fun <reified T> Gson.fromJson(json: String) = fromJson(json, T::class.java)
+inline fun <reified T> Gson.tryFromJson(json: String?): T? = try {
+    if (json.isNullOrBlank()) null
+    else fromJson(json, T::class.java)
+} catch (e: java.lang.Exception) {
+    null
+}
+
+
+//添加序列化排除策略和反序列化排除策略
+fun GsonBuilder.addExclusionStrategy(): GsonBuilder {
+    return addSerializationExclusionStrategy().addDeserializationExclusionStrategy()
+}
+
+//添加序列化排除策略
+fun GsonBuilder.addSerializationExclusionStrategy(): GsonBuilder {
+    return addSerializationExclusionStrategy(
+        object : ExclusionStrategy {
+            override fun shouldSkipClass(clazz: Class<*>?): Boolean = false
+
+            override fun shouldSkipField(f: FieldAttributes?): Boolean {
+                val expose = f?.getAnnotation(Expose::class.java)
+                return expose != null && !expose.serialize
+            }
+
+        })
+}
+
+//添加反序列化排除策略
+fun GsonBuilder.addDeserializationExclusionStrategy(): GsonBuilder {
+    return addDeserializationExclusionStrategy(
+        object : ExclusionStrategy {
+            override fun shouldSkipClass(clazz: Class<*>?): Boolean = false
+
+            override fun shouldSkipField(f: FieldAttributes?): Boolean {
+                val expose =
+                    f?.getAnnotation(Expose::class.java)
+                // 排除字段返回true
+                return expose != null && !expose.deserialize
+            }
+
+        })
+}
 /***********************************键盘显示隐藏**************************************/
 
 // 隐藏键盘
