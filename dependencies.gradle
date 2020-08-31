@@ -1,9 +1,9 @@
 ext.versions = [
-        min_sdk     : 17,
+        min_sdk     : 19,
         compile_sdk : 29,
         build_tools : "29.0.2",
-        publish_code: 71,
-        publish_name: "0.5.31"
+        publish_code: 72,
+        publish_name: "0.5.32"
 ]
 ext.deps = [
         gradle_plugins: [
@@ -43,6 +43,11 @@ ext.deps = [
                 md_lifecycle   : "com.afollestad.material-dialogs:lifecycle:3.3.0",
                 md_datetime    : "com.afollestad.material-dialogs:datetime:3.3.0",
                 md_bottomsheets: "com.afollestad.material-dialogs:bottomsheets:3.3.0"
+        ],
+        // okhttp
+        okhttp    : [
+                okhttp        : "com.squareup.okhttp3:okhttp:4.4.0",
+                logging_interceptor   : "com.squareup.okhttp3:logging-interceptor:4.4.0"
         ],
         // 测试
         test          : [

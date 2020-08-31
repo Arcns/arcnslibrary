@@ -32,6 +32,9 @@ dependencies {
     compileOnly deps.afollestad.md_lifecycle
     compileOnly deps.afollestad.md_datetime
     compileOnly deps.afollestad.md_bottomsheets
+    // okHttp
+    implementation deps.okhttp.okhttp
+    implementation deps.okhttp.logging_interceptor
     // 图片加载库
     implementation deps.glide
     annotationProcessor deps.glide_compiler

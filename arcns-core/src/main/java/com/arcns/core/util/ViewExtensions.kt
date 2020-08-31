@@ -249,12 +249,12 @@ inline fun <reified T> Gson.tryFromJson(json: String?): T? = try {
 }
 
 
-//添加序列化排除策略和反序列化排除策略
+//添加序列化排除策略和反序列化排除策略 匹配Gson的@Expose注解，同时实现未配置@Expose的属性全部自动匹配
 fun GsonBuilder.addExclusionStrategy(): GsonBuilder {
     return addSerializationExclusionStrategy().addDeserializationExclusionStrategy()
 }
 
-//添加序列化排除策略
+//添加序列化排除策略 匹配Gson的@Expose注解，同时实现未配置@Expose的属性全部自动匹配
 fun GsonBuilder.addSerializationExclusionStrategy(): GsonBuilder {
     return addSerializationExclusionStrategy(
         object : ExclusionStrategy {
@@ -268,7 +268,7 @@ fun GsonBuilder.addSerializationExclusionStrategy(): GsonBuilder {
         })
 }
 
-//添加反序列化排除策略
+//添加反序列化排除策略 匹配Gson的@Expose注解，同时实现未配置@Expose的属性全部自动匹配
 fun GsonBuilder.addDeserializationExclusionStrategy(): GsonBuilder {
     return addDeserializationExclusionStrategy(
         object : ExclusionStrategy {
