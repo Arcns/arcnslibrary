@@ -128,7 +128,7 @@ class DownloadManager {
                         var inputStream: InputStream? = null
                         try {
                             val responseBody =
-                                response.body() ?: throw Exception("response body not empty")
+                                response.body ?: throw Exception("response body not empty")
                             // 获取下载任务的长度
                             var total = responseBody.contentLength()
                             // 判断断点继传相关

@@ -13,10 +13,12 @@ import com.arcns.core.file.mimeType
 import com.arcns.core.file.tryClose
 import com.arcns.core.util.string
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.Okio
 import okio.Source
+import okio.source
 import java.io.File
 import java.io.InputStream
 import java.io.RandomAccessFile
@@ -297,14 +299,14 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
         if (source != null) {
             standardSource = source
         } else if (inputStream != null) {
-            standardSource = Okio.source(inputStream)
+            standardSource = inputStream?.source()
         } else if (uri != null) {
             standardSource =
-                APP.INSTANCE.contentResolver.openInputStream(uri!!)?.let { Okio.source(it) }
+                APP.INSTANCE.contentResolver.openInputStream(uri!!)?.let { it.source() }
         } else if (file != null) {
-            standardSource = if (!file!!.exists()) null else Okio.source(file)
+            standardSource = if (!file!!.exists()) null else file?.source()
         } else if (filePath != null) {
-            standardSource = File(filePath).let { if (!it.exists()) null else Okio.source(it) }
+            standardSource = File(filePath).let { if (!it.exists()) null else it.source() }
         }
         return standardSource
     }
@@ -340,7 +342,7 @@ open class UploadTaskFileParameter : UploadTaskBaseParameter {
      * 上传文件类型
      */
     val fileMediaType: MediaType?
-        get() = MediaType.parse(fileMimeType)
+        get() = fileMimeType.toMediaTypeOrNull()
 
     /**
      * 关闭源

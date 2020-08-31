@@ -21,7 +21,7 @@ const val TASK_NOTIFICATION_PLACEHOLDER_PERCENTAGE = "{percentage}"
  * 是否支持断点续传（Range寻址）
  */
 val Response.isAcceptRange: Boolean
-    get() = code() == HttpURLConnection.HTTP_PARTIAL || "bytes".equals(
+    get() = code == HttpURLConnection.HTTP_PARTIAL || "bytes".equals(
         header("Accept-Ranges"),
         true
     )
