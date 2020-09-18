@@ -283,6 +283,7 @@ fun GsonBuilder.addDeserializationExclusionStrategy(): GsonBuilder {
 
         })
 }
+
 /***********************************键盘显示隐藏**************************************/
 
 // 隐藏键盘
@@ -1734,4 +1735,11 @@ fun Activity.setupAutoHideSoftInput(
             rvView.onFocusChangeListener = null
         }
     })
+}
+
+/**
+ * 从父控件中删除自己
+ */
+fun View.removeSelfFromParent() {
+    (parent as? ViewGroup)?.removeView(this)
 }
