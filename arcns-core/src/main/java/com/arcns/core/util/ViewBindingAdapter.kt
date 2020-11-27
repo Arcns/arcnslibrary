@@ -2,6 +2,7 @@ package com.arcns.core.util
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.text.TextUtils
 import android.util.DisplayMetrics
 import android.view.View
@@ -137,11 +138,23 @@ fun customDrawableTopSize(
             right = DrawableCompat.wrap(this).mutate()
             DrawableCompat.setTint(this, it)
         }
-        if (drawableRightSize != null) {
-            setBounds(0, 0, drawableRightSize.toInt(), drawableRightSize.toInt())
-        } else if (drawableRightWidth != null && drawableRightHeight != null) {
-            setBounds(0, 0, drawableRightWidth.toInt(), drawableRightHeight.toInt())
+//        if (drawableRightSize != null) {
+//            setBounds(0, 0, drawableRightSize.toInt(), drawableRightSize.toInt())
+//        } else if (drawableRightWidth != null && drawableRightHeight != null) {
+//            setBounds(0, 0, drawableRightWidth.toInt(), drawableRightHeight.toInt())
+//        }
+        var left = 0
+        var top = 0
+        var right = drawableRightSize?.toInt() ?: drawableRightWidth?.toInt() ?: return@apply
+        var bottom = drawableRightSize?.toInt() ?: drawableRightHeight?.toInt() ?: return@apply
+        // 修复andorid5.1及以下版本 rightDrawable错位的问题
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            left = -textView.paddingRight
+            top = (textView.height - bottom) / 2
+            right -= textView.paddingRight
+            bottom += top
         }
+        setBounds(left, top, right, bottom)
     }
     bottom?.apply {
         drawableBottomTint?.let {
