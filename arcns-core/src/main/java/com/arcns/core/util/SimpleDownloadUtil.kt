@@ -21,27 +21,64 @@ val DOWNLOAD_SAVE_NAME_SUFFIX_APK = ".apk"
  * 简单下载任务类（会通过系统服务调用系统自带的下载器进行下载，适用于简单下载场景）
  */
 data class SimpleDownloadTask(
-    // 下载地址
-    val downloadUrl: String,
-    // 下载标题
-    val downloadTitle: String,
-    // 下载简介
-    val downloadDescription: String,
-    // 下载保存文件夹（默认为O以上公共目录下载文件夹、O以下私有目录下载文件夹）
-    var downloadSaveDir: String = Environment.DIRECTORY_DOWNLOADS,
-    // 下载保存文件名（默认为当前时间戳）
-    var downloadSaveName: String? = null,
-    // 下载保存文件后缀名（默认为空）
-    var downloadSaveNameSuffix: String? = null,
-    // 是否允许重复下载，默认为不允许
-    var isAllowDuplicate: Boolean = false,
-    // 下载完成后是否自动打开
-    var isAutoOpen: Boolean = false,
-    // 下载错误提示
-    val downloadFailedTips: String? = null
+        // 下载地址
+        val downloadUrl: String,
+        // 下载标题
+        val downloadTitle: String,
+        // 下载简介
+        val downloadDescription: String,
+        // 下载保存文件夹（默认为O以上公共目录下载文件夹、O以下私有目录下载文件夹）
+        var downloadSaveDir: String = Environment.DIRECTORY_DOWNLOADS,
+        // 下载保存文件名（默认为当前时间戳）
+        var downloadSaveName: String? = null,
+        // 下载保存文件后缀名（默认为空）
+        var downloadSaveNameSuffix: String? = null,
+        // 是否允许重复下载，默认为不允许
+        var isAllowDuplicate: Boolean = false,
+        // 下载完成后是否自动打开
+        var isAutoOpen: Boolean = false,
+        // 下载错误提示
+        val downloadFailedTips: String? = null
 ) : Serializable {
     var downloadId: Long? = null
     var downloadStatus: Int? = null
+}
+
+/**
+ * 服务状态
+ */
+data class SimpleDownloadTaskStatus(
+        var id: Long?,
+        var state: Int?,
+        var soFarBytes: Long?, //已下载字节数
+        var totalSizeBytes: Long?//总字节数
+) {
+    /**
+     * 任务是否存在
+     */
+    val hasExists: Boolean
+        get() {
+            if (id == null) return false
+            when (state) {
+                DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING -> return true
+            }
+            return false
+        }
+
+    /**
+     * 进度
+     */
+    val progress: Int
+        get() = progressDecimal.toInt()
+
+    /**
+     * 进度（小数）
+     */
+    val progressDecimal: Double =
+            if (state == DownloadManager.STATUS_SUCCESSFUL) 1.0
+            else if (soFarBytes == null || totalSizeBytes == null) 0.0
+            else if (soFarBytes == totalSizeBytes) 1.0
+            else (soFarBytes!! / totalSizeBytes!!).toDouble()
 }
 
 /**
@@ -51,7 +88,7 @@ class SimpleDownloadUtil(var context: Context) {
 
     private var downloadTasks = HashMap<String, SimpleDownloadTask>()
     private var downloadManager =
-        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
     // 缓存的下载任务ID列表（url,id）
     private val DB_CACHED_DOWNLOAD_IDS = "DB_CACHED_DOWNLOAD_IDS"
@@ -67,10 +104,10 @@ class SimpleDownloadUtil(var context: Context) {
      */
     private fun initCachedDownloadIDs() {
         var value = APP.CONTEXT.getSharedPreferences(DB_CACHED_DOWNLOAD_IDS, Context.MODE_PRIVATE)
-            .getString(
-                KEY_CACHED_DOWNLOAD_IDS,
-                null
-            )
+                .getString(
+                        KEY_CACHED_DOWNLOAD_IDS,
+                        null
+                )
         var ids: HashMap<String, Double>? = Gson().tryFromJson(value)
         ids?.forEach {
             // 把仍然正在进行中的下载任务添加到缓存列表中
@@ -85,12 +122,12 @@ class SimpleDownloadUtil(var context: Context) {
      * 缓存下载任务ID列表
      */
     private fun saveCachedDownloadIDs() =
-        APP.CONTEXT.getSharedPreferences(
-            DB_CACHED_DOWNLOAD_IDS,
-            Context.MODE_PRIVATE
-        ).edit {
-            putString(KEY_CACHED_DOWNLOAD_IDS, Gson().toJson(cachedDownloadIDs))
-        }
+            APP.CONTEXT.getSharedPreferences(
+                    DB_CACHED_DOWNLOAD_IDS,
+                    Context.MODE_PRIVATE
+            ).edit {
+                putString(KEY_CACHED_DOWNLOAD_IDS, Gson().toJson(cachedDownloadIDs))
+            }
 
     /**
      * 添加任务ID到缓存列表
@@ -104,27 +141,31 @@ class SimpleDownloadUtil(var context: Context) {
      * 获取任务ID
      */
     fun getDownloadTaskID(downloadUrl: String): Long? = downloadTasks[downloadUrl]?.downloadId
-        ?: cachedDownloadIDs[downloadUrl] ?: null
+            ?: cachedDownloadIDs[downloadUrl] ?: null
 
     /**
      * 通过url获取下载任务状态
      */
-    fun getDownloadTaskStatusByUrl(downloadUrl: String): Int? {
+    fun getDownloadTaskStatusByUrl(downloadUrl: String): SimpleDownloadTaskStatus? {
         return getDownloadTaskStatusByID(getDownloadTaskID(downloadUrl) ?: return null)
     }
 
     /**
      * 通过id获取下载任务状态
      */
-    fun getDownloadTaskStatusByID(id: Long): Int? {
+    fun getDownloadTaskStatusByID(id: Long): SimpleDownloadTaskStatus? {
         var cursor = downloadManager.query(DownloadManager.Query().apply {
             setFilterById(id)
         })
         if (cursor.moveToFirst()) {
-            val state =
-                cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+            val status = SimpleDownloadTaskStatus(
+                    id = id,
+                    state = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)),
+                    soFarBytes = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)),
+                    totalSizeBytes = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+            )
             cursor.close()
-            return state
+            return status
         }
         return null
     }
@@ -139,19 +180,14 @@ class SimpleDownloadUtil(var context: Context) {
     /**
      * 通过id检查下载任务是否存在
      */
-    fun checkDownloadTaskHasExistsByID(id: Long): Boolean {
-        var state = getDownloadTaskStatusByID(id)
-        when (state) {
-            DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_PENDING, DownloadManager.STATUS_RUNNING -> return true
-        }
-        return false
-    }
+    fun checkDownloadTaskHasExistsByID(id: Long): Boolean = getDownloadTaskStatusByID(id)?.hasExists
+            ?: false
 
     /**
      * 开始下载任务
      */
     fun startDownloadTask(
-        downloadTask: SimpleDownloadTask
+            downloadTask: SimpleDownloadTask
     ) {
         // 防止重复提交下载任务
         if (!downloadTask.isAllowDuplicate && checkDownloadTaskHasExistsByUrl(downloadTask.downloadUrl)) {
@@ -163,7 +199,8 @@ class SimpleDownloadUtil(var context: Context) {
         // 下载保存的文件夹和文件名
         val saveDir = downloadTask.downloadSaveDir
         val saveName = downloadTask.downloadSaveName
-            ?: (System.currentTimeMillis().toString() + (downloadTask.downloadSaveNameSuffix ?: ""))
+                ?: (System.currentTimeMillis().toString() + (downloadTask.downloadSaveNameSuffix
+                        ?: ""))
         // 设置下载路径
         var request = DownloadManager.Request(Uri.parse(downloadTask.downloadUrl))
         // 设置文件名和目录
@@ -176,11 +213,11 @@ class SimpleDownloadUtil(var context: Context) {
         }
         // 配置wifi、移动网络均可下载
         request.setAllowedNetworkTypes(
-            DownloadManager.Request.NETWORK_MOBILE or DownloadManager.Request.NETWORK_WIFI
+                DownloadManager.Request.NETWORK_MOBILE or DownloadManager.Request.NETWORK_WIFI
         )
         // 显示下载进度到通知栏
         request.setNotificationVisibility(
-            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
         )
         // 配置通知栏下载标题与描述
         request.setTitle(downloadTask.downloadTitle)
@@ -190,8 +227,8 @@ class SimpleDownloadUtil(var context: Context) {
         addCachedDownloadID(downloadTask)
         //注册广播接收者，监听下载状态
         context.registerReceiver(
-            downloadCompleteReceiver,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+                downloadCompleteReceiver,
+                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         )
     }
 
@@ -207,14 +244,14 @@ class SimpleDownloadUtil(var context: Context) {
 
     // 发送下载完成事件
     fun sendDownloadCompleteEvent(id: Long, status: Int) =
-        sendDownloadCompleteEvent(getDownloadTaskByID(id), status)
+            sendDownloadCompleteEvent(getDownloadTaskByID(id), status)
 
     // 发送下载完成事件
     fun sendDownloadCompleteEvent(downloadTask: SimpleDownloadTask?, status: Int) =
-        downloadTask?.run {
-            downloadStatus = status
-            EventBus.getDefault().post(this)
-        }
+            downloadTask?.run {
+                downloadStatus = status
+                EventBus.getDefault().post(this)
+            }
 
     /**
      * 下载状态广播接收者
@@ -243,9 +280,9 @@ class SimpleDownloadUtil(var context: Context) {
                     // 自动安装
                     if (downloadTask?.isAutoOpen == true) {
                         if (DOWNLOAD_SAVE_NAME_SUFFIX_APK.equals(
-                                downloadTask.downloadSaveNameSuffix,
-                                true
-                            )
+                                        downloadTask.downloadSaveNameSuffix,
+                                        true
+                                )
                         ) {
                             // 安装APK
                             onInstallApk(context, uri)
@@ -264,9 +301,9 @@ class SimpleDownloadUtil(var context: Context) {
                     // 弹出错误提示
                     downloadTask?.downloadFailedTips?.run {
                         Toast.makeText(
-                            context,
-                            this,
-                            Toast.LENGTH_LONG
+                                context,
+                                this,
+                                Toast.LENGTH_LONG
                         ).show()
                     }
                     // 解除广播接收
@@ -304,9 +341,9 @@ class SimpleDownloadUtil(var context: Context) {
     }
 
     fun openBrowserDownload(downloadApkUrl: String) =
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(downloadApkUrl)).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        })
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(downloadApkUrl)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
 }
 
 
@@ -323,8 +360,8 @@ class SimpleDownloadService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         run startDownloadApk@{
             var downloadTask =
-                intent?.getSerializableExtra(dataNameFordownloadTask) as? SimpleDownloadTask
-                    ?: return@startDownloadApk
+                    intent?.getSerializableExtra(dataNameFordownloadTask) as? SimpleDownloadTask
+                            ?: return@startDownloadApk
             downloadUtil.startDownloadTask(downloadTask)
         }
         return super.onStartCommand(intent, flags, startId)
@@ -338,8 +375,8 @@ class SimpleDownloadService : Service() {
     companion object {
         private const val dataNameFordownloadTask: String = "dataNameFordownloadTask"
         fun startService(
-            context: Context?,
-            downloadTask: SimpleDownloadTask
+                context: Context?,
+                downloadTask: SimpleDownloadTask
         ) {
             context?.startService(Intent(context, SimpleDownloadService::class.java).apply {
                 putExtra(dataNameFordownloadTask, downloadTask)
