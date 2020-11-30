@@ -1,6 +1,7 @@
 package com.arcns.core.util
 
 import android.app.DownloadManager
+import android.app.DownloadManager.COLUMN_REASON
 import android.app.Service
 import android.content.*
 import android.net.Uri
@@ -50,6 +51,7 @@ data class SimpleDownloadTask(
 data class SimpleDownloadTaskStatus(
     var id: Long?,
     var state: Int?,
+    var reason: Int?,
     var soFarBytes: Long?, //已下载字节数
     var totalSizeBytes: Long?//总字节数
 ) {
@@ -162,6 +164,7 @@ class SimpleDownloadUtil(var context: Context) {
             val status = SimpleDownloadTaskStatus(
                 id = id,
                 state = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)),
+                reason = cursor.getInt(cursor.getColumnIndex(COLUMN_REASON)),
                 soFarBytes = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)),
                 totalSizeBytes = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
             )
