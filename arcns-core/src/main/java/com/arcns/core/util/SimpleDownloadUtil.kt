@@ -66,10 +66,10 @@ data class SimpleDownloadTaskStatus(
         }
 
     /**
-     * 进度
+     * 进度百分比
      */
-    val progress: Int
-        get() = progressDecimal.toInt()
+    val progressPercentage: Int
+        get() = (progressDecimal * 100).toInt()
 
     /**
      * 进度（小数）
@@ -79,7 +79,7 @@ data class SimpleDownloadTaskStatus(
             if (state == DownloadManager.STATUS_SUCCESSFUL) 1.0
             else if (soFarBytes == null || totalSizeBytes == null) 0.0
             else if (soFarBytes == totalSizeBytes) 1.0
-            else (soFarBytes!! / totalSizeBytes!!).toDouble()
+            else soFarBytes!!.toDouble() / totalSizeBytes!!.toDouble()
 }
 
 /**
