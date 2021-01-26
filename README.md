@@ -1,4 +1,4 @@
-## 基于MVVM的公共库 https://github.com/Arcns/arcnslibrary
+## 基于MVVM的公共库 [![](https://www.jitpack.io/v/Arcns/arcnslibrary.svg)](https://www.jitpack.io/#Arcns/arcnslibrary)
 
 ### 地址
 ```
