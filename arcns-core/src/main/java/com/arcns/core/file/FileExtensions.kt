@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import com.arcns.core.APP
 import com.arcns.core.util.keepDecimalPlaces
+import com.arcns.xfile.FileUtil
 import okio.Source
 import java.io.*
 import java.text.SimpleDateFormat

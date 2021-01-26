@@ -71,7 +71,6 @@ class MainActivity : AppCompatActivity() {
         LOG("test:2311 - " + calculatedCRC16ToHex("FFFF=msg_,"))
         LOG("test:7657 - " + calculatedCRC16ToHex("TIME= 20200624173828,TEMP= 29.4,"))
 
-
         simplePopupUtil = SimplePopupUtil(this, this, viewModel.simplePopupData,navController)
 
 

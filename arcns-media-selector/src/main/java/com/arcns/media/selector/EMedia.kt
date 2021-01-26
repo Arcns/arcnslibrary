@@ -3,6 +3,7 @@ package com.arcns.media.selector
 import android.net.Uri
 import com.arcns.core.file.*
 import com.arcns.core.util.dimen
+import com.arcns.xfile.FileUtil
 
 data class EMedia(
     /**

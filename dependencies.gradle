@@ -2,8 +2,8 @@ ext.versions = [
         min_sdk     : 19,
         compile_sdk : 29,
         build_tools : "29.0.2",
-        publish_code: 81,
-        publish_name: "0.5.51"
+        publish_code: 82,
+        publish_name: "0.5.52"
 ]
 ext.deps = [
         gradle_plugins: [
@@ -33,7 +33,7 @@ ext.deps = [
                 // viewpager2
                 viewpager2         : "androidx.viewpager2:viewpager2:1.0.0",
                 // recyclerview
-                recyclerview         : "androidx.recyclerview:recyclerview:1.1.0",
+                recyclerview       : "androidx.recyclerview:recyclerview:1.1.0",
                 // fragment
                 fragment_ktx       : "androidx.fragment:fragment-ktx:1.2.5",
         ],
@@ -45,9 +45,9 @@ ext.deps = [
                 md_bottomsheets: "com.afollestad.material-dialogs:bottomsheets:3.3.0"
         ],
         // okhttp
-        okhttp    : [
-                okhttp        : "com.squareup.okhttp3:okhttp:4.4.0",
-                logging_interceptor   : "com.squareup.okhttp3:logging-interceptor:4.4.0"
+        okhttp        : [
+                okhttp             : "com.squareup.okhttp3:okhttp:4.4.0",
+                logging_interceptor: "com.squareup.okhttp3:logging-interceptor:4.4.0"
         ],
         // 测试
         test          : [
@@ -70,5 +70,7 @@ ext.deps = [
         // 波浪动画
         wave_line_view: "com.github.Jay-Goo:WaveLineView:v1.0.4",
         // 录音视频缓存
-        video_cache   : "com.danikula:videocache:2.7.1"
+        video_cache   : "com.danikula:videocache:2.7.1",
+        // 文件操作
+        xfile         : "com.gitee.arcns:xfile:0.2"
 ]

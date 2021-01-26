@@ -45,4 +45,6 @@ dependencies {
     implementation deps.eventbus
     // 图片压缩大小
     implementation deps.compressor
+    // 文件操作
+    api deps.xfile
 }

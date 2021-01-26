@@ -10,15 +10,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.arcns.core.APP
-import com.arcns.core.file.FileUtil
 import com.arcns.core.file.cacheDirPath
-import com.arcns.core.media.selector.*
 import com.arcns.core.util.*
 import com.arcns.media.audio.MediaAudioRecorderPlayerUtil
 import com.arcns.media.selector.*
+import com.arcns.xfile.FileUtil
 import com.example.arcns.R
 import com.example.arcns.databinding.FragmentMainBinding
-import com.example.arcns.util.openPermission
 import com.example.arcns.viewmodel.ViewModelActivityMain
 import com.example.arcns.viewmodel.ViewModelMain
 import com.yanzhenjie.permission.AndPermission

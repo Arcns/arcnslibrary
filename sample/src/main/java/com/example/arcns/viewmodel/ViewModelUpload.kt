@@ -4,20 +4,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.arcns.core.APP
-import com.arcns.core.file.FileUtil
 import com.arcns.core.file.cacheDirPath
 import com.arcns.core.file.getCurrentDateTimeFileName
-import com.arcns.core.file.getCurrentTimeMillisFileName
 import com.arcns.core.network.*
 import com.arcns.core.util.Event
 import com.arcns.core.util.LOG
 import com.arcns.core.util.eventValue
+import com.arcns.xfile.FileUtil
 import com.example.arcns.R
 import com.example.arcns.data.network.NetworkDataSource
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.io.File
-import java.io.IOException
 
 
 class ViewModelUpload : ViewModel() {

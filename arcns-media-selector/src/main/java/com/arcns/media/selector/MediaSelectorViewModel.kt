@@ -3,12 +3,12 @@ package com.arcns.media.selector
 import android.provider.MediaStore
 import androidx.lifecycle.*
 import com.arcns.core.APP
-import com.arcns.core.file.FileUtil
 import com.arcns.core.file.getRandomCacheFilePath
 import com.arcns.core.util.Event
 import com.arcns.core.util.fastEventValue
 import com.arcns.core.util.saveImageAsLocal
 import com.arcns.core.util.string
+import com.arcns.xfile.FileUtil
 import kotlinx.coroutines.*
 
 class MediaSelectorViewModel : ViewModel() {

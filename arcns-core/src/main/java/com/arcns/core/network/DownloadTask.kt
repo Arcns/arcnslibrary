@@ -6,11 +6,11 @@ import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import com.arcns.core.R
 import com.arcns.core.app.*
-import com.arcns.core.file.FileUtil
 import com.arcns.core.file.getCurrentTimeMillisFileName
 import com.arcns.core.file.tryClose
 import com.arcns.core.util.LOG
 import com.arcns.core.util.string
+import com.arcns.xfile.FileUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -135,7 +135,10 @@ open class DownloadTask(
     /**
      * 设置当前进度
      */
-    fun updateProgress(contentLength: Long, progress: Long): NetworkTaskProgress =
+    fun updateProgress(
+        contentLength: Long,
+        progress: Long
+    ): NetworkTaskProgress =
         NetworkTaskProgress(contentLength, progress).apply {
             currentProgress = this
             onDownloadProgressUpdate?.invoke(this@DownloadTask, this)

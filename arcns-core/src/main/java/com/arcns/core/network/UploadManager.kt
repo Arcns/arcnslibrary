@@ -4,12 +4,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
+import com.arcns.core.APP
 import com.arcns.core.util.EventObserver
 import com.arcns.core.util.LOG
 import okhttp3.*
 import okio.Buffer
 import okio.BufferedSink
 import java.io.IOException
+import java.lang.Appendable
 
 
 // 上传任务的文件成功回调
@@ -129,8 +131,10 @@ class UploadManager {
                     // 更新状态
                     task.onChangeStateToFailureIfNotStop()
                     // 失败回调
-                    task.onTaskFailure?.invoke(task, e, null)
-                    managerData.onTaskFailure?.invoke(task, e, null)
+                    APP.runOnUiThread {
+                        task.onTaskFailure?.invoke(task, e, null)
+                        managerData.onTaskFailure?.invoke(task, e, null)
+                    }
                     // 更新到通知栏
                     managerData.updateNotification(task)
                     managerData.onEventTaskUpdateByState(task)
@@ -142,8 +146,10 @@ class UploadManager {
                         // 更新状态
                         task.onChangeStateToSuccess()
                         // 成功回调
-                        task.onTaskSuccess?.invoke(task, response)
-                        managerData.onTaskSuccess?.invoke(task, response)
+                        APP.runOnUiThread {
+                            task.onTaskSuccess?.invoke(task, response)
+                            managerData.onTaskSuccess?.invoke(task, response)
+                        }
                         // 更新到通知栏
                         managerData.updateNotification(task)
                         managerData.onEventTaskUpdateByState(task)
@@ -152,8 +158,10 @@ class UploadManager {
                         // 更新状态
                         task.onChangeStateToFailureIfNotStop()
                         // 失败回调
-                        task.onTaskFailure?.invoke(task, null, response)
-                        managerData.onTaskFailure?.invoke(task, null, response)
+                        APP.runOnUiThread {
+                            task.onTaskFailure?.invoke(task, null, response)
+                            managerData.onTaskFailure?.invoke(task, null, response)
+                        }
                         // 更新到通知栏
                         managerData.updateNotification(task)
                         managerData.onEventTaskUpdateByState(task)
@@ -244,13 +252,15 @@ class UploadManager {
             //上传任务的文件成功回调
             private fun uploadFileSuccess() {
                 // 上传任务的文件成功回调
-                task.onUploadFileSuccess?.invoke(UploadTaskFileParameterUpdate(task, parameter))
-                managerData.onUploadFileSuccess?.invoke(
-                    UploadTaskFileParameterUpdate(
-                        task,
-                        parameter
+                APP.runOnUiThread {
+                    task.onUploadFileSuccess?.invoke(UploadTaskFileParameterUpdate(task, parameter))
+                    managerData.onUploadFileSuccess?.invoke(
+                        UploadTaskFileParameterUpdate(
+                            task,
+                            parameter
+                        )
                     )
-                )
+                }
                 // 更新到通知栏
                 LOG("UploadManager ${task.id} parameter ok ")
                 parameter.state = TaskState.Success
@@ -269,13 +279,18 @@ class UploadManager {
             //上传任务的文件失败回调
             private fun uploadFileFailure(e: Exception) {
                 //上传任务的文件失败回调
-                task.onUploadFileFailure?.invoke(UploadTaskFileParameterUpdate(task, parameter), e)
-                managerData.onUploadFileFailure?.invoke(
-                    UploadTaskFileParameterUpdate(
-                        task,
-                        parameter
-                    ), e
-                )
+                APP.runOnUiThread {
+                    task.onUploadFileFailure?.invoke(
+                        UploadTaskFileParameterUpdate(task, parameter),
+                        e
+                    )
+                    managerData.onUploadFileFailure?.invoke(
+                        UploadTaskFileParameterUpdate(
+                            task,
+                            parameter
+                        ), e
+                    )
+                }
                 // 更新到通知栏
                 LOG("UploadManager ${task.id} parameter error " + e.message)
                 parameter.state = if (task.isStop) task.state else TaskState.Failure
@@ -302,19 +317,21 @@ class UploadManager {
                 // 避免相同进度重复回调
                 if (parameter.currentProgress?.current == current) return
                 // 更新到任务中，然后进行回调
-                parameter.updateProgress(current).run {
-                    task.onUploadFileProgressUpdate?.invoke(
-                        UploadTaskFileParameterUpdate(
-                            task,
-                            parameter
-                        ), this
-                    )
-                    managerData.onProgressUpdate?.invoke(
-                        UploadTaskFileParameterUpdate(
-                            task,
-                            parameter
-                        ), this
-                    )
+                APP.runOnUiThread {
+                    parameter.updateProgress(current).run {
+                        task.onUploadFileProgressUpdate?.invoke(
+                            UploadTaskFileParameterUpdate(
+                                task,
+                                parameter
+                            ), this
+                        )
+                        managerData.onProgressUpdate?.invoke(
+                            UploadTaskFileParameterUpdate(
+                                task,
+                                parameter
+                            ), this
+                        )
+                    }
                 }
                 // 更新到通知栏
                 parameter.updateNotification(

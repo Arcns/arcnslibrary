@@ -1,10 +1,12 @@
 package com.arcns.core.network
 
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
-import com.arcns.core.app.*
+import com.arcns.core.APP
 import com.arcns.core.file.tryClose
 import com.arcns.core.util.EventObserver
 import com.arcns.core.util.LOG
@@ -200,8 +202,10 @@ class DownloadManager {
                     // 更新状态
                     task.onChangeStateToSuccess()
                     // 回调
-                    task.onTaskSuccess?.invoke(task, response)
-                    managerData.onTaskSuccess?.invoke(task, response)
+                    APP.mainHandler.post {
+                        task.onTaskSuccess?.invoke(task, response)
+                        managerData.onTaskSuccess?.invoke(task, response)
+                    }
                     // 更新到通知栏
                     managerData.updateNotification(task)
                     managerData.onEventTaskUpdateByState(task)
@@ -212,8 +216,10 @@ class DownloadManager {
                     // 更新状态
                     task.onChangeStateToFailureIfNotStop()
                     // 回调
-                    task.onTaskFailure?.invoke(task, e, response)
-                    managerData.onTaskFailure?.invoke(task, e, response)
+                    APP.runOnUiThread {
+                        task.onTaskFailure?.invoke(task, e, response)
+                        managerData.onTaskFailure?.invoke(task, e, response)
+                    }
                     // 更新到通知栏
                     managerData.updateNotification(task)
                     managerData.onEventTaskUpdateByState(task)
@@ -229,8 +235,10 @@ class DownloadManager {
                     // 避免相同进度重复回调
                     if (task.currentProgress?.current == current) return
                     // 更新到任务中，然后进行回调
-                    task.updateProgress(total, current)?.run {
-                        managerData.onProgressUpdate?.invoke(task, this)
+                    APP.runOnUiThread {
+                        task.updateProgress(total, current)?.run {
+                            managerData.onProgressUpdate?.invoke(task, this)
+                        }
                     }
                     // 更新到通知栏
                     managerData.updateNotification(task)

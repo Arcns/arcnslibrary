@@ -2,6 +2,8 @@ package com.arcns.core
 
 import android.app.Application
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import com.arcns.core.util.LocaleUtil
 
 /**
@@ -63,6 +65,21 @@ class APP {
          * 返回封装好的上下文（注意如果有使用语言工具时，使用多语言资源时必须调用APP.CONTEXT而不是APP.INSTANCE）
          */
         val CONTEXT: Context get() = wrapContext()
+
+
+        /**
+         * 主线程
+         */
+        val mainHandler: Handler by lazy { Handler(Looper.getMainLooper()) }
+
+        /**
+         * 在主线程中运行
+         */
+        fun runOnUiThread(r: (() -> Unit)) {
+            mainHandler.post {
+                r.invoke()
+            }
+        }
     }
 }
 

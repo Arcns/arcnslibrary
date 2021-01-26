@@ -1,6 +1,5 @@
 package com.arcns.core.network
 
-import com.arcns.core.file.FileUtil
 import okhttp3.Response
 import java.net.HttpURLConnection
 
