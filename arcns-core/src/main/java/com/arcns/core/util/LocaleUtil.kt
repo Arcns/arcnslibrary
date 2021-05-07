@@ -23,7 +23,7 @@ import java.util.*
  *
  *
  *
- * 二、Appcompat版本 >= 1.1
+ * 二、Appcompat版本 > 1.1
  *  1、在application oncreate中初始化，并在attachBaseContext、onConfigurationChanged在调用LocaleUtil.setSystemLocaleLanguage设置系统默认语言
  *  2、在activity的attachBaseContext中调用applyOverrideConfiguration(Configuration())
  *  3、在activity的applyOverrideConfiguration中使用LocaleUtil.updateConfigurationIfSupported()更新语言配置
