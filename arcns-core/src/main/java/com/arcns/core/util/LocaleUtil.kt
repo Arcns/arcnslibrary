@@ -126,9 +126,9 @@ class LocaleUtil(
         }.toList()
         // 弹出框内容
         val setupDialog: MaterialDialog.() -> Unit = {
-            title(text = title)
-            noAutoDismiss()
-            listItemsSingleChoice(
+            this.title(text = title)
+            this.noAutoDismiss()
+            this.listItemsSingleChoice(
                 items = currentItems,
                 initialSelection = currentIndex
             ) { _, index, _ ->
