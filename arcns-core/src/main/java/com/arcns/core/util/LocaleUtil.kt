@@ -119,7 +119,7 @@ class LocaleUtil(
         var currentLocale = getSaveLocale()
         var currentIndex = 0
         var currentItems = currentLocales.mapIndexed { index, eLocale ->
-            if (eLocale.language == currentLocale?.language) {
+            if (eLocale.language?.equals(currentLocale?.language, true) == true) {
                 currentIndex = index
             }
             eLocale.displayName

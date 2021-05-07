@@ -15,7 +15,11 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.Html
+import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.URLSpan
 import android.util.Base64
 import android.util.DisplayMetrics
 import android.util.TypedValue
@@ -237,6 +241,11 @@ fun String.colorHtmlToString(colorRes: Int): String =
 
 fun String.colorHtml(color: Int): Spanned = colorHtmlToString(color).html
 
+// string外层包裹a标签
+fun String.hrefHtmlToString(href: String): String =
+    "<a href='${href}'>$this</a>"
+
+fun String.hrefHtml(href: String): Spanned = hrefHtmlToString(href).html
 
 /***********************************Gson**************************************/
 // string序列化为对象
@@ -1743,3 +1752,37 @@ fun Activity.setupAutoHideSoftInput(
 fun View.removeSelfFromParent() {
     (parent as? ViewGroup)?.removeView(this)
 }
+
+
+/**
+ * TextView自定义a标签（URLSpan）点击事件处理
+ */
+fun TextView.handleUrlClicks(onClicked: ((String) -> Unit)? = null) {
+    //create span builder and replaces current text with it
+    text = text.handleUrlClicks(onClicked)
+    //make sure movement method is set
+    movementMethod = LinkMovementMethod.getInstance()
+}
+
+/**
+ * 为CharSequence的a标签（URLSpan）添加自定义点击事件处理
+ */
+fun CharSequence.handleUrlClicks(onClicked: ((String) -> Unit)? = null): CharSequence =
+    SpannableStringBuilder.valueOf(this).apply {
+        //search for all URL spans and replace all spans with our own clickable spans
+        getSpans(0, length, URLSpan::class.java).forEach {
+            //add new clickable span at the same position
+            setSpan(
+                object : ClickableSpan() {
+                    override fun onClick(widget: View) {
+                        onClicked?.invoke(it.url)
+                    }
+                },
+                getSpanStart(it),
+                getSpanEnd(it),
+                Spanned.SPAN_INCLUSIVE_EXCLUSIVE
+            )
+            //remove old URLSpan
+            removeSpan(it)
+        }
+    }
