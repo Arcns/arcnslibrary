@@ -77,7 +77,7 @@ class LocaleUtil(
      * 保存设置好的当前语言
      */
     fun saveLocale(language: String? = null) =
-        APP.INSTANCE.getSharedPreferences(DATA_NAME, Context.MODE_PRIVATE)
+        APP.INSTANCE.getSharedPreferences(DATA_NAME, Context.MODE_MULTI_PROCESS)
             .edit {
                 putString(
                     DATA_KEY_LOCALE, if (language.isNullOrBlank()) {
@@ -90,7 +90,7 @@ class LocaleUtil(
      * 获取保存的设置语言，注意如果保存的是跟随系统时将返回null
      */
     fun getSaveLocale(context: Context? = APP.INSTANCE): Locale? =
-        context?.getSharedPreferences(DATA_NAME, Context.MODE_PRIVATE)
+        context?.getSharedPreferences(DATA_NAME, Context.MODE_MULTI_PROCESS)
             ?.getString(
                 DATA_KEY_LOCALE,
                 null
