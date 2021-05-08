@@ -3,6 +3,7 @@ package com.arcns.core.util
 import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
 import androidx.core.content.edit
 import com.afollestad.materialdialogs.MaterialDialog
@@ -46,7 +47,16 @@ class LocaleUtil(
     private var currentContext: Context? = null
 
     // 当前系统语言
-    private var currentSystemLocaleLanguage: String? = null
+    val currentSystemLocale: Locale
+        get() =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Resources.getSystem().configuration.locales[0]
+            } else {
+                Resources.getSystem().configuration.locale
+            }
+
+    // 当前系统语言
+    val currentSystemLocaleLanguage: String get() = currentSystemLocale.language
 
     /**
      * 返回封装了当前语言的APP上下文
@@ -69,9 +79,9 @@ class LocaleUtil(
     /**
      * 设置系统语言（在Application的attachBaseContext、onConfigurationChanged回调）
      */
-    fun setSystemLocaleLanguage(language: String?) {
-        currentSystemLocaleLanguage = language
-    }
+//    fun setSystemLocaleLanguage(language: String?) {
+//        currentSystemLocaleLanguage = language
+//    }
 
     /**
      * 保存设置好的当前语言
