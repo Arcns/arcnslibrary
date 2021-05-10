@@ -199,7 +199,7 @@ fun Context.setLocale(
         return this
     }
     // 设置语言
-    Locale.setDefault(newLocale)
+//    Locale.setDefault(newLocale)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
         configuration.setLocale(newLocale)
         configuration.setLayoutDirection(newLocale)
