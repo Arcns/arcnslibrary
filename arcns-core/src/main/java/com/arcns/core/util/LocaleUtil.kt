@@ -105,7 +105,12 @@ class LocaleUtil(
                 DATA_KEY_LOCALE,
                 null
             )?.let {
-                Locale(it)
+                val languages = it.split('_')
+                if (languages.count() == 2) {
+                    Locale(languages[0], languages[1])
+                } else {
+                    Locale(it)
+                }
             }
 
     /**
