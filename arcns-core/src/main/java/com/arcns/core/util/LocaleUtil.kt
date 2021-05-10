@@ -83,13 +83,13 @@ class LocaleUtil(
     /**
      * 保存设置好的当前语言
      */
-    fun saveLocale(language: String? = null) =
+    fun saveLocale(locale: Locale? = null) =
         APP.INSTANCE.getSharedPreferences(DATA_NAME, Context.MODE_MULTI_PROCESS)
             .edit {
                 putString(
-                    DATA_KEY_LOCALE, if (language.isNullOrBlank()) {
+                    DATA_KEY_LOCALE, if (locale == null || locale.toString().isBlank()) {
                         null
-                    } else language
+                    } else locale.toString()
                 )
             }
 
@@ -124,14 +124,14 @@ class LocaleUtil(
         activity: Activity,
         title: String? = null,
         autoSave: Boolean = true,
-        selection: ((String?) -> Unit)? = null
+        selection: ((Locale?) -> Unit)? = null
     ): MaterialDialog.() -> Unit {
         var currentLocales = getLocales()
         // 获取当前选中的语言
         var currentLocale = getSaveLocale()
         var currentIndex = 0
         var currentItems = currentLocales.mapIndexed { index, eLocale ->
-            if (eLocale.language?.equals(currentLocale?.language, true) == true) {
+            if (eLocale.locale?.equals(currentLocale) == true) {
                 currentIndex = index
             }
             eLocale.displayName
@@ -147,12 +147,11 @@ class LocaleUtil(
                 if (currentIndex == index) {
                     return@listItemsSingleChoice
                 }
-                val language = currentLocales[index].language
                 if (autoSave) {
-                    saveLocale(language)
+                    saveLocale(currentLocales[index].locale)
                 }
                 if (selection != null) {
-                    selection(language)
+                    selection(currentLocales[index].locale)
                 } else {
                     activity.recreate()
                 }
@@ -168,7 +167,7 @@ class LocaleUtil(
         activity: Activity,
         title: String? = null,
         autoSave: Boolean = true,
-        selection: ((String?) -> Unit)? = null
+        selection: ((Locale?) -> Unit)? = null
     ) {
         activity.showDialog(
             func = getLocaleSelector(
@@ -179,7 +178,7 @@ class LocaleUtil(
 }
 
 data class ELocale(
-    var language: String? = null,
+    var locale: Locale? = null,
     var displayName: String
 )
 
