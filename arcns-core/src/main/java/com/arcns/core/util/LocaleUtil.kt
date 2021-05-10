@@ -55,9 +55,6 @@ class LocaleUtil(
                 Resources.getSystem().configuration.locale
             }
 
-    // 当前系统语言
-    val currentSystemLocaleLanguage: String get() = currentSystemLocale.language
-
     /**
      * 返回封装了当前语言的APP上下文
      */
@@ -117,7 +114,7 @@ class LocaleUtil(
      * 获取保存的设置语言，并自动转换跟随系统时的语言
      */
     fun getSaveLocaleAutoConvertSystemLocale(context: Context? = APP.INSTANCE): Locale =
-        getSaveLocale(context) ?: Locale(currentSystemLocaleLanguage)
+        getSaveLocale(context) ?: currentSystemLocale
 
 
     /**
@@ -195,7 +192,7 @@ fun Context.setLocale(
 ): Context {
     var configuration = resources.configuration
     // 与当前语言对比，避免重复设置
-    if (newLocale.language == configuration.localeLanguage) {
+    if (newLocale.equals(configuration.currentLocale)) {
         return this
     }
     // 设置语言
@@ -219,17 +216,17 @@ fun Context.setLocale(
 /**
  * 获取当前配置的语言
  */
-val Context.localeLanguage: String? get() = resources?.configuration?.localeLanguage
+val Context.currentLocale: Locale? get() = resources?.configuration?.currentLocale
 
 /**
  * 获取当前配置的语言
  */
-val Configuration.localeLanguage: String
+val Configuration.currentLocale: Locale
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         locales[0]
     } else {
         locale
-    }.language
+    }
 
 /**
  * 适用 <= Appcompat 1.1
