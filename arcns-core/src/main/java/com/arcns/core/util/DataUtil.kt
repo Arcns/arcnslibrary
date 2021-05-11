@@ -10,6 +10,7 @@ public inline fun <T> List<T>.reverseForEach(action: (T) -> Unit): Unit {
     val count = count()
     for (index in count - 1 downTo 0) action(this[index])
 }
+
 /**
  * 倒序循环输出
  */
@@ -51,7 +52,7 @@ fun Double.keepDecimalPlacesToString(decimalPlaces: Int, isRounding: Boolean = t
         it.roundingMode = if (isRounding) RoundingMode.HALF_UP else RoundingMode.FLOOR
         it.groupingSize = 0
         it.isGroupingUsed = false
-        it.format(this)
+        it.format(this).replace(",", "")
     }
 }
 
