@@ -62,7 +62,7 @@ import com.google.android.material.textfield.TextInputLayout
         "customDrawableBottomTint"],
     requireAll = false
 )
-fun customDrawableTopSize(
+fun customDrawable(
     textView: TextView,
     drawableLeftRid: Int?,
     drawableLeft: Drawable?,
@@ -192,7 +192,7 @@ fun customDrawableTopSize(
         "customDrawableBottomHeight"],
     requireAll = false
 )
-fun customDrawableTopSize(
+fun customDrawable(
     editText: EditText,
     drawableLeft: Drawable?,
     drawableLeftSize: Float?,
