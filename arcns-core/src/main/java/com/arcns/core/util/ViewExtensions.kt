@@ -196,6 +196,10 @@ val Int.color: Int
         }
     }
 
+// color string 转 color
+val String.color: Int get() = Color.parseColor(if (this.startsWith("#")) this else "#$this")
+
+
 // 普通数值转dp
 val Float.dp: Float                 // [xxhdpi](360 -> 1080)
     get() = android.util.TypedValue.applyDimension(
