@@ -3,6 +3,7 @@ package com.arcns.core.util
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -14,6 +15,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.text.Html
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -52,7 +54,6 @@ import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.mimeType
 import com.arcns.core.file.tryClose
 import com.bumptech.glide.Glide
-import com.bumptech.glide.Priority
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -77,6 +78,7 @@ import java.util.regex.Pattern
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.sqrt
+import ezy.assist.compat.SettingsCompat
 
 
 open class WidthHeight(
@@ -1255,6 +1257,44 @@ fun Context.openAppByFile(
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     startActivity(intent)
 }
+
+/***********************************app操作**************************************/
+
+// 重启APP
+fun Activity.restartApp(isFinish: Boolean = true) {
+    val packageManager: PackageManager = getPackageManager()
+    val intent = packageManager.getLaunchIntentForPackage(getPackageName())
+    val mainIntent = Intent.makeRestartActivityTask(intent?.component)
+    startActivity(mainIntent)
+    Runtime.getRuntime().exit(0)
+    if (isFinish) finish()
+}
+
+// 重启APP
+fun Fragment.restartApp(isFinish: Boolean = true) = activity?.restartApp(isFinish)
+
+// 打开悬浮窗设置页面
+fun Activity.goDrawOverlaysSettings(onFailure: ((e: Exception) -> Unit)? = null) {
+    try {
+        val sdkInt = Build.VERSION.SDK_INT
+        if (sdkInt >= Build.VERSION_CODES.O) { //8.0以上
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+            startActivityForResult(intent, 100)
+        } else if (sdkInt >= Build.VERSION_CODES.M) { //6.0-8.0
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+            intent.data = Uri.parse("package:$packageName")
+            startActivityForResult(intent, 100)
+        } else { //4.4-6.0以下
+            //无需处理了
+            SettingsCompat.manageDrawOverlays(this)
+        }
+    } catch (e: Exception) {
+        onFailure?.invoke(e)
+    }
+}
+
+// 是否拥有悬浮窗权限
+val canDrawOverlays: Boolean get() = SettingsCompat.canDrawOverlays(APP.INSTANCE)
 
 /***********************************其他**************************************/
 

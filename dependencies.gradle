@@ -2,8 +2,8 @@ ext.versions = [
         min_sdk     : 19,
         compile_sdk : 29,
         build_tools : "29.0.2",
-        publish_code: 87,
-        publish_name: "0.5.57"
+        publish_code: 88,
+        publish_name: "0.5.67"
 ]
 ext.deps = [
         gradle_plugins: [
@@ -72,5 +72,7 @@ ext.deps = [
         // 录音视频缓存
         video_cache   : "com.danikula:videocache:2.7.1",
         // 文件操作
-        xfile         : "com.gitee.arcns:xfile:0.2"
+        xfile         : "com.gitee.arcns:xfile:0.2",
+        // 悬浮窗权限
+        draw_overlays : "com.github.czy1121:settingscompat:1.1.4"
 ]
