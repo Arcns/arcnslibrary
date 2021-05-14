@@ -26,3 +26,8 @@
     implementation 'com.afollestad.material-dialogs:datetime:3.3.0'
     implementation 'com.afollestad.material-dialogs:bottomsheets:3.3.0'
 ```
+####  悬浮窗相关的方法（goDrawOverlaysSettings、canDrawOverlays）在本library为仅编译（compileOnly），所以如果需要用到悬浮窗相关的方法，需要在主项目的build.gradle中添加：
+```
+    // 悬浮窗
+    implementation 'com.github.czy1121:settingscompat:1.1.4'
+```
