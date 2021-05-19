@@ -1296,6 +1296,22 @@ fun Activity.goDrawOverlaysSettings(onFailure: ((e: Exception) -> Unit)? = null)
 // 是否拥有悬浮窗权限
 val canDrawOverlays: Boolean get() = SettingsCompat.canDrawOverlays(APP.INSTANCE)
 
+// 返回到桌面
+fun Activity.moveTaskToLauncher() {
+    val intent = Intent(Intent.ACTION_MAIN)
+    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+    intent.addCategory(Intent.CATEGORY_HOME)
+    startActivity(intent)
+}
+
+// 返回到桌面
+fun Fragment.moveTaskToLauncher() {
+    val intent = Intent(Intent.ACTION_MAIN)
+    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+    intent.addCategory(Intent.CATEGORY_HOME)
+    startActivity(intent)
+}
+
 /***********************************其他**************************************/
 
 /**
