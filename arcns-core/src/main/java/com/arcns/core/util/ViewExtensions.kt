@@ -1,7 +1,10 @@
 package com.arcns.core.util
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -69,6 +72,7 @@ import com.google.gson.annotations.Expose
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
+import ezy.assist.compat.SettingsCompat
 import me.shouheng.compress.Compress
 import me.shouheng.compress.strategy.Strategies
 import java.io.*
@@ -78,7 +82,6 @@ import java.util.regex.Pattern
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.sqrt
-import ezy.assist.compat.SettingsCompat
 
 
 open class WidthHeight(
@@ -1846,3 +1849,15 @@ fun CharSequence.handleUrlClicks(onClicked: ((String) -> Unit)? = null): CharSeq
             removeSpan(it)
         }
     }
+
+/**
+ * 复制到粘贴板
+ */
+fun String.copyToClipboard() {
+    (APP.INSTANCE.getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager)?.setPrimaryClip(
+        ClipData.newPlainText(
+            "text",
+            this
+        )
+    )
+}
