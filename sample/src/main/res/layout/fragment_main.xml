@@ -51,6 +51,8 @@
             android:gravity="center"
             android:onClick="@{()->viewModel.startBluetooth()}"
             android:padding="@dimen/dp_9"
+            app:customDrawableLeftAny="@{viewModel.drawableLeft}"
+            app:customDrawableLeftSize="@{@dimen/dp_20}"
             android:text="连接设备"
             android:textColor="@color/colorAccent"
             android:textSize="@dimen/sp_12"

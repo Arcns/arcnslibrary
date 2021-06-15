@@ -125,7 +125,7 @@ dependencies {
     // 权限检查
     implementation 'com.yanzhenjie:permission:2.0.3'
     // 图片压缩大小
-    implementation 'id.zelory:compressor:2.1.0'
+    implementation 'id.zelory:compressor:3.0.1'
     // 蓝牙
     implementation 'com.clj.fastble:FastBleLib:2.3.4'
 

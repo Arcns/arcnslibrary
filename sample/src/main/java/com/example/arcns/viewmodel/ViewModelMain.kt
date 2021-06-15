@@ -35,6 +35,11 @@ class ViewModelMain : ViewModel() {
     private var _toast = MutableLiveData<Event<String>>()
     var toast: LiveData<Event<String>> = _toast
 
+    //
+    var drawableLeft = MutableLiveData<String>().apply {
+        value = "http://pic.baike.soso.com/p/20110730/bki-20110730162914-1013093665.jpg"
+    }
+
     @InjectSuperViewModel
     lateinit var superViewModel:ViewModelActivityMain
 

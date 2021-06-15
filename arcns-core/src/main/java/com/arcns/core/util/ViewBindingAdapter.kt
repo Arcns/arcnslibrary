@@ -2,6 +2,7 @@ package com.arcns.core.util
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.text.TextUtils
 import android.util.DisplayMetrics
@@ -30,8 +31,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.arcns.core.APP
 import com.arcns.core.R
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.textfield.TextInputLayout
+import java.io.File
 
 
 // 设置TextView Drawable的大小
@@ -69,34 +72,34 @@ import com.google.android.material.textfield.TextInputLayout
 )
 fun customDrawable(
     textView: TextView,
-    drawableLeftAny: Any?,
-    drawableLeftRid: Int?,
-    drawableLeft: Drawable?,
-    drawableLeftSize: Float?,
-    drawableLeftWidth: Float?,
-    drawableLeftHeight: Float?,
-    drawableLeftTint: Int?,
-    drawableTopAny: Any?,
-    drawableTopRid: Int?,
-    drawableTop: Drawable?,
-    drawableTopSize: Float?,
-    drawableTopWidth: Float?,
-    drawableTopHeight: Float?,
-    drawableTopTint: Int?,
-    drawableRightAny: Any?,
-    drawableRightRid: Int?,
-    drawableRight: Drawable?,
-    drawableRightSize: Float?,
-    drawableRightWidth: Float?,
-    drawableRightHeight: Float?,
-    drawableRightTint: Int?,
-    drawableBottomAny: Any?,
-    drawableBottomRid: Int?,
-    drawableBottom: Drawable?,
-    drawableBottomSize: Float?,
-    drawableBottomWidth: Float?,
-    drawableBottomHeight: Float?,
-    drawableBottomTint: Int?
+    drawableLeftAny: Any? = null,
+    drawableLeftRid: Int? = null,
+    drawableLeft: Drawable? = null,
+    drawableLeftSize: Float? = null,
+    drawableLeftWidth: Float? = null,
+    drawableLeftHeight: Float? = null,
+    drawableLeftTint: Int? = null,
+    drawableTopAny: Any? = null,
+    drawableTopRid: Int? = null,
+    drawableTop: Drawable? = null,
+    drawableTopSize: Float? = null,
+    drawableTopWidth: Float? = null,
+    drawableTopHeight: Float? = null,
+    drawableTopTint: Int? = null,
+    drawableRightAny: Any? = null,
+    drawableRightRid: Int? = null,
+    drawableRight: Drawable? = null,
+    drawableRightSize: Float? = null,
+    drawableRightWidth: Float? = null,
+    drawableRightHeight: Float? = null,
+    drawableRightTint: Int? = null,
+    drawableBottomAny: Any? = null,
+    drawableBottomRid: Int? = null,
+    drawableBottom: Drawable? = null,
+    drawableBottomSize: Float? = null,
+    drawableBottomWidth: Float? = null,
+    drawableBottomHeight: Float? = null,
+    drawableBottomTint: Int? = null
 ) {
     var left = try {
         drawableLeftRid?.drawable ?: drawableLeft ?: drawableLeftAny?.drawable
@@ -118,29 +121,81 @@ fun customDrawable(
     } catch (e: Exception) {
         null
     }
-
-    // 检查是否有网络资源
-//    if (left == null || top == null || right == null || bottom == null) {
-//        val checkWaitLoad: (Drawable?, Any?) -> Boolean = { drawable, any ->
-//            drawable == null && (any is String && any.isInternetResources)
-//        }
-//        var leftIsWaitLoad = checkWaitLoad(left, drawableLeftAny)
-//        var topIsWaitLoad = checkWaitLoad(top, drawableTopAny)
-//        var rightIsWaitLoad = checkWaitLoad(right, drawableRightAny)
-//        var bottomIsWaitLoad = checkWaitLoad(bottom, drawableBottomAny)
-//        if (leftIsWaitLoad || topIsWaitLoad || rightIsWaitLoad || bottomIsWaitLoad) {
-//            textView.loadDrawable(drawableLeftAny, onFailed = {
-//
-//            }) {
-//
-//            }
-//
-//
-//            // 完成加载网络资源后再进行设置
-//            return
-//        }
-//    }
-
+    // 检查是否有需要加载的资源
+    if (left == null || top == null || right == null || bottom == null) {
+        val checkWaitLoad: (Drawable?, Any?) -> Boolean = { drawable, any ->
+            drawable == null && ((any is String && any.isInternetResources) || any is Uri || any is File || any is GlideUrl)
+        }
+        var leftIsWaitLoad = checkWaitLoad(left, drawableLeftAny)
+        var topIsWaitLoad = checkWaitLoad(top, drawableTopAny)
+        var rightIsWaitLoad = checkWaitLoad(right, drawableRightAny)
+        var bottomIsWaitLoad = checkWaitLoad(bottom, drawableBottomAny)
+        if (leftIsWaitLoad || topIsWaitLoad || rightIsWaitLoad || bottomIsWaitLoad) {
+            // 检查是否均加载完成
+            val checkLoaded: () -> Unit = {
+                if (!leftIsWaitLoad && !topIsWaitLoad && !rightIsWaitLoad && !bottomIsWaitLoad)
+                    customDrawable(
+                        textView = textView,
+                        drawableLeft = left,
+                        drawableLeftSize = drawableLeftSize,
+                        drawableLeftWidth = drawableLeftWidth,
+                        drawableLeftHeight = drawableLeftHeight,
+                        drawableLeftTint = drawableLeftTint,
+                        drawableTop = top,
+                        drawableTopSize = drawableTopSize,
+                        drawableTopWidth = drawableTopWidth,
+                        drawableTopHeight = drawableTopHeight,
+                        drawableTopTint = drawableTopTint,
+                        drawableRight = right,
+                        drawableRightSize = drawableRightSize,
+                        drawableRightWidth = drawableRightWidth,
+                        drawableRightHeight = drawableRightHeight,
+                        drawableRightTint = drawableRightTint,
+                        drawableBottom = bottom,
+                        drawableBottomSize = drawableBottomSize,
+                        drawableBottomWidth = drawableBottomWidth,
+                        drawableBottomHeight = drawableBottomHeight,
+                        drawableBottomTint = drawableBottomTint
+                    )
+            }
+            // 开始加载资源
+            textView.loadDrawable(drawableLeftAny, onFailed = {
+                leftIsWaitLoad = false
+                checkLoaded()
+            }) {
+                left = it
+                leftIsWaitLoad = false
+                checkLoaded()
+            }
+            textView.loadDrawable(drawableTopAny, onFailed = {
+                topIsWaitLoad = false
+                checkLoaded()
+            }) {
+                top = it
+                topIsWaitLoad = false
+                checkLoaded()
+            }
+            textView.loadDrawable(drawableRightAny, onFailed = {
+                rightIsWaitLoad = false
+                checkLoaded()
+            }) {
+                right = it
+                rightIsWaitLoad = false
+                checkLoaded()
+            }
+            textView.loadDrawable(drawableBottomAny, onFailed = {
+                bottomIsWaitLoad = false
+                checkLoaded()
+            }) {
+                bottom = it
+                bottomIsWaitLoad = false
+                checkLoaded()
+            }
+            // 完成加载网络资源后再进行设置
+            return
+        }
+    }
+    // 资源格式化并加载到控件中
     val formatDrawable: (Drawable?, Int?, Float?, Float?, Float?) -> Drawable? =
         { curDrawable, curTint, curSize, curWidth, curHeight ->
             var newDrawable: Drawable? = curDrawable

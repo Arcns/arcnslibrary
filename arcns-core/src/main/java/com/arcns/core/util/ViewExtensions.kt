@@ -191,6 +191,13 @@ val Int.drawable: Drawable
         }
     }
 
+val Any.drawable: Drawable?
+    get() = when (this) {
+        is Int -> this.drawable
+        is Drawable -> this
+        else -> null
+    }
+
 // 获取color资源
 val Int.color: Int
     get() {
