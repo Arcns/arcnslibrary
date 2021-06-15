@@ -1045,6 +1045,89 @@ fun ImageView.setImageViaGlide(
     }
 }
 
+
+/**
+ * 通过Glide设置图片
+ */
+fun Any.loadDrawable(
+    image: Any?, // 图片资源（Int、String、Uri、File、GlideUrl）
+    cache: Boolean? = null, // 默认true
+    highQualityBitmap: Boolean? = null, //高质量bitmap，默认为false
+    asGif: Boolean? = null, //是否为gif，默认为false
+    onFailed: ((Exception?) -> Unit)? = null,
+    onSuccess: (Drawable) -> Unit
+) {
+
+    val glide = when (this) {
+        is View -> Glide.with(this)
+        is Context -> Glide.with(this)
+        else -> {
+            onFailed?.invoke(java.lang.Exception("Need to be accessed through view or context"))
+            return
+        }
+    }
+    var requestBuilder: RequestBuilder<*> = when (image) {
+        is Int -> if (asGif == true) glide.asGif().load(image) else glide.load(image)
+        is String -> {
+            val checkAsGif = asGif ?: image.endsWith(".gif", true)
+            if (image.isInternetResources) {
+                if (checkAsGif) glide.asGif().load(image) else glide.load(image)
+            } else {
+                if (checkAsGif) glide.asGif().load(File(image)) else glide.load(File(image))
+            }
+        }
+        is Uri -> if (asGif == true) glide.asGif().load(image) else glide.load(image)
+        is File -> {
+            val checkAsGif = asGif ?: image.absolutePath.endsWith(".gif", true)
+            if (checkAsGif == true) glide.asGif().load(image) else glide.load(image)
+        }
+        is GlideUrl -> if (asGif == true) glide.asGif().load(image) else glide.load(image)
+        else -> return
+    }
+    // 设置缓存机制
+    if (cache == false) {
+        requestBuilder =
+            requestBuilder.diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true)
+    }
+    // 设置图片质量
+    requestBuilder =
+        requestBuilder.format(if (highQualityBitmap == true) DecodeFormat.PREFER_ARGB_8888 else DecodeFormat.PREFER_RGB_565)
+    if (asGif == true)
+        (requestBuilder as? RequestBuilder<GifDrawable>)?.into(object :
+            CustomTarget<GifDrawable>() {
+            override fun onLoadCleared(placeholder: Drawable?) {
+            }
+
+            override fun onLoadFailed(errorDrawable: Drawable?) {
+                onFailed?.invoke(null)
+            }
+
+            override fun onResourceReady(
+                resource: GifDrawable,
+                transition: Transition<in GifDrawable>?
+            ) {
+                onSuccess.invoke(resource)
+            }
+
+        })
+    else
+        (requestBuilder as? RequestBuilder<Drawable>)?.into(object : CustomTarget<Drawable>() {
+            override fun onLoadCleared(placeholder: Drawable?) {
+            }
+
+            override fun onLoadFailed(errorDrawable: Drawable?) {
+                onFailed?.invoke(null)
+            }
+
+            override fun onResourceReady(
+                resource: Drawable,
+                transition: Transition<in Drawable>?
+            ) {
+                onSuccess.invoke(resource)
+            }
+        })
+}
+
 fun Int.saveImageAsLocal(
     width: Float = 0f,
     height: Float = 0f,

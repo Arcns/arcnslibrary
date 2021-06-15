@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.arcns.core.APP
 import com.arcns.core.R
+import com.bumptech.glide.Glide
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.textfield.TextInputLayout
 
@@ -36,24 +37,28 @@ import com.google.android.material.textfield.TextInputLayout
 // 设置TextView Drawable的大小
 @BindingAdapter(
     value = [
+        "customDrawableLeftAny",
         "customDrawableLeftRid",
         "customDrawableLeft",
         "customDrawableLeftSize",
         "customDrawableLeftWidth",
         "customDrawableLeftHeight",
         "customDrawableLeftTint",
+        "customDrawableTopAny",
         "customDrawableTopRid",
         "customDrawableTop",
         "customDrawableTopSize",
         "customDrawableTopWidth",
         "customDrawableTopHeight",
         "customDrawableTopTint",
+        "customDrawableRightAny",
         "customDrawableRightRid",
         "customDrawableRight",
         "customDrawableRightSize",
         "customDrawableRightWidth",
         "customDrawableRightHeight",
         "customDrawableRightTint",
+        "customDrawableBottomAny",
         "customDrawableBottomRid",
         "customDrawableBottom",
         "customDrawableBottomSize",
@@ -64,24 +69,28 @@ import com.google.android.material.textfield.TextInputLayout
 )
 fun customDrawable(
     textView: TextView,
+    drawableLeftAny: Any?,
     drawableLeftRid: Int?,
     drawableLeft: Drawable?,
     drawableLeftSize: Float?,
     drawableLeftWidth: Float?,
     drawableLeftHeight: Float?,
     drawableLeftTint: Int?,
+    drawableTopAny: Any?,
     drawableTopRid: Int?,
     drawableTop: Drawable?,
     drawableTopSize: Float?,
     drawableTopWidth: Float?,
     drawableTopHeight: Float?,
     drawableTopTint: Int?,
+    drawableRightAny: Any?,
     drawableRightRid: Int?,
     drawableRight: Drawable?,
     drawableRightSize: Float?,
     drawableRightWidth: Float?,
     drawableRightHeight: Float?,
     drawableRightTint: Int?,
+    drawableBottomAny: Any?,
     drawableBottomRid: Int?,
     drawableBottom: Drawable?,
     drawableBottomSize: Float?,
@@ -90,157 +99,178 @@ fun customDrawable(
     drawableBottomTint: Int?
 ) {
     var left = try {
-        drawableLeftRid?.drawable ?: drawableLeft
+        drawableLeftRid?.drawable ?: drawableLeft ?: drawableLeftAny?.drawable
     } catch (e: Exception) {
         null
     }
     var top = try {
-        drawableTopRid?.drawable ?: drawableTop
+        drawableTopRid?.drawable ?: drawableTop ?: drawableTopAny?.drawable
     } catch (e: Exception) {
         null
     }
     var right = try {
-        drawableRightRid?.drawable ?: drawableRight
+        drawableRightRid?.drawable ?: drawableRight ?: drawableRightAny?.drawable
     } catch (e: Exception) {
         null
     }
     var bottom = try {
-        drawableBottomRid?.drawable ?: drawableBottom
+        drawableBottomRid?.drawable ?: drawableBottom ?: drawableBottomAny?.drawable
     } catch (e: Exception) {
         null
     }
 
+    // 检查是否有网络资源
+//    if (left == null || top == null || right == null || bottom == null) {
+//        val checkWaitLoad: (Drawable?, Any?) -> Boolean = { drawable, any ->
+//            drawable == null && (any is String && any.isInternetResources)
+//        }
+//        var leftIsWaitLoad = checkWaitLoad(left, drawableLeftAny)
+//        var topIsWaitLoad = checkWaitLoad(top, drawableTopAny)
+//        var rightIsWaitLoad = checkWaitLoad(right, drawableRightAny)
+//        var bottomIsWaitLoad = checkWaitLoad(bottom, drawableBottomAny)
+//        if (leftIsWaitLoad || topIsWaitLoad || rightIsWaitLoad || bottomIsWaitLoad) {
+//            textView.loadDrawable(drawableLeftAny, onFailed = {
+//
+//            }) {
+//
+//            }
+//
+//
+//            // 完成加载网络资源后再进行设置
+//            return
+//        }
+//    }
 
-    left?.apply {
-        drawableLeftTint?.let {
-            left = DrawableCompat.wrap(this).mutate()
-            DrawableCompat.setTint(this, it)
+    val formatDrawable: (Drawable?, Int?, Float?, Float?, Float?) -> Drawable? =
+        { curDrawable, curTint, curSize, curWidth, curHeight ->
+            var newDrawable: Drawable? = curDrawable
+            newDrawable?.apply {
+                curTint?.let {
+                    newDrawable = DrawableCompat.wrap(this).mutate()
+                    DrawableCompat.setTint(this, it)
+                }
+                if (curSize != null) {
+                    setBounds(0, 0, curSize.toInt(), curSize.toInt())
+                } else if (curWidth != null && curHeight != null) {
+                    setBounds(0, 0, curWidth.toInt(), curHeight.toInt())
+                }
+                //        var left = 0
+//        var top = 0
+//        var right = drawableRightSize?.toInt() ?: drawableRightWidth?.toInt() ?: return@apply
+//        var bottom = drawableRightSize?.toInt() ?: drawableRightHeight?.toInt() ?: return@apply
+//        // 修复andorid5.1及以下版本 rightDrawable错位的问题
+//        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+//            left = -textView.paddingRight
+//            top = (textView.height - bottom) / 2
+//            right -= textView.paddingRight
+//            bottom += top
+//        }
+//        setBounds(left, top, right, bottom)
+            }
         }
-        if (drawableLeftSize != null) {
-            setBounds(0, 0, drawableLeftSize.toInt(), drawableLeftSize.toInt())
-        } else if (drawableLeftWidth != null && drawableLeftHeight != null) {
-            setBounds(0, 0, drawableLeftWidth.toInt(), drawableLeftHeight.toInt())
-        }
-    }
-    top?.apply {
-        drawableTopTint?.let {
-            top = DrawableCompat.wrap(this).mutate()
-            DrawableCompat.setTint(this, it)
-        }
-        if (drawableTopSize != null) {
-            setBounds(0, 0, drawableTopSize.toInt(), drawableTopSize.toInt())
-        } else if (drawableTopWidth != null && drawableTopHeight != null) {
-            setBounds(0, 0, drawableTopWidth.toInt(), drawableTopHeight.toInt())
-        }
-    }
-    right?.apply {
-        drawableRightTint?.let {
-            right = DrawableCompat.wrap(this).mutate()
-            DrawableCompat.setTint(this, it)
-        }
+    textView.setCompoundDrawables(
+        formatDrawable(
+            left,
+            drawableLeftTint,
+            drawableLeftSize,
+            drawableLeftWidth,
+            drawableLeftHeight
+        ),
+        formatDrawable(
+            top,
+            drawableTopTint,
+            drawableTopSize,
+            drawableTopWidth,
+            drawableTopHeight
+        ),
+        formatDrawable(
+            right,
+            drawableRightTint,
+            drawableRightSize,
+            drawableRightWidth,
+            drawableRightHeight
+        ),
+        formatDrawable(
+            bottom,
+            drawableBottomTint,
+            drawableBottomSize,
+            drawableBottomWidth,
+            drawableBottomHeight
+        )
+    )
+}
+
+//
+//// 设置EditText Drawable的大小
+//@BindingAdapter(
+//    value = [
+//        "customDrawableLeft",
+//        "customDrawableLeftSize",
+//        "customDrawableLeftWidth",
+//        "customDrawableLeftHeight",
+//        "customDrawableTop",
+//        "customDrawableTopSize",
+//        "customDrawableTopWidth",
+//        "customDrawableTopHeight",
+//        "customDrawableRight",
+//        "customDrawableRightSize",
+//        "customDrawableRightWidth",
+//        "customDrawableRightHeight",
+//        "customDrawableBottom",
+//        "customDrawableBottomSize",
+//        "customDrawableBottomWidth",
+//        "customDrawableBottomHeight"],
+//    requireAll = false
+//)
+//fun customDrawable(
+//    editText: EditText,
+//    drawableLeft: Drawable?,
+//    drawableLeftSize: Float?,
+//    drawableLeftWidth: Float?,
+//    drawableLeftHeight: Float?,
+//    drawableTop: Drawable?,
+//    drawableTopSize: Float?,
+//    drawableTopWidth: Float?,
+//    drawableTopHeight: Float?,
+//    drawableRight: Drawable?,
+//    drawableRightSize: Float?,
+//    drawableRightWidth: Float?,
+//    drawableRightHeight: Float?,
+//    drawableBottom: Drawable?,
+//    drawableBottomSize: Float?,
+//    drawableBottomWidth: Float?,
+//    drawableBottomHeight: Float?
+//) {
+//    drawableLeft?.apply {
+//        if (drawableLeftSize != null) {
+//            setBounds(0, 0, drawableLeftSize.toInt(), drawableLeftSize.toInt())
+//        } else if (drawableLeftWidth != null && drawableLeftHeight != null) {
+//            setBounds(0, 0, drawableLeftWidth.toInt(), drawableLeftHeight.toInt())
+//        }
+//    }
+//    drawableTop?.apply {
+//        if (drawableTopSize != null) {
+//            setBounds(0, 0, drawableTopSize.toInt(), drawableTopSize.toInt())
+//        } else if (drawableTopWidth != null && drawableTopHeight != null) {
+//            setBounds(0, 0, drawableTopWidth.toInt(), drawableTopHeight.toInt())
+//        }
+//    }
+//    drawableRight?.apply {
 //        if (drawableRightSize != null) {
 //            setBounds(0, 0, drawableRightSize.toInt(), drawableRightSize.toInt())
 //        } else if (drawableRightWidth != null && drawableRightHeight != null) {
 //            setBounds(0, 0, drawableRightWidth.toInt(), drawableRightHeight.toInt())
 //        }
-        var left = 0
-        var top = 0
-        var right = drawableRightSize?.toInt() ?: drawableRightWidth?.toInt() ?: return@apply
-        var bottom = drawableRightSize?.toInt() ?: drawableRightHeight?.toInt() ?: return@apply
-        // 修复andorid5.1及以下版本 rightDrawable错位的问题
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            left = -textView.paddingRight
-            top = (textView.height - bottom) / 2
-            right -= textView.paddingRight
-            bottom += top
-        }
-        setBounds(left, top, right, bottom)
-    }
-    bottom?.apply {
-        drawableBottomTint?.let {
-            bottom = DrawableCompat.wrap(this).mutate()
-            DrawableCompat.setTint(this, it)
-        }
-        if (drawableBottomSize != null) {
-            setBounds(0, 0, drawableBottomSize.toInt(), drawableBottomSize.toInt())
-        } else if (drawableBottomWidth != null && drawableBottomHeight != null) {
-            setBounds(0, 0, drawableBottomWidth.toInt(), drawableBottomHeight.toInt())
-        }
-    }
-    textView.setCompoundDrawables(left, top, right, bottom)
-}
-
-
-// 设置EditText Drawable的大小
-@BindingAdapter(
-    value = [
-        "customDrawableLeft",
-        "customDrawableLeftSize",
-        "customDrawableLeftWidth",
-        "customDrawableLeftHeight",
-        "customDrawableTop",
-        "customDrawableTopSize",
-        "customDrawableTopWidth",
-        "customDrawableTopHeight",
-        "customDrawableRight",
-        "customDrawableRightSize",
-        "customDrawableRightWidth",
-        "customDrawableRightHeight",
-        "customDrawableBottom",
-        "customDrawableBottomSize",
-        "customDrawableBottomWidth",
-        "customDrawableBottomHeight"],
-    requireAll = false
-)
-fun customDrawable(
-    editText: EditText,
-    drawableLeft: Drawable?,
-    drawableLeftSize: Float?,
-    drawableLeftWidth: Float?,
-    drawableLeftHeight: Float?,
-    drawableTop: Drawable?,
-    drawableTopSize: Float?,
-    drawableTopWidth: Float?,
-    drawableTopHeight: Float?,
-    drawableRight: Drawable?,
-    drawableRightSize: Float?,
-    drawableRightWidth: Float?,
-    drawableRightHeight: Float?,
-    drawableBottom: Drawable?,
-    drawableBottomSize: Float?,
-    drawableBottomWidth: Float?,
-    drawableBottomHeight: Float?
-) {
-    drawableLeft?.apply {
-        if (drawableLeftSize != null) {
-            setBounds(0, 0, drawableLeftSize.toInt(), drawableLeftSize.toInt())
-        } else if (drawableLeftWidth != null && drawableLeftHeight != null) {
-            setBounds(0, 0, drawableLeftWidth.toInt(), drawableLeftHeight.toInt())
-        }
-    }
-    drawableTop?.apply {
-        if (drawableTopSize != null) {
-            setBounds(0, 0, drawableTopSize.toInt(), drawableTopSize.toInt())
-        } else if (drawableTopWidth != null && drawableTopHeight != null) {
-            setBounds(0, 0, drawableTopWidth.toInt(), drawableTopHeight.toInt())
-        }
-    }
-    drawableRight?.apply {
-        if (drawableRightSize != null) {
-            setBounds(0, 0, drawableRightSize.toInt(), drawableRightSize.toInt())
-        } else if (drawableRightWidth != null && drawableRightHeight != null) {
-            setBounds(0, 0, drawableRightWidth.toInt(), drawableRightHeight.toInt())
-        }
-    }
-    drawableBottom?.apply {
-        if (drawableBottomSize != null) {
-            setBounds(0, 0, drawableBottomSize.toInt(), drawableBottomSize.toInt())
-        } else if (drawableBottomWidth != null && drawableBottomHeight != null) {
-            setBounds(0, 0, drawableBottomWidth.toInt(), drawableBottomHeight.toInt())
-        }
-    }
-    editText.setCompoundDrawables(drawableLeft, drawableTop, drawableRight, drawableBottom)
-}
+//    }
+//    drawableBottom?.apply {
+//        if (drawableBottomSize != null) {
+//            setBounds(0, 0, drawableBottomSize.toInt(), drawableBottomSize.toInt())
+//        } else if (drawableBottomWidth != null && drawableBottomHeight != null) {
+//            setBounds(0, 0, drawableBottomWidth.toInt(), drawableBottomHeight.toInt())
+//        }
+//    }
+//    editText.setCompoundDrawables(drawableLeft, drawableTop, drawableRight, drawableBottom)
+//}
 
 
 /**
