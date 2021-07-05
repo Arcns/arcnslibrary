@@ -11,6 +11,8 @@ dependencies {
     androidTestImplementation deps.test.androidx_espresso
     implementation deps.androidx.appcompat
     implementation deps.androidx.ktx
+    // material
+//    implementation 'com.google.android.material:material:1.3.0'
 
     // 反射
     implementation deps.kotlin.reflect
@@ -21,7 +23,7 @@ dependencies {
     compileOnly deps.androidx.nav_fragment_ktx
     compileOnly deps.androidx.nav_ui_ktx
     // Fragment
-    implementation deps.androidx.fragment_ktx
+//    implementation deps.androidx.fragment_ktx
     // ViewModel and LiveData
     implementation deps.androidx.lifecycle_viewmodel
     implementation deps.androidx.lifecycle_livedata

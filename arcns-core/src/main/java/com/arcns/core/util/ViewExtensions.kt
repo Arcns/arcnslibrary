@@ -8,10 +8,7 @@ import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Color
-import android.graphics.Matrix
+import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -56,6 +53,7 @@ import com.arcns.core.R
 import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.mimeType
 import com.arcns.core.file.tryClose
+import com.arcns.xfile.FileUtil
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DecodeFormat
@@ -1141,7 +1139,8 @@ fun Int.saveImageAsLocal(
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
     compressQuality: Int = 80,
-    isOriginal: Boolean = false
+    isOriginal: Boolean = false,
+    saveFilePath: String? = null
 ): File? = saveImageAsLocalOrNull(
     this,
     width,
@@ -1149,7 +1148,8 @@ fun Int.saveImageAsLocal(
     centerInside,
     highQualityBitmap,
     compressQuality,
-    isOriginal
+    isOriginal,
+    saveFilePath
 )
 
 fun String.saveImageAsLocal(
@@ -1158,7 +1158,8 @@ fun String.saveImageAsLocal(
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
     compressQuality: Int = 80,
-    isOriginal: Boolean = false
+    isOriginal: Boolean = false,
+    saveFilePath: String? = null
 ): File? = saveImageAsLocalOrNull(
     this,
     width,
@@ -1166,7 +1167,8 @@ fun String.saveImageAsLocal(
     centerInside,
     highQualityBitmap,
     compressQuality,
-    isOriginal
+    isOriginal,
+    saveFilePath
 )
 
 fun File.saveImageAsLocal(
@@ -1175,7 +1177,8 @@ fun File.saveImageAsLocal(
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
     compressQuality: Int = 80,
-    isOriginal: Boolean = false
+    isOriginal: Boolean = false,
+    saveFilePath: String? = null
 ): File? = saveImageAsLocalOrNull(
     this,
     width,
@@ -1183,7 +1186,8 @@ fun File.saveImageAsLocal(
     centerInside,
     highQualityBitmap,
     compressQuality,
-    isOriginal
+    isOriginal,
+    saveFilePath
 )
 
 fun Uri.saveImageAsLocal(
@@ -1192,7 +1196,8 @@ fun Uri.saveImageAsLocal(
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
     compressQuality: Int = 80,
-    isOriginal: Boolean = false
+    isOriginal: Boolean = false,
+    saveFilePath: String? = null
 ): File? = saveImageAsLocalOrNull(
     this,
     width,
@@ -1200,7 +1205,27 @@ fun Uri.saveImageAsLocal(
     centerInside,
     highQualityBitmap,
     compressQuality,
-    isOriginal
+    isOriginal,
+    saveFilePath
+)
+
+fun Bitmap.saveImageAsLocal(
+    width: Float = 0f,
+    height: Float = 0f,
+    centerInside: Boolean = false,
+    highQualityBitmap: Boolean = true,
+    compressQuality: Int = 80,
+    isOriginal: Boolean = false,
+    saveFilePath: String? = null
+): File? = saveImageAsLocalOrNull(
+    this,
+    width,
+    height,
+    centerInside,
+    highQualityBitmap,
+    compressQuality,
+    isOriginal,
+    saveFilePath
 )
 
 fun saveImageAsLocalOrNull(
@@ -1210,7 +1235,8 @@ fun saveImageAsLocalOrNull(
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
     compressQuality: Int = 80,
-    isOriginal: Boolean = false
+    isOriginal: Boolean = false,
+    saveFilePath: String? = null
 ): File? = try {
     saveImageAsLocal(
         image,
@@ -1219,7 +1245,8 @@ fun saveImageAsLocalOrNull(
         centerInside,
         highQualityBitmap,
         compressQuality,
-        isOriginal
+        isOriginal,
+        saveFilePath
     )
 } catch (e: java.lang.Exception) {
     null
@@ -1232,20 +1259,23 @@ fun saveImageAsLocal(
     centerInside: Boolean = false,
     highQualityBitmap: Boolean = true,
     compressQuality: Int = 80,
-    isOriginal: Boolean = false
+    isOriginal: Boolean = false,
+    saveFilePath: String? = null
 ): File {
     if (image == null) {
         throw java.lang.Exception("iamge is null")
     }
-    if (isOriginal) {
+    val filePath = if (saveFilePath.isNullOrBlank()) getRandomPhotoCacheFilePath() else saveFilePath
+    if (isOriginal || (compressQuality == 100 && highQualityBitmap)) {
         val bitmap = when (image) {
+            is Bitmap -> image
             is Int -> image.bitmap()
             is String -> image.bitmap()
             is Uri -> image.bitmap()
             is File -> image.bitmap()
             else -> null
         } ?: throw java.lang.Exception("iamge as to bitmap error")
-        val localFile = File(getRandomPhotoCacheFilePath())
+        val localFile = File(filePath)
         val localFileOutputStream = FileOutputStream(localFile)
         try {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, localFileOutputStream)
@@ -1256,46 +1286,70 @@ fun saveImageAsLocal(
             localFileOutputStream.tryClose()
         }
     }
-    var requestBuilder =
-        Glide.with(APP.INSTANCE).asBitmap()
-    when (image) {
-        is Int -> requestBuilder.load(image)
-        is String -> if (image.isInternetResources) requestBuilder.load(image) else requestBuilder.load(
-            File(image)
-        )
-        is Uri -> requestBuilder.load(image)
-        is File -> requestBuilder.load(image)
-        else -> throw java.lang.Exception("iamge type error")
-    }
-    if (width != 0f && height != 0f) {
-        requestBuilder = requestBuilder.override(width.toInt(), height.toInt())
-    } else {
-        val size = when (image) {
-            is Int -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
-            is String -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
-            is Uri -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
-            is File -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
-            else -> null
-        } ?: throw java.lang.Exception("iamge calculate scaled size error")
-        requestBuilder = requestBuilder.override(size.newWidth, size.newHeight)
-    }
-    requestBuilder = if (centerInside) {
-        requestBuilder.centerInside()
-    } else {
-        requestBuilder.centerCrop()
-    }
-    requestBuilder =
-        requestBuilder.format(if (highQualityBitmap) DecodeFormat.PREFER_ARGB_8888 else DecodeFormat.PREFER_RGB_565)
     try {
-        // 让Glide在当前线程同步加载
-        val bitmap = requestBuilder.submit().get()
+        val bitmap: Bitmap? =
+            if (image is Bitmap) image
+            else {
+                var requestBuilder =
+                    Glide.with(APP.INSTANCE).asBitmap()
+                when (image) {
+                    is Int -> requestBuilder.load(image)
+                    is String -> if (image.isInternetResources) requestBuilder.load(image) else requestBuilder.load(
+                        File(image)
+                    )
+                    is Uri -> requestBuilder.load(image)
+                    is File -> requestBuilder.load(image)
+                    else -> throw java.lang.Exception("iamge type error")
+                }
+                if (width != 0f && height != 0f) {
+                    requestBuilder = requestBuilder.override(width.toInt(), height.toInt())
+                } else {
+                    val size = when (image) {
+                        is Int -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
+                        is String -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
+                        is Uri -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
+                        is File -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
+                        else -> null
+                    } ?: throw java.lang.Exception("iamge calculate scaled size error")
+                    requestBuilder = requestBuilder.override(size.newWidth, size.newHeight)
+                }
+                requestBuilder = if (centerInside) {
+                    requestBuilder.centerInside()
+                } else {
+                    requestBuilder.centerCrop()
+                }
+                requestBuilder =
+                    requestBuilder.format(if (highQualityBitmap) DecodeFormat.PREFER_ARGB_8888 else DecodeFormat.PREFER_RGB_565)
+                // 让Glide在当前线程同步加载
+                requestBuilder.submit().get()
+            }
         // 开始压缩
         return Compress.with(APP.INSTANCE, bitmap)
             .setQuality(compressQuality)
+            .setTargetDir(FileUtil.getFileDirectory(filePath))
+            .setCacheNameFactory {
+                FileUtil.getFileName(filePath)
+            }
             .strategy(Strategies.compressor()).get()
     } catch (e: java.lang.Exception) {
         throw e
     }
+}
+
+// 旋转bitmap
+fun Bitmap.rotate(degrees: Float): Bitmap {
+    val matrix = Matrix().apply { postRotate(degrees) }
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+}
+
+// yuv420sp视频帧转bitmap
+fun ByteArray.yuv420spToBitmap(width: Int, height: Int): Bitmap {
+    val image = YuvImage(this, ImageFormat.NV21, width, height, null)
+    val stream = ByteArrayOutputStream()
+    image.compressToJpeg(Rect(0, 0, width, height), 100, stream)
+    val bitmap = BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.size())
+    stream.tryClose()
+    return bitmap
 }
 
 /***********************************打开app**************************************/
@@ -1315,7 +1369,11 @@ fun Context.openAppByUri(uri: Uri, mimeType: String) {
     var intent = Intent(Intent.ACTION_VIEW)
     intent.setDataAndType(uri, mimeType)
     if (intent.resolveActivity(packageManager) == null) {
-        Toast.makeText(this, R.string.text_not_find_open_app_by_mime_type.string, Toast.LENGTH_LONG)
+        Toast.makeText(
+            this,
+            R.string.text_not_find_open_app_by_mime_type.string,
+            Toast.LENGTH_LONG
+        )
             .show()
         return
     }
@@ -1343,7 +1401,11 @@ fun Context.openAppByFile(
         intent.setDataAndType(uri, mimeType)
     }
     if (intent.resolveActivity(packageManager) == null) {
-        Toast.makeText(this, R.string.text_not_find_open_app_by_mime_type.string, Toast.LENGTH_LONG)
+        Toast.makeText(
+            this,
+            R.string.text_not_find_open_app_by_mime_type.string,
+            Toast.LENGTH_LONG
+        )
             .show()
         return
     }
