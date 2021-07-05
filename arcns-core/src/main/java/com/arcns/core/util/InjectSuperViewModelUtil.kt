@@ -27,7 +27,7 @@ inline fun <reified VM : ViewModel> Fragment.viewModelsAndInjectSuper(
     VM::class,
     { ownerProducer().viewModelStore },
     factoryProducer ?: {
-        defaultViewModelProviderFactory
+        requireActivity().defaultViewModelProviderFactory
     },
     { superOwnerProducer().viewModelStore },
     superFactoryProducer ?: { this.requireActivity().defaultViewModelProviderFactory }
@@ -58,11 +58,11 @@ class ViewModelAndInjectSuperLazy<VM : ViewModel>(
                         viewModelClass.declaredMemberProperties.forEach {
                             val superViewModel = it.findAnnotation<InjectSuperViewModel>()
                             if (superViewModel != null && it is KMutableProperty<*>) {
-                                LOG("ViewModelAndInjectSuperLazy:for:"+it.name+"  "+it.returnType)
+                                LOG("ViewModelAndInjectSuperLazy:for:" + it.name + "  " + it.returnType)
                                 val javaClass =
                                     (it.returnType.classifier as? KClass<out ViewModel>)?.java
                                         ?: return@forEach
-                                LOG("ViewModelAndInjectSuperLazy:type:"+it.returnType)
+                                LOG("ViewModelAndInjectSuperLazy:type:" + it.returnType)
                                 it.setter.call(
                                     viewModel,
                                     ViewModelProvider(
