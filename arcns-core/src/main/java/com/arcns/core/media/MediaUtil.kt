@@ -14,7 +14,6 @@ import com.arcns.core.APP
 import com.arcns.core.file.MIME_TYPE_WILDCARD
 import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.getRandomVideoCacheFilePath
-import com.arcns.core.util.fileProviderAuthority
 import java.io.File
 import java.lang.Exception
 
@@ -113,7 +112,7 @@ class MediaUtil(var fragment: Fragment) {
             // 安卓N及以上需要通过文件提供者把路径提供给系统相机
             saveFileUri = FileProvider.getUriForFile(
                 context,
-                context.fileProviderAuthority,
+                APP.fileProviderAuthority!!,
                 saveFile
             )
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -151,7 +150,7 @@ class MediaUtil(var fragment: Fragment) {
             // 安卓N及以上需要通过文件提供者把路径提供给系统相机
             saveFileUri = FileProvider.getUriForFile(
                 context,
-                context.fileProviderAuthority,
+                APP.fileProviderAuthority!!,
                 saveFile
             )
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

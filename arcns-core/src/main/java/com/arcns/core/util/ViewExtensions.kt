@@ -511,6 +511,20 @@ fun String.log() {
 }
 
 
+/***********************************Uri操作**************************************/
+
+fun File.conversionUri(authority: String = APP.fileProviderAuthority!!): Uri? = try {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        FileProvider.getUriForFile(APP.INSTANCE, authority, this);
+    } else {
+        Uri.fromFile(this);
+    }
+} catch (e: Exception) {
+    e.printStackTrace()
+    null
+}
+
+
 /***********************************图片显示、保存与压缩**************************************/
 
 /**
@@ -1861,11 +1875,6 @@ val Int.isLightColor get() = ColorUtils.calculateLuminance(this) >= 0.5
 val Int.isLightColorOfResource get() = ColorUtils.calculateLuminance(this.color) >= 0.5
 
 /**
- * 获取内容提供者令牌
- */
-val Context.fileProviderAuthority: String get() = "$packageName.fileprovider"
-
-/**
  * 获取当前版本名
  */
 val Context.versionName
@@ -2013,3 +2022,11 @@ fun String.copyToClipboard() {
         )
     )
 }
+
+/**
+ * 通过包名检查是否有安装APP
+ */
+val String.isInstallAppByPackageName: Boolean
+    get() = APP.INSTANCE.packageManager.getInstalledPackages(
+        0
+    ).firstOrNull { it.packageName == this } != null
