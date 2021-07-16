@@ -514,7 +514,8 @@ fun String.log() {
 /***********************************Uri操作**************************************/
 
 fun File.conversionUri(authority: String = APP.fileProviderAuthority!!): Uri? = try {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+    if (!exists()) null
+    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         FileProvider.getUriForFile(APP.INSTANCE, authority, this);
     } else {
         Uri.fromFile(this);
@@ -1301,9 +1302,14 @@ fun saveImageAsLocal(
         }
     }
     try {
+        val newWidth: Int
+        val newHeight: Int
         val bitmap: Bitmap? =
-            if (image is Bitmap) image
-            else {
+            if (image is Bitmap) {
+                newWidth = image.width
+                newHeight = image.height
+                image
+            } else {
                 var requestBuilder =
                     Glide.with(APP.INSTANCE).asBitmap()
                 when (image) {
@@ -1316,7 +1322,8 @@ fun saveImageAsLocal(
                     else -> throw java.lang.Exception("iamge type error")
                 }
                 if (width != 0f && height != 0f) {
-                    requestBuilder = requestBuilder.override(width.toInt(), height.toInt())
+                    newWidth = width.toInt()
+                    newHeight = height.toInt()
                 } else {
                     val size = when (image) {
                         is Int -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
@@ -1325,8 +1332,10 @@ fun saveImageAsLocal(
                         is File -> image.calculateBitmapScaledSize(width.toInt(), height.toInt())
                         else -> null
                     } ?: throw java.lang.Exception("iamge calculate scaled size error")
-                    requestBuilder = requestBuilder.override(size.newWidth, size.newHeight)
+                    newWidth = size.newWidth
+                    newHeight = size.newHeight
                 }
+                requestBuilder = requestBuilder.override(newWidth, newHeight)
                 requestBuilder = if (centerInside) {
                     requestBuilder.centerInside()
                 } else {
@@ -1344,7 +1353,10 @@ fun saveImageAsLocal(
             .setCacheNameFactory {
                 FileUtil.getFileName(filePath)
             }
-            .strategy(Strategies.compressor()).get()
+            .strategy(Strategies.compressor())
+            .setMaxWidth(newWidth.toFloat())
+            .setMaxHeight(newHeight.toFloat())
+            .get()
     } catch (e: java.lang.Exception) {
         throw e
     }
