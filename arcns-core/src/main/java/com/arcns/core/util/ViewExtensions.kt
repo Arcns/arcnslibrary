@@ -69,6 +69,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.Expose
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 import ezy.assist.compat.SettingsCompat
 import me.shouheng.compress.Compress
 import me.shouheng.compress.strategy.Strategies
@@ -951,7 +952,6 @@ fun ImageView.setImageViaPicasso(
             override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
                 background = BitmapDrawable(context.resources, bitmap)
             }
-
         })
     } else {
         // 设置为src
