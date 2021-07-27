@@ -345,9 +345,7 @@ class SimpleDownloadUtil(var context: Context) {
     }
 
     fun openBrowserDownload(downloadApkUrl: String) =
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(downloadApkUrl)).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        })
+        context.openBrowser(downloadApkUrl)
 }
 
 

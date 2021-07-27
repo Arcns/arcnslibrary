@@ -69,7 +69,6 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.Expose
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
-import com.squareup.picasso.Target
 import ezy.assist.compat.SettingsCompat
 import me.shouheng.compress.Compress
 import me.shouheng.compress.strategy.Strategies
@@ -210,15 +209,23 @@ val Int.color: Int
 val String.color: Int get() = Color.parseColor(if (this.startsWith("#")) this else "#$this")
 
 
-// 普通数值转dp
-val Float.dp: Float                 // [xxhdpi](360 -> 1080)
+// 普通数值转dp 如[xxhdpi](360 -> 1080)
+val Float.dp: Float
     get() = android.util.TypedValue.applyDimension(
         android.util.TypedValue.COMPLEX_UNIT_DIP, this, Resources.getSystem().displayMetrics
     )
 
-// 普通数值转dp
+// 普通数值转dp 如[xxhdpi](360 -> 1080)
 val Int.dp: Int
     get() = toFloat().dp.toInt()
+
+// dp数值转px数值 如[xxhdpi](1080 -> 360)
+val Float.dp2px: Float
+    get() = this / Resources.getSystem().displayMetrics.density + 0.5f * if (this >= 0) 1 else -1
+
+// dp数值转px数值 如[xxhdpi](1080 -> 360)
+val Int.dp2px: Int
+    get() = toFloat().dp2px.toInt()
 
 // 普通数值转sp
 val Float.sp: Float                 // [xxhdpi](360 -> 1080)
@@ -1437,6 +1444,20 @@ fun Context.openAppByFile(
     }
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     startActivity(intent)
+}
+
+fun Context.openBrowser(url: String): Boolean {
+    try {
+        if (url.isInternetResources) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
+            return true
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return false
 }
 
 /***********************************app操作**************************************/
