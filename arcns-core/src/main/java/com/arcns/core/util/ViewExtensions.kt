@@ -7,10 +7,12 @@ import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.RippleDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -40,6 +42,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
@@ -189,6 +192,7 @@ val Int.drawable: Drawable
         }
     }
 
+// 获取drawable资源
 val Any.drawable: Drawable?
     get() = when (this) {
         is Int -> this.drawable
@@ -268,6 +272,33 @@ fun String.hrefHtmlToString(href: String): String =
     "<a href='${href}'>$this</a>"
 
 fun String.hrefHtml(href: String): Spanned = hrefHtmlToString(href).html
+
+// 获取主题Attr资源
+fun Context.getAttributeResource(attr: Int, defResId: Int? = null): Int? = with(TypedValue()) {
+    val hasValue = theme.resolveAttribute(attr, this, true)
+    if (hasValue) resourceId else defResId
+}
+
+val Context.selectableItemBackgroundRes: Int? get() = getAttributeResource(android.R.attr.selectableItemBackground)
+val Context.selectableItemBackgroundBorderlessRes: Int? get() = getAttributeResource(android.R.attr.selectableItemBackgroundBorderless)
+
+// 为Drawable着色
+fun Drawable.applyTint(color: Int?): Drawable {
+    if (color == null) return this
+    val drawable = DrawableCompat.wrap(this).mutate()
+    DrawableCompat.setTint(drawable, color)
+    return drawable
+}
+
+// 为Drawable添加Ripple效果
+fun Drawable.applyRipple(context: Context, rippleColor: Int?): RippleDrawable? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        (rippleColor
+            ?: context.getAttributeResource(android.R.attr.colorControlHighlight)?.color)?.let {
+            RippleDrawable(ColorStateList.valueOf(it), this, null)
+        }
+    } else null
+
 
 /***********************************Gson**************************************/
 // string序列化为对象
