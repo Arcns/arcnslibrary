@@ -1,10 +1,14 @@
 package com.arcns.core
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.lifecycle.Lifecycle
 import com.arcns.core.util.LocaleUtil
+import java.lang.ref.WeakReference
 
 /**
  *
@@ -66,7 +70,6 @@ class APP {
          */
         val CONTEXT: Context get() = wrapContext()
 
-
         /**
          * 主线程
          */
@@ -79,6 +82,53 @@ class APP {
             mainHandler.post {
                 r.invoke()
             }
+        }
+
+        /**
+         * 当前运行的activity
+         */
+        private var wrCurrentActivity: WeakReference<Activity>? = null
+        private var wrCurrentActivityCallback: Application.ActivityLifecycleCallbacks? = null
+        val currentActivity: Activity? get() = wrCurrentActivity?.get()
+
+        /**
+         * 开始自动记录当前运行的activity
+         */
+        fun startRecordCurrentActivity() {
+            wrCurrentActivityCallback = object :
+                Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+
+                override fun onActivityStarted(activity: Activity) {}
+
+                override fun onActivityResumed(activity: Activity) {
+                    // 记录
+                    wrCurrentActivity?.clear()
+                    wrCurrentActivity = WeakReference(activity)
+                }
+
+                override fun onActivityPaused(activity: Activity) {
+                    // 清除
+                    if (currentActivity == activity) wrCurrentActivity?.clear()
+                }
+
+                override fun onActivityStopped(activity: Activity) {}
+
+                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+                override fun onActivityDestroyed(activity: Activity) {
+                    // 清除
+                    if (currentActivity == activity) wrCurrentActivity?.clear()
+                }
+            }
+            INSTANCE.registerActivityLifecycleCallbacks(wrCurrentActivityCallback)
+        }
+
+        /**
+         * 停止自动记录当前运行的activity
+         */
+        fun stopRecordCurrentActivity() {
+            INSTANCE.unregisterActivityLifecycleCallbacks(wrCurrentActivityCallback ?: return)
         }
     }
 }
