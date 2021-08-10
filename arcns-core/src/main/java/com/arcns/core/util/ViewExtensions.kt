@@ -293,7 +293,7 @@ fun Drawable.applyTint(color: Int?): Drawable {
 // 为Drawable添加Ripple效果
 fun Drawable.applyRipple(context: Context): RippleDrawable? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        context.getAttributeResource(android.R.attr.colorAccent)?.color?.let {
+        context.getAttributeResource(android.R.attr.colorControlHighlight)?.color?.let {
             applyRipple(it)
         }
     } else null
