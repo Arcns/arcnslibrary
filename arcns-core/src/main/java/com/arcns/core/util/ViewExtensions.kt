@@ -291,12 +291,17 @@ fun Drawable.applyTint(color: Int?): Drawable {
 }
 
 // 为Drawable添加Ripple效果
-fun Drawable.applyRipple(context: Context, rippleColor: Int? = null): RippleDrawable? =
+fun Drawable.applyRipple(context: Context): RippleDrawable? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        (rippleColor
-            ?: context.getAttributeResource(android.R.attr.colorControlHighlight)?.color)?.let {
-            RippleDrawable(ColorStateList.valueOf(it), this, null)
+        context.getAttributeResource(android.R.attr.colorAccent)?.color?.let {
+            applyRipple(it)
         }
+    } else null
+
+// 为Drawable添加Ripple效果
+fun Drawable.applyRipple(rippleColor: Int): RippleDrawable? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        RippleDrawable(ColorStateList.valueOf(rippleColor), this, null)
     } else null
 
 
