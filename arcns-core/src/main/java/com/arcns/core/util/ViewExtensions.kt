@@ -935,7 +935,7 @@ fun ImageView.setImageViaPicasso(
     var requestCreator = when (image) {
         is Int -> picasso.load(image)
         is String -> {
-            if (image.isInternetResources)
+            if (image.isGlideStringResources)
                 picasso.load(image)
             else
                 picasso.load(File(image))
@@ -1026,7 +1026,7 @@ fun ImageView.setImageViaGlide(
         is Int -> if (asGif == true) glide.asGif().load(image) else glide.load(image)
         is String -> {
             val checkAsGif = asGif ?: image.endsWith(".gif", true)
-            if (image.isInternetResources) {
+            if (image.isGlideStringResources) {
                 if (checkAsGif) glide.asGif().load(image) else glide.load(image)
             } else {
                 if (checkAsGif) glide.asGif().load(File(image)) else glide.load(File(image))
@@ -1133,7 +1133,7 @@ fun Any.loadDrawable(
         is Int -> if (asGif == true) glide.asGif().load(image) else glide.load(image)
         is String -> {
             val checkAsGif = asGif ?: image.endsWith(".gif", true)
-            if (image.isInternetResources) {
+            if (image.isGlideStringResources) {
                 if (checkAsGif) glide.asGif().load(image) else glide.load(image)
             } else {
                 if (checkAsGif) glide.asGif().load(File(image)) else glide.load(File(image))
@@ -1357,7 +1357,7 @@ fun saveImageAsLocal(
                     Glide.with(APP.INSTANCE).asBitmap()
                 when (image) {
                     is Int -> requestBuilder.load(image)
-                    is String -> if (image.isInternetResources) requestBuilder.load(image) else requestBuilder.load(
+                    is String -> if (image.isGlideStringResources) requestBuilder.load(image) else requestBuilder.load(
                         File(image)
                     )
                     is Uri -> requestBuilder.load(image)
@@ -1976,6 +1976,12 @@ fun Calendar.copy(): Calendar {
 }
 
 /**
+ * 是否为GlideString资源
+ */
+val String.isGlideStringResources: Boolean
+    get() = isInternetResources || isAssetResources
+
+/**
  * 是否为网络资源
  */
 val String.isInternetResources: Boolean
@@ -1983,6 +1989,15 @@ val String.isInternetResources: Boolean
         "http://",
         true
     ) || startsWith("https://", true)
+
+/**
+ * 是否为Asset资源
+ */
+val String.isAssetResources: Boolean
+    get() = startsWith(
+        "file:///android_asset/",
+        true
+    )
 
 
 /**

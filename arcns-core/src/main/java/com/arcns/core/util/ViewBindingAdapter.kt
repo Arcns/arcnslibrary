@@ -124,7 +124,7 @@ fun customDrawable(
     // 检查是否有需要加载的资源
     if (left == null || top == null || right == null || bottom == null) {
         val checkWaitLoad: (Drawable?, Any?) -> Boolean = { drawable, any ->
-            drawable == null && ((any is String && any.isInternetResources) || any is Uri || any is File || any is GlideUrl)
+            drawable == null && ((any is String && any.isGlideStringResources) || any is Uri || any is File || any is GlideUrl)
         }
         var leftIsWaitLoad = checkWaitLoad(left, drawableLeftAny)
         var topIsWaitLoad = checkWaitLoad(top, drawableTopAny)
