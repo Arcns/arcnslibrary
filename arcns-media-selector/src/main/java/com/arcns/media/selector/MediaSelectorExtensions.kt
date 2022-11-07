@@ -1,5 +1,6 @@
 package com.arcns.media.selector
 
+import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
@@ -43,6 +44,7 @@ fun getMediasFromMediaStore(
 /**
  * 从系统媒体库获取媒体列表
  */
+@SuppressLint("Range")
 fun getMediasFromMediaStore(medias: ArrayList<EMedia>, mediaQuery: EMediaQuery): ArrayList<EMedia> {
     val queryProjection = arrayListOf(
         MediaStore.Files.FileColumns._ID,
