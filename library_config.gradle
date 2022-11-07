@@ -9,7 +9,6 @@ group = 'com.github.Arcns'
 //apply plugin: 'com.novoda.bintray-release'
 
 android {
-    namespace project.name
     compileSdkVersion versions.compile_sdk
     buildToolsVersion versions.build_tools
 
