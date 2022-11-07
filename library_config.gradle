@@ -9,6 +9,7 @@ apply plugin: 'maven-publish'
 //apply plugin: 'com.novoda.bintray-release'
 
 android {
+    namespace module_name
     compileSdkVersion versions.compile_sdk
     buildToolsVersion versions.build_tools
 

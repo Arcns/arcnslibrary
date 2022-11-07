@@ -1,3 +1,4 @@
+ext.module_name = ''
 ext.versions = [
         min_sdk     : 19,
         compile_sdk : 31,
