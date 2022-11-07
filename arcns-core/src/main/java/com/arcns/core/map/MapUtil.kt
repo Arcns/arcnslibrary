@@ -41,7 +41,7 @@ fun Context.checkMapIsExist(
     packageName: String?
 ): Boolean {
     var packageInfo = try {
-        packageManager.getPackageInfo(packageName, 0)
+        packageManager.getPackageInfo(packageName ?: return false, 0)
     } catch (e: Exception) {
         null
     }

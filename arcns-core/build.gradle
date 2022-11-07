@@ -12,7 +12,7 @@ dependencies {
     implementation deps.androidx.appcompat
     implementation deps.androidx.ktx
     // activity
-    implementation 'androidx.activity:activity-ktx:1.2.3'
+    implementation 'androidx.activity:activity-ktx:1.6.1'
     // 反射
     implementation deps.kotlin.reflect
     // 相对布局

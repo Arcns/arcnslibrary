@@ -1,10 +1,8 @@
 package com.arcns.core.media
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.media.MediaMetadataRetriever
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -15,7 +13,6 @@ import com.arcns.core.file.MIME_TYPE_WILDCARD
 import com.arcns.core.file.getRandomPhotoCacheFilePath
 import com.arcns.core.file.getRandomVideoCacheFilePath
 import java.io.File
-import java.lang.Exception
 
 
 typealias PhtotoListener = (Intent?, String?, Int?) -> Unit
@@ -221,7 +218,7 @@ val Uri.duration: Long
             retriever.setDataSource(APP.INSTANCE, this)
             duration =
                 retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    .toLongOrNull() ?: -1
+                    ?.toLongOrNull() ?: -1
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
