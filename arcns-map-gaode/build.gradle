@@ -1,14 +1,73 @@
 //ext.module_group = "com.github.Arcns.arcnslibrary"
-//ext.module_name = "arcns-map-gaode"
+//ext.module_name = "arcns-map-baidu"
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+//apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'maven-publish'
 
-apply from: rootProject.file("library_config.gradle")
+// 引入jcenter仓库
+//apply plugin: 'com.novoda.bintray-release'
+
+android {
+    namespace 'com.arcns.map.gaode'
+    compileSdkVersion versions.compile_sdk
+    buildToolsVersion versions.build_tools
+
+    defaultConfig {
+        minSdkVersion versions.min_sdk
+        targetSdkVersion versions.compile_sdk
+        versionCode versions.publish_code
+        versionName versions.publish_name
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+        ndk {
+            //设置支持的SO库架构（开发者可以根据需要，选择一个或多个平台的so）
+            abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    dataBinding {
+        // 启用databinding，与kotlin一起使用时，必须引入：apply plugin: 'kotlin-kapt'
+        enabled = true
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDir 'libs'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
+}
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+            }
+        }
+    }
+}
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation deps.kotlin.stdlib
-    testImplementation deps.test.junit
-    androidTestImplementation deps.test.androidx_junit
-    androidTestImplementation deps.test.androidx_espresso
     implementation deps.androidx.appcompat
     implementation deps.androidx.ktx
     implementation project(path: ':arcns-core')

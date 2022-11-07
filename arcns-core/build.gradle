@@ -6,7 +6,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 //apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
-group = 'com.github.Arcns'
+
 // 引入jcenter仓库
 //apply plugin: 'com.novoda.bintray-release'
 
@@ -78,9 +78,6 @@ afterEvaluate {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation deps.kotlin.stdlib
-    testImplementation deps.test.junit
-    androidTestImplementation deps.test.androidx_junit
-    androidTestImplementation deps.test.androidx_espresso
     implementation deps.androidx.appcompat
     implementation deps.androidx.ktx
     // activity

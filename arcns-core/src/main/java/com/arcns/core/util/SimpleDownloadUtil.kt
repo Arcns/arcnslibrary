@@ -1,5 +1,6 @@
 package com.arcns.core.util
 
+import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.app.DownloadManager.COLUMN_REASON
 import android.app.Service
@@ -156,6 +157,7 @@ class SimpleDownloadUtil(var context: Context) {
     /**
      * 通过id获取下载任务状态
      */
+    @SuppressLint("Range")
     fun getDownloadTaskStatusByID(id: Long): SimpleDownloadTaskStatus? {
         var cursor = downloadManager.query(DownloadManager.Query().apply {
             setFilterById(id)
@@ -261,6 +263,7 @@ class SimpleDownloadUtil(var context: Context) {
      * 下载状态广播接收者
      */
     private var downloadCompleteReceiver = object : BroadcastReceiver() {
+        @SuppressLint("Range")
         override fun onReceive(context: Context?, intent: Intent?) {
             val currentId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0) ?: return
             var cursor = downloadManager.query(DownloadManager.Query().apply {

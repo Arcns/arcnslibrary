@@ -49,12 +49,6 @@ ext.deps = [
                 okhttp             : "com.squareup.okhttp3:okhttp:4.4.0",
                 logging_interceptor: "com.squareup.okhttp3:logging-interceptor:4.4.0"
         ],
-        // 测试
-        test          : [
-                junit            : "junit:junit:4.13",
-                androidx_junit   : "androidx.test.ext:junit:1.1.1",
-                androidx_espresso: "androidx.test.espresso:espresso-core:3.2.0"
-        ],
         // GSON
         gson          : "com.google.code.gson:gson:2.8.6",
         // 图片加载库
