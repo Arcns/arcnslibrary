@@ -1,5 +1,6 @@
 ## 基于MVVM的公共库 [![](https://www.jitpack.io/v/Arcns/arcnslibrary.svg)](https://www.jitpack.io/#Arcns/arcnslibrary)
 
+
 ### 地址
 ```
     implementation 'com.github.Arcns.arcnslibrary:arcns-core:0.3.7-2'
@@ -10,6 +11,7 @@
 ```
 
 #### Navigation相关的工具在本library为仅编译（compileOnly），所以如果需要用到Navigation相关的工具，需要在主项目的build.gradle中添加：
+
 ```
     // Navigation Kotlin
     // 开启navigation需要配置三个地方：module.gradle页面顶部apply、module.gradle页面dependencies、project.gradle页面的classpath
