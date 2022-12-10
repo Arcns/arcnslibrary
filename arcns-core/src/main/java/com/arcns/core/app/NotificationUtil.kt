@@ -128,7 +128,8 @@ fun NotificationOptions.createBuilder(): NotificationCompat.Builder? {
                     APP.INSTANCE,
                     0,
                     WakeAppReceiver.newIntent(APP.INSTANCE), // 创建唤醒广播意图
-                    PendingIntent.FLAG_UPDATE_CURRENT
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    else PendingIntent.FLAG_UPDATE_CURRENT
                 )
             )
             onSettingNotificationCompatBuilder?.invoke(this)
