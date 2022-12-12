@@ -16,7 +16,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.3.1'
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.20'
         // 引入navigation插件库
         classpath deps.gradle_plugins.nav_args
         // 引入仓库插件 需运行gradle wrapper和gradlew install
